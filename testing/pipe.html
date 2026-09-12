@@ -93,7 +93,9 @@ let mx = 0.5
 for (const el of [canvas, document.getElementById('p5')]) el.addEventListener('pointermove', (e) => { mx = e.offsetX / 600 })
 
 const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
-const box = twgl.primitives.createCubeBufferInfo(gl, 1)        // twgl's own noun: position, normal, texcoord, indices
+// twgl's cube noun names its arrays position / normal; the hero's shader declares aPosition / aNormal, so the arrays are re-keyed
+const cube = twgl.primitives.createCubeVertices(1)
+const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
 const scene = renderTarget(gl)
 const pixelate = program(gl, src('pixelate-frag'))
 const vignette = program(gl, src('vignette-frag'))
@@ -103,13 +105,14 @@ const cam = createCamera({ eye: [260, 220, 420], center: [0, 30, 0], up: [0, 1, 
 const M1 = new Float32Array(16), M2 = new Float32Array(16), q = [0, 0, 0, 1]
 const light = [0.4, 0.6, 1]
 
-function render(t) {
+function render() {
+  const t = performance.now()                               // the clock both columns read
   twgl.bindFramebufferInfo(gl, scene)
   gl.enable(gl.DEPTH_TEST)
   gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   setCamera(gl, cam)
-  qFromAxisAngle(q, 0, 1, 0, t * 0.0006)
+  qFromAxisAngle(q, 0, 1, 0, -t * 0.0006)                  // p5's y-down frame mirrors the sense: −θ here reads as its +θ
   bind(gl, lit, { uLightDir: light, uColor: [75 / 255, 150 / 255, 1] })
   draw(gl, box, mat4FromTRS(M1, 0, 0, 0, q[0], q[1], q[2], q[3], 110, 110, 110))
   bind(gl, lit, { uColor: [220 / 255, 70 / 255, 80 / 255] })
@@ -139,7 +142,7 @@ new p5((p) => {
     p.ambientLight(80)
     p.directionalLight(255, 230, 200, 0.4, 0.6, -1)
     p.noStroke()
-    p.rotateY(p.millis() * 0.0006)
+    p.rotateY(performance.now() * 0.0006)
     p.specularMaterial(75, 150, 255)
     p.shininess(60)
     p.box(110)

@@ -102,7 +102,8 @@ const blur = program(gl, src('blur-frag'))           // the fragment stage only;
 const cam = createCamera({ eye: [0, 0, 400], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 3, near: 0.1, far: 1000 })
 const M = new Float32Array(16), q = [0, 0, 0, 1]
 
-function render(t) {
+function render() {
+  const t = performance.now()                               // the clock both columns read
   const r = parseFloat(radius.value)
   twgl.bindFramebufferInfo(gl, scene)
   gl.enable(gl.DEPTH_TEST)
@@ -110,7 +111,7 @@ function render(t) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   setCamera(gl, cam)
   bind(gl, tri)
-  qFromAxisAngle(q, 0, 1, 0, t * 0.001)
+  qFromAxisAngle(q, 0, 1, 0, -t * 0.001)                   // p5's scale(1, −1, 1) mirrors the sense: −θ here reads as its +θ
   draw(gl, triangle, mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
   twgl.bindFramebufferInfo(gl, null)
   pipe(gl, scene, [
@@ -139,7 +140,7 @@ new p5((p) => {
     p.background(20)
     p.shader(triShader)
     p.scale(1, -1, 1)
-    p.rotateY(p.millis() * 0.001)
+    p.rotateY(performance.now() * 0.001)
     p.beginShape(p.TRIANGLES)
     p.fill(255, 0, 0); p.vertex(-86.6, -50, 0)
     p.fill(0, 255, 0); p.vertex(86.6, -50, 0)

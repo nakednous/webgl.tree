@@ -111,7 +111,7 @@ function render() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   setCamera(gl, cam)
   bind(gl, tri)
-  qFromAxisAngle(q, 0, 1, 0, -t * 0.001)                   // p5's scale(1, −1, 1) mirrors the sense: −θ here reads as its +θ
+  qFromAxisAngle(q, 0, 1, 0, t * 0.001)                    // a y-flip leaves a rotation about y alone: the same θ as the p5 column
   draw(gl, triangle, mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
   twgl.bindFramebufferInfo(gl, null)
   pipe(gl, scene, [

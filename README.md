@@ -6,8 +6,12 @@ depth-only, multi-target), fullscreen filter passes and the ping-pong pipe, asyn
 colour-ID scene picking, and a camera install that uploads only the transforms a program
 declares. No engine, no scene graph — twgl's own verbs stay yours.
 
-> **Status: design.** The bridge surface is being settled in `bridge-design.md`; no source has
-> been written. This README is a placeholder that states the package's place in the stack.
+> **Status: 0.0.x, building.** Shipped: the context registry (`init`, `dispose`, `viewOf`),
+> `setCamera` in both forms, `bind` · `draw` · `drawInstanced` under the declared transforms,
+> `renderTarget` in every shape with `SCREEN`, `program(frag)` · `fullscreen` · `filter` ·
+> `image` · `pipe` · `releasePipe`. Still to land: picking, textures, the gizmo line pipe, HUD
+> and panes. The harness under `testing/` runs the notebook's imaging heroes on the bridge with
+> p5.tree beside for parity.
 
 ---
 

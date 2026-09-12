@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>twgl.tree · blur</title>
+<style>
+  :root { color-scheme: dark }
+  html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
+  main { display: flex; gap: 16px; flex-wrap: wrap; padding: 16px; align-items: flex-start }
+  section { position: relative }
+  h2 { font-size: 12px; font-weight: 600; margin: 0 0 6px; color: #9ca3af } h2 b { color: #f472b6 }
+  canvas { display: block; box-shadow: 0 0 0 1px #1f2937 }
+  #bar { padding: 0 16px 8px; display: flex; gap: 10px; align-items: center; color: #9ca3af }
+  input[type=range] { width: 200px; accent-color: #a3e635 }
+  a.back { position: fixed; top: 12px; right: 14px; color: #9ca3af; text-decoration: none }
+</style>
+<script type="importmap">
+{ "imports": {
+  "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
+  "twgl.tree": "../dist/index.js",
+  "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js"
+} }
+</script>
+</head>
+<body>
+<a class="back" href="index.html">← harness</a>
+<div id="bar"><label>blur radius <input id="radius" type="range" min="0" max="6" step="0.5" value="2"></label><span id="val">2</span></div>
+<main>
+  <section><h2><b>twgl.tree</b> · renderTarget → pipe([blur H, blur V])</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>p5.tree</b> · createFramebuffer → pipe(layer, [blur, blur])</h2><div id="p5"></div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+<script src="../../p5.tree/dist/p5.tree.js"></script>
+
+<!-- The notebook's shared shaders, copied verbatim: archetype_triangle.{vert,frag} and archetype_blur_p5.frag. -->
+<script id="tri-vert" type="x-shader">#version 300 es
+precision highp float;
+in vec4 aPosition;
+in vec4 aVertexColor;
+uniform mat4 uProjectionMatrix;
+uniform mat4 uModelViewMatrix;
+out vec4 vColor;
+void main() {
+  vColor = aVertexColor;
+  gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+}</script>
+<script id="tri-frag" type="x-shader">#version 300 es
+precision highp float;
+in vec4 vColor;
+out vec4 outColor;
+void main() { outColor = vColor; }</script>
+<script id="blur-frag" type="x-shader">#version 300 es
+precision highp float;
+in vec2 vTexCoord;
+uniform sampler2D tex0;
+uniform vec2 uDir;
+out vec4 outColor;
+const float w0 = 0.2270270270;
+const float w1 = 0.1945945946;
+const float w2 = 0.1216216216;
+const float w3 = 0.0540540541;
+const float w4 = 0.0162162162;
+void main() {
+  vec3 c  = texture(tex0, vTexCoord).rgb * w0;
+  c += texture(tex0, vTexCoord + uDir * 1.0).rgb * w1;
+  c += texture(tex0, vTexCoord - uDir * 1.0).rgb * w1;
+  c += texture(tex0, vTexCoord + uDir * 2.0).rgb * w2;
+  c += texture(tex0, vTexCoord - uDir * 2.0).rgb * w2;
+  c += texture(tex0, vTexCoord + uDir * 3.0).rgb * w3;
+  c += texture(tex0, vTexCoord - uDir * 3.0).rgb * w3;
+  c += texture(tex0, vTexCoord + uDir * 4.0).rgb * w4;
+  c += texture(tex0, vTexCoord - uDir * 4.0).rgb * w4;
+  outColor = vec4(c, 1.0);
+}</script>
+
+<script type="module">
+// The bridge column: the pseudo-host with twgl's verbs still visible.
+//
+//   init      program(vert, frag) · geometry · renderTarget() · program(frag)
+//   render    beginPass(scene) · clear · setCamera(cam) · bind(tri) · draw(triangle, M)
+//             pipe(scene, [blur(uDir = H), blur(uDir = V)])   → screen
+import * as twgl from 'twgl.js'
+import { setCamera, bind, draw, renderTarget, program, pipe } from 'twgl.tree'
+import { createCamera, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+
+const src = (id) => document.getElementById(id).textContent
+const canvas = document.getElementById('gl')
+const gl = canvas.getContext('webgl2')
+const radius = document.getElementById('radius'), val = document.getElementById('val')
+radius.addEventListener('input', () => { val.textContent = radius.value })
+
+const tri = twgl.createProgramInfo(gl, [src('tri-vert'), src('tri-frag')])
+const triangle = twgl.createBufferInfoFromArrays(gl, {
+  aPosition: { numComponents: 3, data: [-86.6, -50, 0, 86.6, -50, 0, 0, 100, 0] },
+  aVertexColor: { numComponents: 4, data: [1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1] },
+})
+const scene = renderTarget(gl)                       // canvas-sized, colour + depth
+const blur = program(gl, src('blur-frag'))           // the fragment stage only; the bridge supplies the vertex stage
+
+const cam = createCamera({ eye: [0, 0, 400], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 3, near: 0.1, far: 1000 })
+const M = new Float32Array(16), q = [0, 0, 0, 1]
+
+function render(t) {
+  const r = parseFloat(radius.value)
+  twgl.bindFramebufferInfo(gl, scene)
+  gl.enable(gl.DEPTH_TEST)
+  gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  setCamera(gl, cam)
+  bind(gl, tri)
+  qFromAxisAngle(q, 0, 1, 0, t * 0.001)
+  draw(gl, triangle, mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+  twgl.bindFramebufferInfo(gl, null)
+  pipe(gl, scene, [
+    { program: blur, uniforms: { uDir: [r / canvas.width, 0] } },
+    { program: blur, uniforms: { uDir: [0, r / canvas.height] } },
+  ])
+  requestAnimationFrame(render)
+}
+requestAnimationFrame(render)
+</script>
+
+<script>
+// The parity column: p5.tree's pipe over p5's filter shader, the notebook's row-5 sketch with pipe in place of two filter() calls.
+new p5((p) => {
+  let triShader, blurFilter, layer
+  p.setup = () => {
+    p.createCanvas(600, 400, p.WEBGL)
+    p.noStroke()
+    triShader = p.createShader(document.getElementById('tri-vert').textContent, document.getElementById('tri-frag').textContent)
+    blurFilter = p.createFilterShader(document.getElementById('blur-frag').textContent)
+    layer = p.createFramebuffer()
+  }
+  p.draw = () => {
+    const r = parseFloat(document.getElementById('radius').value)
+    layer.begin()
+    p.background(20)
+    p.shader(triShader)
+    p.scale(1, -1, 1)
+    p.rotateY(p.millis() * 0.001)
+    p.beginShape(p.TRIANGLES)
+    p.fill(255, 0, 0); p.vertex(-86.6, -50, 0)
+    p.fill(0, 255, 0); p.vertex(86.6, -50, 0)
+    p.fill(0, 0, 255); p.vertex(0, 100, 0)
+    p.endShape()
+    p.resetShader()
+    layer.end()
+    blurFilter.setUniform('uDir', [r / p.width, 0])
+    const h = p.pipe(layer, blurFilter, { display: false, key: 'h' })
+    blurFilter.setUniform('uDir', [0, r / p.height])
+    p.pipe(h, blurFilter, { key: 'v' })
+  }
+}, document.getElementById('p5'))
+</script>
+</body>
+</html>

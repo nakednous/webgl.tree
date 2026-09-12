@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>twgl.tree · harness</title>
+<style>
+  :root { color-scheme: dark }
+  html, body { margin: 0; background: #0a0a0e; color: #e5e7eb;
+               font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace }
+  main { max-width: 820px; margin: 0 auto; padding: 44px 22px 80px }
+  h1 { font-size: 18px; margin: 0 0 4px } h1 .k { color: #f472b6 }
+  .sub { color: #9ca3af; margin: 0 0 22px }
+  ul { list-style: none; padding: 0; margin: 0 }
+  a.card { display: block; padding: 12px 14px; margin: 10px 0; background: #11131a; border: 1px solid #1f2937;
+           border-radius: 10px; color: inherit; text-decoration: none }
+  a.card:hover { border-color: #334155 }
+  .t { font-weight: 600 } .t .k { color: #f472b6 }
+  .d { color: #9ca3af; margin-top: 4px }
+  .gate { color: #a3e635; font-size: 11px; margin-top: 6px }
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="k">twgl.tree</span> · harness</h1>
+  <p class="sub">The notebook's imaging heroes on the bridge, p5.tree beside for parity. Serve with <code>npx browser-sync start --config bs-config.js</code> from the repo root.</p>
+  <ul>
+    <li><a class="card" href="blur.html">
+      <div class="t"><span class="k">blur</span> · the separable Gaussian as a pipe</div>
+      <div class="d">Archetypes row 5: the rotating triangle into a renderTarget, then pipe(scene, [blur H, blur V]) with per-pass uDir — the same shader p5's filter() runs, tex0 in, vTexCoord across. Left the bridge, right p5.tree's pipe over p5's filter shader.</div>
+      <div class="gate">ceremony gate · setCamera · draw · renderTarget · program(frag) · pipe</div>
+    </a></li>
+    <li><a class="card" href="pipe.html">
+      <div class="t"><span class="k">pipe</span> · pixelate then vignette, order is the chain</div>
+      <div class="d">The notebook's p5.tree pipe hero: a lit scene into a target, then a two-stage chain whose first stage reads the mouse. Left the bridge, right p5.tree.</div>
+      <div class="gate">ceremony gate · the chain, image, uResolution / uTexelSize iff declared</div>
+    </a></li>
+  </ul>
+</main>
+</body>
+</html>

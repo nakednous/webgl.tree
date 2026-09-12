@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>twgl.tree · pipe</title>
+<style>
+  :root { color-scheme: dark }
+  html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
+  main { display: flex; gap: 16px; flex-wrap: wrap; padding: 16px; align-items: flex-start }
+  h2 { font-size: 12px; font-weight: 600; margin: 0 0 6px; color: #9ca3af } h2 b { color: #f472b6 }
+  canvas { display: block; box-shadow: 0 0 0 1px #1f2937 }
+  #readout { padding: 0 16px 8px; color: #9ca3af }
+  a.back { position: fixed; top: 12px; right: 14px; color: #9ca3af; text-decoration: none }
+</style>
+<script type="importmap">
+{ "imports": {
+  "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
+  "twgl.tree": "../dist/index.js",
+  "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js"
+} }
+</script>
+</head>
+<body>
+<a class="back" href="index.html">← harness</a>
+<div id="readout">move the mouse over either canvas: x sets the grain</div>
+<main>
+  <section><h2><b>twgl.tree</b> · renderTarget → pipe(scene, [pixelate, vignette])</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>p5.tree</b> · createFramebuffer → pipe(scene, [pixelate, vignette])</h2><div id="p5"></div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+<script src="../../p5.tree/dist/p5.tree.js"></script>
+
+<script id="pixelate-frag" type="x-shader">#version 300 es
+precision highp float;
+uniform sampler2D tex0;
+uniform float uCells;
+in vec2 vTexCoord;
+out vec4 outColor;
+void main() {
+  vec2 cell = (floor(vTexCoord * uCells) + 0.5) / uCells;
+  outColor = texture(tex0, cell);
+}</script>
+<script id="vignette-frag" type="x-shader">#version 300 es
+precision highp float;
+uniform sampler2D tex0;
+uniform vec2 uResolution;
+in vec2 vTexCoord;
+out vec4 outColor;
+void main() {
+  float d = distance(vTexCoord, vec2(0.5));
+  float v = smoothstep(0.75, 0.35, d);
+  // uResolution is filled by the bridge iff declared: a hairline at the centre column proves it arrived
+  float bar = step(abs(gl_FragCoord.x - uResolution.x * 0.5), 0.5);
+  outColor = vec4(texture(tex0, vTexCoord).rgb * v + bar * 0.15, 1.0);
+}</script>
+<script id="lit-vert" type="x-shader">#version 300 es
+in vec4 aPosition;
+in vec3 aNormal;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform mat3 uNormalMatrix;
+out vec3 vNormal;
+void main() {
+  vNormal = uNormalMatrix * aNormal;
+  gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+}</script>
+<script id="lit-frag" type="x-shader">#version 300 es
+precision highp float;
+in vec3 vNormal;
+uniform vec3 uColor;
+uniform vec3 uLightDir;
+out vec4 outColor;
+void main() {
+  float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
+  outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+}</script>
+
+<script type="module">
+// The bridge column of the notebook's p5.tree pipe hero: a lit scene into a
+// target through a hero-owned shader (uNormalMatrix declared, so the bridge
+// uploads it), then the two-stage chain; the first stage's uCells reads the
+// mouse, the second declares uResolution and gets it filled.
+import * as twgl from 'twgl.js'
+import { setCamera, bind, draw, renderTarget, program, pipe } from 'twgl.tree'
+import { createCamera, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+
+const src = (id) => document.getElementById(id).textContent
+const canvas = document.getElementById('gl')
+const gl = canvas.getContext('webgl2')
+let mx = 0.5
+for (const el of [canvas, document.getElementById('p5')]) el.addEventListener('pointermove', (e) => { mx = e.offsetX / 600 })
+
+const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
+const box = twgl.primitives.createCubeBufferInfo(gl, 1)        // twgl's own noun: position, normal, texcoord, indices
+const scene = renderTarget(gl)
+const pixelate = program(gl, src('pixelate-frag'))
+const vignette = program(gl, src('vignette-frag'))
+
+// the p5 sketch's lookat, in a y-up world: p5's y-down eye at −220 is +220 here
+const cam = createCamera({ eye: [260, 220, 420], center: [0, 30, 0], up: [0, 1, 0], fov: Math.PI / 3, near: 1, far: 2000 })
+const M1 = new Float32Array(16), M2 = new Float32Array(16), q = [0, 0, 0, 1]
+const light = [0.4, 0.6, 1]
+
+function render(t) {
+  twgl.bindFramebufferInfo(gl, scene)
+  gl.enable(gl.DEPTH_TEST)
+  gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  setCamera(gl, cam)
+  qFromAxisAngle(q, 0, 1, 0, t * 0.0006)
+  bind(gl, lit, { uLightDir: light, uColor: [75 / 255, 150 / 255, 1] })
+  draw(gl, box, mat4FromTRS(M1, 0, 0, 0, q[0], q[1], q[2], q[3], 110, 110, 110))
+  bind(gl, lit, { uColor: [220 / 255, 70 / 255, 80 / 255] })
+  draw(gl, box, mat4FromTRS(M2, 170, 30, 0, q[0], q[1], q[2], q[3], 50, 50, 50))
+  twgl.bindFramebufferInfo(gl, null)
+  const cells = 4 + mx * 116
+  pipe(gl, scene, [{ program: pixelate, uniforms: { uCells: cells } }, vignette])
+  requestAnimationFrame(render)
+}
+requestAnimationFrame(render)
+</script>
+
+<script>
+// The parity column: the notebook's ptree_pipe sketch, its shaders shared with the bridge column above.
+new p5((p) => {
+  let scene, pixelate, vignette
+  p.setup = () => {
+    p.createCanvas(600, 400, p.WEBGL)
+    scene = p.createFramebuffer()
+    pixelate = p.createFilterShader(document.getElementById('pixelate-frag').textContent)
+    vignette = p.createFilterShader(document.getElementById('vignette-frag').textContent)
+  }
+  p.draw = () => {
+    scene.begin()
+    p.background(20)
+    p.camera(260, -220, 420, 0, -30, 0, 0, 1, 0)
+    p.ambientLight(80)
+    p.directionalLight(255, 230, 200, 0.4, 0.6, -1)
+    p.noStroke()
+    p.rotateY(p.millis() * 0.0006)
+    p.specularMaterial(75, 150, 255)
+    p.shininess(60)
+    p.box(110)
+    p.translate(170, -30, 0)
+    p.specularMaterial(220, 70, 80)
+    p.box(50)
+    scene.end()
+    const cells = 4 + (p.mouseX >= 0 && p.mouseX <= p.width ? p.mouseX / p.width : 0.5) * 116
+    pixelate.setUniform('uCells', cells)
+    vignette.setUniform('uResolution', [p.width, p.height])   // p5 fills no uResolution: set by hand for the same hairline
+    p.pipe(scene, [pixelate, vignette])
+  }
+}, document.getElementById('p5'))
+</script>
+</body>
+</html>

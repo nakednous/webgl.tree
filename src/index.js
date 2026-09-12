@@ -1,0 +1,18 @@
+/**
+ * @file twgl.tree — @nakednous/tree and @nakednous/host on WebGL2 through twgl.
+ * @module twgl.tree
+ * @license AGPL-3.0-only
+ *
+ * The render host's ceremony, thinly: every export is a free function taking
+ * gl first, with per-context state in a registry keyed by gl. twgl's own
+ * verbs (createProgramInfo, createBufferInfoFromArrays, setUniforms,
+ * drawBufferInfo, bindFramebufferInfo, gl.clear …) stay the application's;
+ * the bridge supplies only what a framework supplies silently — the declared
+ * transforms a draw uploads, the camera install, the targets, the passes.
+ */
+
+'use strict';
+
+export { init, dispose, contextOf, viewOf } from './context.js';
+export { setCamera } from './camera.js';
+export { WEBGL as ndcZMin } from '@nakednous/tree';

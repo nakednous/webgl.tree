@@ -60,6 +60,7 @@ const _declared = (ctx, prog) => {
 };
 
 const _isMat4 = (m) => m != null && typeof m === 'object' && typeof m.length === 'number' && m.length >= 16;
+const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 
 /**
  * Upload the transforms the bound program declares, for a model matrix M
@@ -80,8 +81,6 @@ export function uploadTransforms(ctx, prog, M) {
   if (d.mvp) s.uModelViewProjectionMatrix(M ? mat4Mul(ctx.MVP, ctx.P, MV) : ctx.PV);
   if (d.normal) s.uNormalMatrix(mat3NormalFromMat4(ctx.N, MV));
 }
-
-const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 
 /**
  * Bind a program and set its uniforms: the notation's bind(prog, { … }).

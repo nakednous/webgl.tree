@@ -15,4 +15,5 @@
 
 export { init, dispose, contextOf, viewOf } from './context.js';
 export { setCamera } from './camera.js';
+export { bind, draw, drawInstanced, declaredTransforms, uploadTransforms, TRANSFORMS } from './draw.js';
 export { WEBGL as ndcZMin } from '@nakednous/tree';

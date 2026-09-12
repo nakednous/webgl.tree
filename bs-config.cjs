@@ -6,7 +6,7 @@
  * the parity column via `../../p5.tree/dist/p5.tree.js`, which this config
  * mounts at /p5.tree:
  *
- *   npx browser-sync start --config bs-config.js
+ *   npx browser-sync start --config bs-config.cjs
  */
 module.exports = {
   server: { baseDir: '.' },

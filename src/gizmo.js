@@ -217,6 +217,25 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
  * with LABELS; semantic colour per axis unless { semantic: false, color }.
  * @param {WebGL2RenderingContext} gl
  * @param {{ M?:ArrayLike<number>, size?:number, bits?:number, semantic?:boolean, color?:number[], depth?:boolean }} [opts]
+ * @example
+ * <caption>A frame at the origin, and a second one moved by M to (−150, 0, 0) and turned 45° about Y.</caption>
+ * import { setCamera, axes } from 'twgl.tree'
+ * import { createCamera, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const q = qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, Math.PI / 4)
+ * const M = mat4FromTRS(new Float32Array(16), -150, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ * axes(gl, { M, size: 60 })
  */
 export function axes(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -229,6 +248,25 @@ export function axes(gl, opts) {
  * A grid in the XY plane; M orients it (a ground plane is a rotation about X).
  * @param {WebGL2RenderingContext} gl
  * @param {{ M?:ArrayLike<number>, size?:number, subdivisions?:number, color?:number[], depth?:boolean }} [opts]
+ * @example
+ * <caption>A ground grid: the XY grid laid flat by a rotation about X, under the axes.</caption>
+ * import { setCamera, axes, grid } from 'twgl.tree'
+ * import { createCamera, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const q = qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2)
+ * const ground = mat4FromTRS(new Float32Array(16), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * grid(gl, { M: ground, size: 200, subdivisions: 10 })
+ * axes(gl, { size: 100 })
  */
 export function grid(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -245,6 +283,22 @@ export function grid(gl, opts) {
  * @param {number[]} p1  End point.
  * @param {number[]} t1  Incoming tangent.
  * @param {{ M?:ArrayLike<number>, samples?:number, color?:number[], depth?:boolean }} [opts]
+ * @example
+ * <caption>A magenta arch from (−150, 0, 0) to (150, 0, 0): it leaves upward and arrives downward.</caption>
+ * import { setCamera, axes, hermite } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [0, 100, 450] }))
+ * axes(gl, { size: 100 })
+ * hermite(gl, [-150, 0, 0], [0, 400, 0], [150, 0, 0], [0, -400, 0], { color: [1, 0.31, 0.85, 1] })
  */
 export function hermite(gl, p0, t0, p1, t1, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -265,6 +319,33 @@ export function hermite(gl, p0, t0, p1, t1, opts) {
  * @param {number[]} p2  Bottom-right corner.
  * @param {number[]} p3  Bottom-left corner.
  * @param {{ M?:ArrayLike<number>, texture?:WebGLTexture, uvs?:number[], color?:number[], depth?:boolean }} [opts]
+ * @example
+ * <caption>A 2D-canvas texture on a quad reads upright: “twgl” on a yellow band at the top.</caption>
+ * import { setCamera, texture, pane } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const label = document.createElement('canvas')
+ * label.width = 256
+ * label.height = 256
+ * const g = label.getContext('2d')
+ * g.fillStyle = '#ff4fd8'
+ * g.fillRect(0, 0, 256, 256)
+ * g.fillStyle = '#ffd166'
+ * g.fillRect(0, 0, 256, 96)
+ * g.fillStyle = '#222'
+ * g.font = 'bold 64px sans-serif'
+ * g.fillText('twgl', 50, 70)
+ * const tex = texture(gl, label)
+ *
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [0, 0, 400] }))
+ * pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
  */
 export function pane(gl, p0, p1, p2, p3, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -294,6 +375,24 @@ const _aspect = (gl, o) => (o && typeof o.aspect === 'number') ? o.aspect : (gl.
  *           viewer?:function|null, nearTexture?:WebGLTexture, farTexture?:WebGLTexture, aspect?:number,
  *           color?:number[], depth?:boolean }} [opts]
  *        camera: a camera state, a CameraTrack (its cursor), or the matrix pair.
+ * @example
+ * <caption>The frustum of a second camera looking at the origin, with small axes at its eye.</caption>
+ * import { setCamera, axes, viewFrustum } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const other = createCamera({ eye: [-150, 80, 150], fov: Math.PI / 4, near: 30, far: 200 })
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 60 })
+ * viewFrustum(gl, { camera: other })
  */
 export function viewFrustum(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -345,6 +444,28 @@ function _cameraMarker(gl, kf, i, track, o) {
  * @param {object} track  A PoseTrack or CameraTrack.
  * @param {{ bits?:number, samples?:number, target?:string, tangentScale?:number, centerSize?:number,
  *           marker?:function|null, aspect?:number, color?:number[], depth?:boolean }} [opts]
+ * @example
+ * <caption>A three-keyframe pose track: its path, its control points, and a small frame at each keyframe.</caption>
+ * import { setCamera, trackPath } from 'twgl.tree'
+ * import { createCamera, PoseTrack, PATH, CONTROLS } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const track = new PoseTrack()
+ * track.add([
+ *   { pos: [-150, 0, 0], rot: [0, 0, 0, 1] },
+ *   { pos: [0, 100, 50], rot: [0, 0, 0, 1] },
+ *   { pos: [150, 0, 0], rot: [0, 0, 0, 1] },
+ * ])
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * trackPath(gl, track, { bits: PATH | CONTROLS, color: [1, 0.82, 0.4, 1] })
  */
 export function trackPath(gl, track, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -378,6 +499,38 @@ let _rigSeq = 0;
  * @param {object} helm  A PoseHelm.
  * @param {{ M?:ArrayLike<number>, size?:number, bits?:number, identify?:boolean, depth?:boolean,
  *           x?:number, y?:number, tilt?:number|number[], tint?:number[] }} [opts]
+ * @example
+ * <caption>A helm fed a translation rate, then a rotation rate, in turn: first an arrow brightens, then a ring.</caption>
+ * import { setCamera, helmRig } from 'twgl.tree'
+ * import { createCamera, PoseHelm } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const cam = createCamera({ eye: [300, 250, 400] })
+ * const helm = new PoseHelm()
+ * const pose = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }
+ * const lin = [0, 0, 0]
+ * const ang = [0, 0, 0]
+ * let last = 0
+ *
+ * function frame(ms) {
+ *   const s = Math.sin(ms / 1000)
+ *   lin[0] = 250 * Math.max(0, s)
+ *   ang[1] = 250 * Math.max(0, -s)
+ *   helm.feed(lin, ang)
+ *   helm.step(pose, Math.min((ms - last) / 1000, 0.05))
+ *   last = ms
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   helmRig(gl, helm, { size: 100 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function helmRig(gl, helm, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -464,6 +617,36 @@ const _du = [0, 0, 0], _dv = [0, 0, 0];
  * @param {WebGL2RenderingContext} gl
  * @param {object} h  A host Handle.
  * @param {{ bits?:number, size?:number, color?:number[], dotColor?:number[], depth?:boolean }} [opts]
+ * @example
+ * <caption>Drag the magenta dot: it slides on the ground plane y = 0.</caption>
+ * import { init, setCamera, grid, handleLocus } from 'twgl.tree'
+ * import { createCamera, PLANE, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+ * import { createHost } from '@nakednous/host'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const host = createHost(canvas)
+ * init(gl, { host })
+ *
+ * const cam = createCamera({ eye: [300, 250, 400] })
+ * const h = host.handle({ constraint: PLANE, anchor: [0, 0, 0], normal: [0, 1, 0] })
+ * const q = qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2)
+ * const ground = mat4FromTRS(new Float32Array(16), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   h.update()
+ *   grid(gl, { M: ground, size: 200, subdivisions: 10 })
+ *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   host.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function handleLocus(gl, h, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -493,6 +676,25 @@ export function handleLocus(gl, h, opts) {
  * pixels with an identity view goes in, and the depth test goes off. Pair
  * with endHUD. The screen-space gizmos and image are the usual contents.
  * @param {WebGL2RenderingContext} gl
+ * @example
+ * <caption>Between beginHUD and endHUD, coordinates are pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>
+ * import { setCamera, axes, beginHUD, endHUD, cross, bullsEye } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ * beginHUD(gl)
+ * cross(gl, { x: 40, y: 40, size: 30, color: [1, 0.31, 0.85, 1] })
+ * bullsEye(gl, { x: 350, y: 250, size: 50, color: [1, 0.82, 0.4, 1] })
+ * endHUD(gl)
  */
 export function beginHUD(gl) {
   const ctx = contextOf(gl);
@@ -506,6 +708,24 @@ export function beginHUD(gl) {
 /**
  * End HUD mode: the camera and the depth test come back.
  * @param {WebGL2RenderingContext} gl
+ * @example
+ * <caption>After endHUD the camera is back: axes drawn after it sit in the scene, over a yellow HUD bulls-eye at the centre.</caption>
+ * import { setCamera, axes, beginHUD, endHUD, bullsEye } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * beginHUD(gl)
+ * bullsEye(gl, { x: 200, y: 150, size: 120, color: [1, 0.82, 0.4, 1] })
+ * endHUD(gl)
+ * axes(gl, { size: 100 })
  */
 export function endHUD(gl) {
   const ctx = contextOf(gl);
@@ -527,6 +747,22 @@ function _inHud(gl, ctx, draw) {
  * A crosshair at (x, y) in target pixels, y down.
  * @param {WebGL2RenderingContext} gl
  * @param {{ x?:number, y?:number, size?:number, color?:number[] }} [opts]
+ * @example
+ * <caption>A magenta crosshair at the canvas centre, over the origin the camera looks at.</caption>
+ * import { setCamera, axes, cross } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ * cross(gl, { x: 200, y: 150, size: 40, color: [1, 0.31, 0.85, 1] })
  */
 export function cross(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -540,6 +776,20 @@ export function cross(gl, opts) {
  * cornered square (SQUARE) of `size`, with the central cross.
  * @param {WebGL2RenderingContext} gl
  * @param {{ x?:number, y?:number, size?:number, shape?:number, detail?:number, color?:number[] }} [opts]
+ * @example
+ * <caption>A round bulls-eye on the left, a cornered square one on the right.</caption>
+ * import { bullsEye } from 'twgl.tree'
+ * import { CIRCLE, SQUARE } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT)
+ * bullsEye(gl, { x: 120, y: 150, size: 100, shape: CIRCLE, color: [1, 0.31, 0.85, 1] })
+ * bullsEye(gl, { x: 280, y: 150, size: 100, shape: SQUARE, color: [1, 0.82, 0.4, 1] })
  */
 export function bullsEye(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};

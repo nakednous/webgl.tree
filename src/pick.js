@@ -82,6 +82,37 @@ function _poll(gl, ctx) {
  * @param {number} x  Pixel column in the target, from the left.
  * @param {number} y  Pixel row in the target, from the bottom.
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
+ * @example
+ * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 19 141 117 otherwise.</caption>
+ * import { setCamera, pane, readPixel, SCREEN } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const out = document.body.appendChild(document.createElement('div'))
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ *
+ * const cam = createCamera({ eye: [0, 0, 400] })
+ * let pending = false
+ *
+ * function frame(ms) {
+ *   const x = 150 * Math.sin(ms / 1000)
+ *   gl.clearColor(19 / 255, 141 / 255, 117 / 255, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   pane(gl, [x - 30, 30, 0], [x + 30, 30, 0], [x + 30, -30, 0], [x - 30, -30, 0], { color: [1, 79 / 255, 216 / 255, 1] })
+ *   if (!pending) {
+ *     pending = true
+ *     readPixel(gl, SCREEN, 200, 150).then((px) => {
+ *       out.textContent = 'centre ' + px.slice(0, 3).join(' ')
+ *       pending = false
+ *     })
+ *   }
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function readPixel(gl, fbo, x, y) {
   const ctx = contextOf(gl);
@@ -114,6 +145,68 @@ export function readPixel(gl, fbo, x, y) {
  * @param {function(function(number):void):void} drawFn  Draws the scene; call paint(id) before each object's draw.
  * @param {{ program?:object, vp?:number[], sync?:boolean }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed. sync: read the pixel back at once, stalling the GPU; the promise resolves in the same tick.
  * @returns {Promise<number>} The id under the pixel, 0 for a miss.
+ * @example
+ * <caption>Hover a cube: the one under the pointer turns magenta.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, bind, draw, pick } from 'twgl.tree'
+ * import { createCamera, mat4FromTRS } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ * const verts = twgl.primitives.createCubeVertices(80)
+ * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: verts.position, aNormal: verts.normal, indices: verts.indices })
+ * const cubes = [-120, 0, 120].map((x, i) => ({ id: i + 1, M: mat4FromTRS(new Float32Array(16), x, 0, 0, 0, 0, 0, 1, 1, 1, 1) }))
+ * const cam = createCamera({ eye: [150, 200, 400] })
+ *
+ * let mx = -1, my = -1, picked = 0, pending = false
+ * canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })
+ * canvas.addEventListener('pointerleave', () => { mx = my = -1; picked = 0 })
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (mx >= 0 && !pending) {
+ *     pending = true
+ *     pick(gl, mx, my, (paint) => {
+ *       for (const c of cubes) {
+ *         paint(c.id)
+ *         draw(gl, box, c.M)
+ *       }
+ *     }).then((id) => {
+ *       picked = id
+ *       pending = false
+ *     })
+ *   }
+ *   for (const c of cubes) {
+ *     bind(gl, prog, { uColor: c.id === picked ? [1, 0.31, 0.85] : [1, 0.82, 0.4] })
+ *     draw(gl, box, c.M)
+ *   }
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function pick(gl, x, y, drawFn, opts) {
   const ctx = contextOf(gl);

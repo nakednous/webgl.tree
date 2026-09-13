@@ -55,6 +55,47 @@ export function installCamera(ctx, V, P) {
  *        init. aspect: the state form's projection aspect (default the
  *        drawing buffer's).
  * @returns {object} The context's view bag.
+ * @example
+ * <caption>A camera state circling the axes, one turn every 6.3 seconds.</caption>
+ * import { setCamera, axes } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = createCamera({ eye: [0, 200, 400] })
+ *
+ * function frame(ms) {
+ *   const t = ms / 1000
+ *   cam.eye[0] = 400 * Math.sin(t)
+ *   cam.eye[2] = 400 * Math.cos(t)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 100 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ * @example
+ * <caption>The matrix form: an orthographic view and projection built by hand.</caption>
+ * import { setCamera, axes } from 'twgl.tree'
+ * import { createCamera, cameraView, cameraProj, WEBGL } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = createCamera({ eye: [300, 250, 400], halfHeight: 150 })
+ * const V = cameraView(new Float32Array(16), cam)
+ * const P = cameraProj(new Float32Array(16), cam, 400 / 300, WEBGL)
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, V, P)
+ * axes(gl, { size: 100 })
  */
 export function setCamera(gl, V, P, opts) {
   const ctx = contextOf(gl);

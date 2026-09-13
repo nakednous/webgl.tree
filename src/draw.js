@@ -3,23 +3,24 @@
  * @module twgl.tree/draw
  * @license AGPL-3.0-only
  *
- *   bind(gl, prog, uniforms)             // gl.useProgram + twgl.setUniforms
- *   draw(gl, obj, M, opts)               // obj: a twgl bufferInfo; M: mat4 or omitted (identity)
- *   drawInstanced(gl, obj, n, M, opts)   // the same with an instance count
+ * `bind` a program, then `draw` twgl geometry: each of these transform
+ * uniforms the program declares is uploaded from the model matrix and the
+ * camera `setCamera` installed.
  *
+ * ```
+ * uModelMatrix                 M
+ * uViewMatrix                  V
+ * uModelViewMatrix             V · M
+ * uProjectionMatrix            P
+ * uModelViewProjectionMatrix   P · V · M
+ * uNormalMatrix                (V · M)⁻ᵀ, 3×3
+ * ```
+ *
+ * @details
  * draw is setBuffersAndAttributes on the bound program, then the declared
  * transforms, then drawBufferInfo. The transforms are computed into context
  * scratch and each is uploaded only if the bound program declares it, read
- * off programInfo.uniformSetters once per program:
- *
- *   uModelMatrix                 M
- *   uViewMatrix                  V
- *   uModelViewMatrix             V · M
- *   uProjectionMatrix            P
- *   uModelViewProjectionMatrix   P · V · M
- *   uNormalMatrix                (V · M)⁻ᵀ, 3×3
- *
- * A fullscreen pass declares none and gets none; a shadow capture that
+ * off programInfo.uniformSetters once per program. A fullscreen pass declares none and gets none; a shadow capture that
  * declares uModelMatrix and its own light matrix gets uModelMatrix and
  * nothing the bridge would mistake for the light's. Zero allocation per draw.
  */
@@ -34,8 +35,9 @@ import { contextOf } from './context.js';
 export const TRANSFORMS = ['uModelMatrix', 'uViewMatrix', 'uModelViewMatrix', 'uProjectionMatrix', 'uModelViewProjectionMatrix', 'uNormalMatrix'];
 
 /**
- * Which of the six transforms a program declares, read off its uniform
- * setters — the bridge sets no name outside this table.
+ * Which of the six transforms a program declares.
+ * @details Read off its uniform setters; the bridge sets no name outside
+ * `TRANSFORMS`.
  * @param {object} setters  programInfo.uniformSetters.
  * @returns {{ model:boolean, view:boolean, mv:boolean, proj:boolean, mvp:boolean, normal:boolean, any:boolean }}
  */
@@ -83,7 +85,7 @@ export function uploadTransforms(ctx, prog, M) {
 }
 
 /**
- * Bind a program and set its uniforms: the notation's bind(prog, { … }).
+ * Bind a program and set its uniforms.
  * @param {WebGL2RenderingContext} gl
  * @param {object} prog  A twgl programInfo.
  * @param {object} [uniforms]  Values by name, as twgl.setUniforms takes them.
@@ -110,8 +112,8 @@ function _draw(gl, obj, M, opts, instances) {
 }
 
 /**
- * Draw geometry under the bound program: attributes, the declared
- * transforms, drawBufferInfo.
+ * Draw geometry under the bound program, uploading the transforms it
+ * declares.
  * @param {WebGL2RenderingContext} gl
  * @param {object} obj  A twgl bufferInfo.
  * @param {ArrayLike<number>} [M]  A model mat4; omitted for identity.

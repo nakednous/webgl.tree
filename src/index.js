@@ -19,4 +19,6 @@ export { bind, draw, drawInstanced, declaredTransforms, uploadTransforms, TRANSF
 export { renderTarget, targetSpecs, SCREEN } from './target.js';
 export { program, fullscreen, filter, image, pipe, releasePipe, rectMatrix, passOf, RED, GREEN, BLUE, ALPHA, RGB, NORMAL, ADD, MULTIPLY } from './pass.js';
 export { fill, expand, axes, grid, hermite, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';
+export { readPixel, pick } from './pick.js';
+export { texture, upload, cubemap } from './texture.js';
 export { WEBGL as ndcZMin } from '@nakednous/tree';

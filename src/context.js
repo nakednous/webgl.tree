@@ -29,16 +29,18 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
 /**
  * Pre-create a context's entry, attaching a host and overriding defaults.
  * @param {WebGL2RenderingContext} gl
- * @param {{ host?:object, ndcZMin?:number }} [opts]
+ * @param {{ host?:object, ndcZMin?:number, raf?:function }} [opts]
  *        host: the @nakednous/host context of the canvas. ndcZMin: WEBGL
- *        (−1, the default and the only value a WebGL2 context needs).
+ *        (−1, the default and the only value a WebGL2 context needs). raf:
+ *        the readback poll's requestAnimationFrame (default the window's).
  * @returns {object} The entry.
  */
 export function init(gl, opts) {
-  const ctx = contextOf(gl);
+  const ctx = contextOf(gl, opts);
   const o = opts || {};
   if (o.host !== undefined) ctx.host = o.host || null;
   if (o.ndcZMin != null) { ctx.ndcZMin = o.ndcZMin; ctx.view.ndcZMin = o.ndcZMin; }
+  if (o.raf) ctx.raf = o.raf;
   return ctx;
 }
 
@@ -47,7 +49,7 @@ export function init(gl, opts) {
  * @param {WebGL2RenderingContext} gl
  * @returns {object}
  */
-export function contextOf(gl) {
+export function contextOf(gl, opts) {
   let ctx = _registry.get(gl);
   if (ctx) return ctx;
   ctx = {
@@ -71,6 +73,10 @@ export function contextOf(gl) {
     gizmos: {},                        // name → { arrays, buffer, capacity, wide }, the line pipe's caches
     rigs: new WeakMap(),               // helm → { fbo, size }, the rig HUD overload's targets
     hud: null,                         // the camera saved by beginHUD, while active
+    pickTarget: null,                  // pick's cached 1×1 target
+    readbacks: null,                   // { list, pool, polling }, readPixel's pending fences and PBOs
+    textures: null,                    // every texture made here
+    raf: (opts && opts.raf) || null,   // the readback poll's requestAnimationFrame, overridable
   };
   _registry.set(gl, ctx);
   return ctx;
@@ -98,7 +104,15 @@ export function dispose(gl) {
   if (!ctx) return;
   for (const t of [...ctx.targets]) { if (typeof t.dispose === 'function') t.dispose(); }
   ctx.targets.clear();
+  ctx.pickTarget = null;
   ctx.pipes = {};
+  if (ctx.textures && typeof gl.deleteTexture === 'function') for (const t of ctx.textures) gl.deleteTexture(t);
+  ctx.textures = null;
+  if (ctx.readbacks) {
+    for (const r of ctx.readbacks.list) { if (typeof gl.deleteSync === 'function') gl.deleteSync(r.sync); r.reject(new Error('[twgl.tree] readPixel: the context was disposed.')); }
+    for (const b of ctx.readbacks.pool) if (typeof gl.deleteBuffer === 'function') gl.deleteBuffer(b);
+    ctx.readbacks = null;
+  }
   for (const k of Object.keys(ctx.programs)) {
     const p = ctx.programs[k];
     if (p && p.program && typeof gl.deleteProgram === 'function') gl.deleteProgram(p.program);

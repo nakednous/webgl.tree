@@ -39,6 +39,34 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  *        (−1, the default and the only value a WebGL2 context needs). raf:
  *        the readback poll's requestAnimationFrame (default the window's).
  * @returns {object} The entry.
+ * @example
+ * <caption>With a host attached, drag the magenta dot around a sphere of radius 100.</caption>
+ * import { init, setCamera, axes, handleLocus } from 'twgl.tree'
+ * import { createCamera, SPHERE } from '@nakednous/tree'
+ * import { createHost } from '@nakednous/host'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const host = createHost(canvas)
+ * init(gl, { host })
+ *
+ * const cam = createCamera({ eye: [300, 250, 400] })
+ * const h = host.handle({ constraint: SPHERE, anchor: [0, 0, 0], radius: 100 })
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   h.update()
+ *   axes(gl, { size: 100 })
+ *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   host.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function init(gl, opts) {
   const ctx = contextOf(gl, opts);
@@ -92,6 +120,33 @@ export function contextOf(gl, opts) {
  * when one is attached.
  * @param {WebGL2RenderingContext} gl
  * @returns {object}
+ * @example
+ * <caption>A magenta crosshair pinned to the tip of the X axis as the camera circles.</caption>
+ * import { setCamera, axes, cross, viewOf } from 'twgl.tree'
+ * import * as tree from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const cam = tree.createCamera({ eye: [0, 200, 400] })
+ * const tip = [0, 0, 0]
+ * const vp = [0, 300, 400, -300]   // y down, as cross takes it
+ *
+ * function frame(ms) {
+ *   cam.eye[0] = 400 * Math.sin(ms / 1000)
+ *   cam.eye[2] = 400 * Math.cos(ms / 1000)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 100 })
+ *   tree.mapLocation(tip, 100, 0, 0, tree.WORLD, tree.SCREEN, viewOf(gl), vp, tree.WEBGL)
+ *   cross(gl, { x: tip[0], y: tip[1], size: 30, color: [1, 0.31, 0.85, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function viewOf(gl) {
   const ctx = contextOf(gl);

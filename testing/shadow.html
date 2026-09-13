@@ -114,14 +114,14 @@ void main() {
   outColor = vec4((uAmbient + visibility(vLightClip4) * diffuse) * uMaterialColor.rgb,
                   uMaterialColor.a);
 }</script>
-<!-- the depth pass and the light marker: position through the MVP, a flat colour -->
-<script id="flat-vert" type="x-shader">#version 300 es
+<!-- depthProg: positions only, a flat colour (the light marker reuses it) -->
+<script id="depth-vert" type="x-shader">#version 300 es
 in vec4 aPosition;
 uniform mat4 uModelViewProjectionMatrix;
 void main() {
   gl_Position = uModelViewProjectionMatrix * aPosition;
 }</script>
-<script id="flat-frag" type="x-shader">#version 300 es
+<script id="depth-frag" type="x-shader">#version 300 es
 precision highp float;
 uniform vec4 uColor;
 out vec4 outColor;
@@ -130,26 +130,25 @@ void main() {
 }</script>
 
 <script type="module">
-// The notebook's shadow_mapping hero on the bridge.
-// 1 · depth pass: the landscape from the light's orthographic camera into a
-//     depth-only renderTarget; P · V of that camera is kept for the compare.
-// 2 · main pass: shadow.vert declares uModelMatrix, uViewMatrix,
-//     uProjectionMatrix and uNormalMatrix, so draw uploads those; the biased
-//     world → light matrix, the eye-space light position, the depth texture,
-//     the ambient floor and each object's colour are the hero's own uniforms.
+// The notebook's shadow_mapping hero on the bridge, render() written as the
+// Shadows chapter's pseudo-code: each notation line is one bridge or twgl call,
+// commented with the symbol it realizes. shadow.vert declares uModelMatrix,
+// uViewMatrix, uProjectionMatrix and uNormalMatrix, so draw uploads those; the
+// names bind lists are the hero's own uniforms.
 // The notebook's world is p5's y-down one; every y below is negated.
 import * as twgl from 'twgl.js'
-import { init, setCamera, bind, draw, renderTarget, viewOf, tree, host } from 'twgl.tree'
+import { init, setCamera, bind, draw, renderTarget, viewOf, SCREEN, tree, host } from 'twgl.tree'
 
 const $ = (id) => document.getElementById(id)
 const canvas = $('gl')
 const gl = canvas.getContext('webgl2', { antialias: true })
 const canvasHost = host.createHost(canvas)
 init(gl, { host: canvasHost })
+gl.enable(gl.DEPTH_TEST)                                  // p5 has it on silently; the notation never writes it
 
 // twgl reads a shader from the <script> whose id it is given
-const shadow = twgl.createProgramInfo(gl, ['shadow-vert', 'shadow-frag'])
-const flat = twgl.createProgramInfo(gl, ['flat-vert', 'flat-frag'])
+const shadowProg = twgl.createProgramInfo(gl, ['shadow-vert', 'shadow-frag'])
+const depthProg = twgl.createProgramInfo(gl, ['depth-vert', 'depth-frag'])
 // twgl's primitives name their arrays position / normal; the shaders declare aPosition / aNormal
 const buffer = (v) => twgl.createBufferInfoFromArrays(gl, { aPosition: v.position, aNormal: v.normal, indices: v.indices })
 const cube = buffer(twgl.primitives.createCubeVertices(1))                          // box(w, h, d) scales it
@@ -212,19 +211,28 @@ function landscape(i, f) {
   }
 }
 
-// ── cameras, the depth target, the compare's matrices ─────────────────────────
+// scene(): the landscape under the bound program; each object's colour is what p5's fill() supplies
+function scene(prog) {
+  for (let i = 0; i < used; i++) {
+    twgl.setUniforms(prog, { uMaterialColor: items[i].rgba })
+    draw(gl, items[i].buf, items[i].M)
+  }
+}
+
+// ── init: cameras, the target, the compare's matrices ─────────────────────────
 // the sketch's perspective(2 · atan(height / 2 / 800), 1, 80, 8000) and home eye, y negated
 const cam = tree.createCamera({ eye: [0, 200, 400], fov: 2 * Math.atan(250 / 800), near: 80, far: 8000 })
 const orbit = canvasHost.orbit(cam)
 // the light: ortho(-110, 110, -110, 110, 110, 350) looking at the origin
 const lightCam = tree.createCamera({ eye: [0, 160, 160], halfHeight: 110, near: 110, far: 350 })
-const depth = renderTarget(gl, { depth: true })
+const lightPosition = lightCam.eye
+const depthFBO = renderTarget(gl, { depth: true })        // renderTarget(depth)
 
-// NDC [-1, 1] → texture [0, 1], column-major
-const BIAS = new Float32Array([0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0.5, 0.5, 0.5, 1])
-const lightV = new Float32Array(16), lightP = new Float32Array(16), lightPV = new Float32Array(16)
-const worldLight = new Float32Array(16)
-const eyeLight = [0, 0, 0]
+const B = new Float32Array([0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0.5, 0.5, 0.5, 1])   // NDC → texture, column-major
+const V_light = new Float32Array(16), P_light = new Float32Array(16), PV_light = new Float32Array(16)
+const uWorldLightMatrix = new Float32Array(16)
+const uLightPosition = [0, 0, 0]
+const uDepth = depthFBO.depth
 const bulbM = new Float32Array(16)
 const BG = [0x10 / 255, 0x13 / 255, 0x1a / 255]          // the notebook's dark ground
 const BULB = [1, 0xe0 / 255, 0x66 / 255, 1]               // its dark palette's yellow
@@ -235,40 +243,37 @@ let step = 0, frame = 0
 function render() {
   frame++
   if ($('animate').checked) step++
-  const a = step * 0.002
-  lightCam.eye[0] = Math.sin(a) * 160
-  lightCam.eye[2] = Math.cos(a) * 160
+  lightPosition[0] = Math.sin(step * 0.002) * 160
+  lightPosition[2] = Math.cos(step * 0.002) * 160
   landscape(+$('scene').value, frame)
+  tree.cameraView(V_light, lightCam)
+  tree.cameraProj(P_light, lightCam, 1, tree.WEBGL)
+  const uAmbient = +$('ambient').value
 
-  // 1 · the depth pass
-  tree.cameraView(lightV, lightCam)
-  tree.cameraProj(lightP, lightCam, 1, tree.WEBGL)
-  tree.mat4Mul(lightPV, lightP, lightV)
-  twgl.bindFramebufferInfo(gl, depth)
-  gl.enable(gl.DEPTH_TEST)
-  gl.clear(gl.DEPTH_BUFFER_BIT)
-  setCamera(gl, lightV, lightP)
-  bind(gl, flat)
-  for (let i = 0; i < used; i++) draw(gl, items[i].buf, items[i].M)
+  // 1 — depth pass: photograph the scene from the light's frame
+  twgl.bindFramebufferInfo(gl, depthFBO)                  // beginPass(depthFBO)
+  gl.clear(gl.DEPTH_BUFFER_BIT)                           // clear()
+  bind(gl, depthProg)                                     // positions only
+  setCamera(gl, V_light, P_light)                         // orthographic, from the light
+  scene(depthProg)
 
-  // 2 · the main pass
-  twgl.bindFramebufferInfo(gl, null)
+  // 2 — main pass: reexpress each fragment in the light's biased clip space
+  twgl.bindFramebufferInfo(gl, SCREEN)                    // beginPass(screen)
   gl.clearColor(BG[0], BG[1], BG[2], 1)
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)     // clear()
   setCamera(gl, cam)
-  if (orbit.update()) setCamera(gl, cam)
-  tree.mat4Mul(worldLight, BIAS, lightPV)
+  if (orbit.update()) setCamera(gl, cam)                  // interact()
+  tree.mat4Mul(PV_light, P_light, V_light)
+  tree.mat4Mul(uWorldLightMatrix, B, PV_light)            // uWorldLightMatrix = B · P_light · V_light
   const view = viewOf(gl)
-  tree.mapLocation(eyeLight, lightCam.eye[0], lightCam.eye[1], lightCam.eye[2], tree.WORLD, tree.EYE, view, view.vp, tree.WEBGL)
-  bind(gl, shadow, { uWorldLightMatrix: worldLight, uLightPosition: eyeLight, uDepth: depth.depth, uAmbient: +$('ambient').value })
-  for (let i = 0; i < used; i++) {
-    twgl.setUniforms(shadow, { uMaterialColor: items[i].rgba })
-    draw(gl, items[i].buf, items[i].M)
-  }
+  tree.mapLocation(uLightPosition, lightPosition[0], lightPosition[1], lightPosition[2],
+    tree.WORLD, tree.EYE, view, view.vp, tree.WEBGL)      // uLightPosition = V · lightPosition
+  bind(gl, shadowProg, { uWorldLightMatrix, uLightPosition, uDepth, uAmbient })
+  scene(shadowProg)
 
   // the light marker
-  bind(gl, flat, { uColor: BULB })
-  draw(gl, ball, tree.mat4FromTRS(bulbM, lightCam.eye[0], lightCam.eye[1], lightCam.eye[2], 0, 0, 0, 1, 5, 5, 5))
+  bind(gl, depthProg, { uColor: BULB })
+  draw(gl, ball, tree.mat4FromTRS(bulbM, lightPosition[0], lightPosition[1], lightPosition[2], 0, 0, 0, 1, 5, 5, 5))
 
   canvasHost.pointer.flush()
   requestAnimationFrame(render)

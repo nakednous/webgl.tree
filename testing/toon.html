@@ -93,6 +93,7 @@ const canvas = $('gl')
 const gl = canvas.getContext('webgl2', { antialias: true })
 const canvasHost = host.createHost(canvas)
 init(gl, { host: canvasHost })
+gl.enable(gl.DEPTH_TEST)                                  // p5 has it on silently; the notation never writes it
 
 // twgl reads a shader from the <script> whose id it is given
 const toon = twgl.createProgramInfo(gl, ['toon-vert', 'toon-frag'])
@@ -134,10 +135,8 @@ const GRID = [0x3e / 255, 0x3e / 255, 0x42 / 255, 1]
 const light = [0, 0, 0]
 
 function render() {
-  twgl.bindFramebufferInfo(gl, null)
-  gl.enable(gl.DEPTH_TEST)
   gl.clearColor(BG[0], BG[1], BG[2], 1)
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)     // clear()
   setCamera(gl, cam)
   if (orbit.update()) setCamera(gl, cam)
 

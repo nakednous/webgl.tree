@@ -3,9 +3,16 @@
  * @module twgl.tree/pick
  * @license AGPL-3.0-only
  *
- *   readPixel(gl, fbo, x, y) → Promise<Uint8Array>   // one pixel back, a frame or more late
- *   pick(gl, x, y, drawFn, opts) → Promise<number>    // the id under a canvas pixel, 0 a miss
+ * `pick` finds the object under a canvas pixel: draw the scene calling
+ * `paint(id)` before each object, and the promise resolves to that id.
+ * `readPixel` reads one pixel of any target without stalling the GPU.
  *
+ * ```
+ * readPixel(gl, fbo, x, y) → Promise<Uint8Array>   // a frame or more late
+ * pick(gl, x, y, drawFn, opts) → Promise<number>    // 0 a miss
+ * ```
+ *
+ * @details
  * readPixel binds the target, reads into a PIXEL_PACK_BUFFER, fences, and
  * polls clientWaitSync on the bridge's own requestAnimationFrame loop —
  * alive only while readbacks are pending — so no application or host hook
@@ -71,8 +78,9 @@ function _poll(gl, ctx) {
 /**
  * Read one pixel of a target back asynchronously.
  * @param {WebGL2RenderingContext} gl
- * @param {object|null} fbo  A render target, or SCREEN.
- * @param {number} x, y  Pixel coordinates in the target, origin bottom-left.
+ * @param {object|null} fbo  A render target, or `SCREEN`.
+ * @param {number} x  Pixel column in the target, from the left.
+ * @param {number} y  Pixel row in the target, from the bottom.
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  */
 export function readPixel(gl, fbo, x, y) {
@@ -98,12 +106,13 @@ export function readPixel(gl, fbo, x, y) {
 }
 
 /**
- * Colour-id scene picking at a canvas pixel.
+ * The id of the object under a canvas pixel, 0 for a miss.
+ * @details Colour-id picking into a cached 1×1 target; ids run 1 … 2²⁴ − 1.
  * @param {WebGL2RenderingContext} gl
- * @param {number} x, y  The query pixel, y down, in the attached host's
- *        logical canvas px when there is one, else in drawing-buffer px.
+ * @param {number} x  The query pixel's column: CSS px with a host attached, else drawing-buffer px.
+ * @param {number} y  Its row, from the top.
  * @param {function(function(number):void):void} drawFn  Draws the scene; call paint(id) before each object's draw.
- * @param {{ program?:object, vp?:number[], sync?:boolean }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed. sync: read the pixel back at once with readPixels, stalling the pipeline — p5's way; the promise then resolves in the same tick.
+ * @param {{ program?:object, vp?:number[], sync?:boolean }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed. sync: read the pixel back at once, stalling the GPU; the promise resolves in the same tick.
  * @returns {Promise<number>} The id under the pixel, 0 for a miss.
  */
 export function pick(gl, x, y, drawFn, opts) {

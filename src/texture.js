@@ -3,10 +3,16 @@
  * @module twgl.tree/texture
  * @license AGPL-3.0-only
  *
- *   texture(gl, source, opts)   // from an ImageBitmap, an element, or { data, width, height }
- *   upload(gl, tex, source)     // refresh an existing texture from a video / camera element
- *   cubemap(gl, faces, opts)    // six sources → a cube map
+ * Textures from images, canvases, videos, bitmaps or raw pixels, stored the
+ * way GL samples them, so nothing that draws one takes a flip option.
  *
+ * ```
+ * texture(gl, source, opts)   // an ImageBitmap, an element, or { data, width, height }
+ * upload(gl, tex, source)     // refresh from a video or canvas each frame
+ * cubemap(gl, faces, opts)    // six sources → a cube map
+ * ```
+ *
+ * @details
  * One orientation rule: every texture the bridge holds is in GL's bottom-up
  * space. Decoded images and elements arrive top-down and are uploaded with
  * flipY on; a render target's texture is already bottom-up and never passes
@@ -37,8 +43,9 @@ function _opts(gl, o) {
 }
 
 /**
- * Create a texture. Elements and bitmaps are flipped into GL's bottom-up
- * space; a { data, width, height } pixel source is taken as given.
+ * Create a texture from an element, a bitmap or raw pixels.
+ * @details Elements and bitmaps are flipped into GL's bottom-up space; a
+ * { data, width, height } pixel source is taken as given.
  * @param {WebGL2RenderingContext} gl
  * @param {ImageBitmap|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|{data:ArrayBufferView,width:number,height:number}} source
  * @param {{ minMag?:number, wrap?:number, mipmaps?:boolean }} [opts]

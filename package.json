@@ -16,7 +16,8 @@
   "scripts": {
     "test": "node --test test/",
     "build": "rollup -c",
-    "clean": "rm -rf dist",
+    "docs": "node tools/docs/index.js",
+    "clean": "rm -rf dist site",
     "rebuild": "npm run clean && npm run build",
     "reset": "rm -rf node_modules dist package-lock.json && npm install",
     "link:core": "npm link @nakednous/tree @nakednous/host",
@@ -46,11 +47,13 @@
     "twgl.js": ">=5.5.4"
   },
   "dependencies": {
-    "@nakednous/tree": "^0.0.28",
-    "@nakednous/host": "^0.0.3"
+    "@nakednous/host": "^0.0.3",
+    "@nakednous/tree": "^0.0.28"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "comment-parser": "^1.4.9",
+    "marked": "^18.0.13",
     "rollup": "^4.63.1"
   }
 }

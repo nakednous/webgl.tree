@@ -3,16 +3,20 @@
  * @module twgl.tree/context
  * @license AGPL-3.0-only
  *
+ * Every call takes `gl` first; nothing needs setting up before it. `init`
+ * attaches a host to a context, `dispose` frees what twgl.tree made for it.
+ *
+ * ```
+ * init(gl, { host })   // optional: attach a host
+ * dispose(gl)          // free every GPU resource made here
+ * ```
+ *
+ * @details
  * Every bridge call takes gl first and finds its state here: the installed
  * camera (V, P, PV and the per-draw scratch), the view bag a host-less
  * application reads, the bound program, the cached fullscreen geometry, the
  * internal programs, the pipe caches and the targets to release. The entry is
- * created lazily on first use and released by dispose(gl).
- *
- *   init(gl, { host, ndcZMin })   // optional: pre-create the entry, attach a host
- *   dispose(gl)                   // release every GPU resource the bridge made here
- *
- * A host attached at init (or passed per call as { host }) is where setCamera
+ * created lazily on first use and released by dispose(gl). A host attached at init (or passed per call as { host }) is where setCamera
  * writes the view bag and where gizmo label anchors go. Without one the
  * bridge keeps its own view bag, reachable through viewOf(gl).
  */
@@ -27,7 +31,8 @@ const _registry = new WeakMap();
 const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m; };
 
 /**
- * Pre-create a context's entry, attaching a host and overriding defaults.
+ * Attach a host to a context, so handles, labels and the orbit see the
+ * camera `setCamera` installs.
  * @param {WebGL2RenderingContext} gl
  * @param {{ host?:object, ndcZMin?:number, raf?:function }} [opts]
  *        host: the @nakednous/host context of the canvas. ndcZMin: WEBGL
@@ -83,8 +88,8 @@ export function contextOf(gl, opts) {
 }
 
 /**
- * The view bag of a context: the host's when one is attached, else the
- * bridge's own, filled by setCamera — the matrices bag mapLocation takes.
+ * The view of a context — the matrices `setCamera` installed, the host's
+ * when one is attached.
  * @param {WebGL2RenderingContext} gl
  * @returns {object}
  */
@@ -94,9 +99,10 @@ export function viewOf(gl) {
 }
 
 /**
- * Release every GPU resource the bridge created for a context — targets,
- * the pipe caches, the internal programs, the fullscreen geometry — and
- * forget the entry. The application's own programs and buffers are untouched.
+ * Free every GPU resource twgl.tree made for a context; your own programs
+ * and buffers are untouched.
+ * @details Targets, the pipe caches, textures, pending readbacks, the
+ * internal programs and the fullscreen geometry go, then the entry.
  * @param {WebGL2RenderingContext} gl
  */
 export function dispose(gl) {

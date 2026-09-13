@@ -41,19 +41,17 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * @returns {object} The entry.
  * @example
  * <caption>With a host attached, drag the magenta dot around a sphere of radius 100.</caption>
- * import { init, setCamera, axes, handleLocus } from 'twgl.tree'
- * import { createCamera, SPHERE } from '@nakednous/tree'
- * import { createHost } from '@nakednous/host'
+ * import { init, setCamera, axes, handleLocus, tree, host } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const host = createHost(canvas)
- * init(gl, { host })
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
  *
- * const cam = createCamera({ eye: [300, 250, 400] })
- * const h = host.handle({ constraint: SPHERE, anchor: [0, 0, 0], radius: 100 })
+ * const cam = tree.createCamera({ eye: [300, 250, 400] })
+ * const h = canvasHost.handle({ constraint: tree.SPHERE, anchor: [0, 0, 0], radius: 100 })
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
@@ -63,7 +61,7 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  *   h.update()
  *   axes(gl, { size: 100 })
  *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
- *   host.pointer.flush()
+ *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -122,8 +120,7 @@ export function contextOf(gl, opts) {
  * @returns {object}
  * @example
  * <caption>A magenta crosshair pinned to the tip of the X axis as the camera circles.</caption>
- * import { setCamera, axes, cross, viewOf } from 'twgl.tree'
- * import * as tree from '@nakednous/tree'
+ * import { setCamera, axes, cross, viewOf, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

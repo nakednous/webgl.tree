@@ -87,8 +87,7 @@ export function targetSpecs(gl, opts) {
  * @example
  * <caption>Axes rendered into a 100 × 75 target and shown at 400 × 300: soft, low-resolution lines.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, SCREEN } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -100,7 +99,7 @@ export function targetSpecs(gl, opts) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)

@@ -57,14 +57,13 @@ export function installCamera(ctx, V, P) {
  * @returns {object} The context's view bag.
  * @example
  * <caption>A camera state circling the axes, one turn every 6.3 seconds.</caption>
- * import { setCamera, axes } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, axes, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const cam = createCamera({ eye: [0, 200, 400] })
+ * const cam = tree.createCamera({ eye: [0, 200, 400] })
  *
  * function frame(ms) {
  *   const t = ms / 1000
@@ -80,16 +79,15 @@ export function installCamera(ctx, V, P) {
  * requestAnimationFrame(frame)
  * @example
  * <caption>The matrix form: an orthographic view and projection built by hand.</caption>
- * import { setCamera, axes } from 'twgl.tree'
- * import { createCamera, cameraView, cameraProj, WEBGL } from '@nakednous/tree'
+ * import { setCamera, axes, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const cam = createCamera({ eye: [300, 250, 400], halfHeight: 150 })
- * const V = cameraView(new Float32Array(16), cam)
- * const P = cameraProj(new Float32Array(16), cam, 400 / 300, WEBGL)
+ * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 150 })
+ * const V = tree.cameraView(new Float32Array(16), cam)
+ * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300, tree.WEBGL)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)

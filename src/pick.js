@@ -84,8 +84,7 @@ function _poll(gl, ctx) {
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
  * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 19 141 117 otherwise.</caption>
- * import { setCamera, pane, readPixel, SCREEN } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, pane, readPixel, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -94,7 +93,7 @@ function _poll(gl, ctx) {
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  *
- * const cam = createCamera({ eye: [0, 0, 400] })
+ * const cam = tree.createCamera({ eye: [0, 0, 400] })
  * let pending = false
  *
  * function frame(ms) {
@@ -148,8 +147,7 @@ export function readPixel(gl, fbo, x, y) {
  * @example
  * <caption>Hover a cube: the one under the pointer turns magenta.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, pick } from 'twgl.tree'
- * import { createCamera, mat4FromTRS } from '@nakednous/tree'
+ * import { setCamera, bind, draw, pick, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -176,8 +174,8 @@ export function readPixel(gl, fbo, x, y) {
  * }`])
  * const verts = twgl.primitives.createCubeVertices(80)
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: verts.position, aNormal: verts.normal, indices: verts.indices })
- * const cubes = [-120, 0, 120].map((x, i) => ({ id: i + 1, M: mat4FromTRS(new Float32Array(16), x, 0, 0, 0, 0, 0, 1, 1, 1, 1) }))
- * const cam = createCamera({ eye: [150, 200, 400] })
+ * const cubes = [-120, 0, 120].map((x, i) => ({ id: i + 1, M: tree.mat4FromTRS(new Float32Array(16), x, 0, 0, 0, 0, 0, 1, 1, 1, 1) }))
+ * const cam = tree.createCamera({ eye: [150, 200, 400] })
  *
  * let mx = -1, my = -1, picked = 0, pending = false
  * canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })

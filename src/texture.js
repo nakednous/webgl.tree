@@ -52,8 +52,7 @@ function _opts(gl, o) {
  * @returns {WebGLTexture}
  * @example
  * <caption>Raw pixels start at the bottom row: magenta bottom-left and top-right, yellow in the other corners.</caption>
- * import { setCamera, texture, pane } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, texture, pane, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -67,7 +66,7 @@ function _opts(gl, o) {
  *
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
- * setCamera(gl, createCamera({ eye: [0, 0, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [0, 0, 400] }))
  * pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
  */
 export function texture(gl, source, opts) {
@@ -92,8 +91,7 @@ export function texture(gl, source, opts) {
  * @returns {WebGLTexture} tex
  * @example
  * <caption>A 2D canvas redrawn every frame: the magenta bar sweeps left to right under a yellow strip along the top.</caption>
- * import { setCamera, texture, upload, pane } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, texture, upload, pane, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -105,7 +103,7 @@ export function texture(gl, source, opts) {
  * board.height = 256
  * const g = board.getContext('2d')
  * const tex = texture(gl, board)
- * const cam = createCamera({ eye: [0, 0, 400] })
+ * const cam = tree.createCamera({ eye: [0, 0, 400] })
  *
  * function frame(ms) {
  *   g.fillStyle = '#222'
@@ -140,8 +138,7 @@ export function upload(gl, tex, source) {
  * @example
  * <caption>A cube sampling a cube map by direction: +X magenta on the right, +Y white on top, +Z blue in front.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, cubemap } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, bind, draw, cubemap, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -180,7 +177,7 @@ export function upload(gl, tex, source) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
  * bind(gl, prog, { uCube: cube })
  * draw(gl, box)
  */

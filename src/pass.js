@@ -129,8 +129,7 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * @example
  * <caption>Axes drawn into a target, then shown colour-inverted: the green background turns pink.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, program, filter, SCREEN } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, axes, renderTarget, program, filter, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -151,7 +150,7 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
@@ -208,8 +207,7 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  * @example
  * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of a yellow canvas.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, SCREEN } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -221,7 +219,7 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
@@ -295,8 +293,7 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  * @example
  * <caption>Two passes in a chain: the axes pixelated into 40 × 40 cells, then inverted.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, program, pipe, SCREEN } from 'twgl.tree'
- * import { createCamera } from '@nakednous/tree'
+ * import { setCamera, axes, renderTarget, program, pipe, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -326,7 +323,7 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)

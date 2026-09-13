@@ -9,6 +9,8 @@
  * drawBufferInfo, bindFramebufferInfo, gl.clear …) stay the application's;
  * the bridge supplies only what a framework supplies silently — the declared
  * transforms a draw uploads, the camera install, the targets, the passes.
+ * @nakednous/tree and @nakednous/host come along as the `tree` and `host`
+ * namespaces, so an application imports the stack from one name.
  */
 
 'use strict';
@@ -22,3 +24,5 @@ export { fill, expand, axes, grid, hermite, pane, viewFrustum, trackPath, helmRi
 export { readPixel, pick } from './pick.js';
 export { texture, upload, cubemap } from './texture.js';
 export { WEBGL as ndcZMin } from '@nakednous/tree';
+export * as tree from '@nakednous/tree';
+export * as host from '@nakednous/host';

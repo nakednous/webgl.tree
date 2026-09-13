@@ -90,6 +90,46 @@ export function uploadTransforms(ctx, prog, M) {
  * @param {object} prog  A twgl programInfo.
  * @param {object} [uniforms]  Values by name, as twgl.setUniforms takes them.
  * @returns {object} prog
+ * @example
+ * <caption>One program bound twice: a magenta cube on the left, a yellow one on the right.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, bind, draw } from 'twgl.tree'
+ * import { createCamera, mat4FromTRS } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ * const cube = twgl.primitives.createCubeVertices(80)
+ * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [150, 200, 400] }))
+ * bind(gl, prog, { uColor: [1, 0.31, 0.85] })
+ * draw(gl, box, mat4FromTRS(new Float32Array(16), -80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
+ * bind(gl, prog, { uColor: [1, 0.82, 0.4] })
+ * draw(gl, box, mat4FromTRS(new Float32Array(16), 80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
  */
 export function bind(gl, prog, uniforms) {
   const ctx = contextOf(gl);
@@ -118,6 +158,52 @@ function _draw(gl, obj, M, opts, instances) {
  * @param {object} obj  A twgl bufferInfo.
  * @param {ArrayLike<number>} [M]  A model mat4; omitted for identity.
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]  Forwarded to drawBufferInfo.
+ * @example
+ * <caption>A magenta cube turning about the vertical axis through its model matrix.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, bind, draw } from 'twgl.tree'
+ * import { createCamera, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ * const cube = twgl.primitives.createCubeVertices(120)
+ * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
+ * const cam = createCamera({ eye: [150, 200, 400] })
+ * const M = new Float32Array(16)
+ * const q = [0, 0, 0, 1]
+ *
+ * function frame(ms) {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   qFromAxisAngle(q, 0, 1, 0, ms / 1000)
+ *   bind(gl, prog, { uColor: [1, 0.31, 0.85] })
+ *   draw(gl, box, mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function draw(gl, obj, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }   // draw(gl, obj, opts)
@@ -131,6 +217,45 @@ export function draw(gl, obj, M, opts) {
  * @param {number} n  Instance count.
  * @param {ArrayLike<number>} [M]  A model mat4; omitted for identity.
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]
+ * @example
+ * <caption>Five yellow cubes in a row from one call; the vertex shader spaces them by gl_InstanceID.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, bind, drawInstanced } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   vec4 offset = vec4(float(gl_InstanceID - 2) * 70.0, 0.0, 0.0, 0.0);
+ *   gl_Position = uModelViewProjectionMatrix * (aPosition + offset);
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ * const cube = twgl.primitives.createCubeVertices(50)
+ * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [150, 200, 400] }))
+ * bind(gl, prog, { uColor: [1, 0.82, 0.4] })
+ * drawInstanced(gl, box, 5)
  */
 export function drawInstanced(gl, obj, n, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }

@@ -3,13 +3,19 @@
  * @module twgl.tree/target
  * @license AGPL-3.0-only
  *
- *   renderTarget(gl)                              // canvas-sized, color + 24-bit depth renderbuffer
- *   renderTarget(gl, { width, height })           // sized
- *   renderTarget(gl, { depth: true })             // a depth texture only — a shadow map
- *   renderTarget(gl, { depthTexture: true })      // color + a sampleable depth texture — dof
- *   renderTarget(gl, { color: ['albedo', 'normal', 'position'] })   // multiple targets — a g-buffer
- *   renderTarget(gl, { depth: false })            // color only — a pass's ping-pong buffer
+ * `renderTarget` makes an offscreen target in one call; draw into it with
+ * `twgl.bindFramebufferInfo`, and back to the canvas with `SCREEN`.
  *
+ * ```
+ * renderTarget(gl)                              // canvas-sized, color + depth
+ * renderTarget(gl, { width, height })           // sized
+ * renderTarget(gl, { depth: true })             // a depth texture only — a shadow map
+ * renderTarget(gl, { depthTexture: true })      // color + a sampleable depth texture
+ * renderTarget(gl, { color: ['albedo', 'normal', 'position'] })   // a g-buffer
+ * renderTarget(gl, { depth: false })            // color only
+ * ```
+ *
+ * @details
  * The returned framebufferInfo carries .color (attachment 0's texture),
  * .depth (the depth texture when sampleable), one property per named
  * attachment, .width / .height, resize(w, h) and dispose(). Passes are
@@ -70,7 +76,10 @@ export function targetSpecs(gl, opts) {
 }
 
 /**
- * Create a render target.
+ * Create a render target: a twgl framebufferInfo with `.color`, `.depth`,
+ * one property per named attachment, `resize(w, h)` and `dispose()`.
+ * @details RGBA8, or RGBA16F with float; a depth texture is
+ * DEPTH_COMPONENT24; a plain depth attachment is a renderbuffer.
  * @param {WebGL2RenderingContext} gl
  * @param {{ width?:number, height?:number, depth?:boolean, depthTexture?:boolean,
  *           color?:string[]|false, float?:boolean }} [opts]

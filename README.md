@@ -20,13 +20,12 @@ npm install twgl.tree twgl.js
 
 ```js
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe, axes } from 'twgl.tree'
-import { createCamera } from '@nakednous/tree'
+import { setCamera, bind, draw, renderTarget, program, pipe, axes, tree } from 'twgl.tree'
 
 const gl = canvas.getContext('webgl2')
 const prog = twgl.createProgramInfo(gl, [vert, frag])          // twgl's verb, not re-wrapped
 const mesh = twgl.createBufferInfoFromArrays(gl, arrays)
-const cam = createCamera({ eye: [0, 0, 800] })
+const cam = tree.createCamera({ eye: [0, 0, 800] })
 
 function frame() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -36,6 +35,11 @@ function frame() {
   axes(gl, { size: 100 })
 }
 ```
+
+`tree` and `host` are `@nakednous/tree` and `@nakednous/host` as namespaces; importing the
+packages directly gives the same modules. The ES build keeps both external, so an import map
+needs entries for `twgl.js`, `@nakednous/tree` and `@nakednous/host`. For a plain script tag,
+load `dist/twgl.tree.umd.cjs` after twgl.js and read the global `twglTree`.
 
 ---
 

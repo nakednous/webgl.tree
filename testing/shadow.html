@@ -142,14 +142,14 @@ import * as twgl from 'twgl.js'
 import { init, setCamera, bind, draw, renderTarget, viewOf, tree, host } from 'twgl.tree'
 
 const $ = (id) => document.getElementById(id)
-const src = (id) => $(id).textContent
 const canvas = $('gl')
 const gl = canvas.getContext('webgl2', { antialias: true })
 const canvasHost = host.createHost(canvas)
 init(gl, { host: canvasHost })
 
-const shadow = twgl.createProgramInfo(gl, [src('shadow-vert'), src('shadow-frag')])
-const flat = twgl.createProgramInfo(gl, [src('flat-vert'), src('flat-frag')])
+// twgl reads a shader from the <script> whose id it is given
+const shadow = twgl.createProgramInfo(gl, ['shadow-vert', 'shadow-frag'])
+const flat = twgl.createProgramInfo(gl, ['flat-vert', 'flat-frag'])
 // twgl's primitives name their arrays position / normal; the shaders declare aPosition / aNormal
 const buffer = (v) => twgl.createBufferInfoFromArrays(gl, { aPosition: v.position, aNormal: v.normal, indices: v.indices })
 const cube = buffer(twgl.primitives.createCubeVertices(1))                          // box(w, h, d) scales it
@@ -244,9 +244,6 @@ function render() {
   tree.cameraView(lightV, lightCam)
   tree.cameraProj(lightP, lightCam, 1, tree.WEBGL)
   tree.mat4Mul(lightPV, lightP, lightV)
-  // the depth texture sits on unit 0 from the last compare; unbind it while it is the target
-  gl.activeTexture(gl.TEXTURE0)
-  gl.bindTexture(gl.TEXTURE_2D, null)
   twgl.bindFramebufferInfo(gl, depth)
   gl.enable(gl.DEPTH_TEST)
   gl.clear(gl.DEPTH_BUFFER_BIT)

@@ -89,13 +89,13 @@ import * as twgl from 'twgl.js'
 import { init, setCamera, bind, draw, axes, grid, tree, host } from 'twgl.tree'
 
 const $ = (id) => document.getElementById(id)
-const src = (id) => $(id).textContent
 const canvas = $('gl')
 const gl = canvas.getContext('webgl2', { antialias: true })
 const canvasHost = host.createHost(canvas)
 init(gl, { host: canvasHost })
 
-const toon = twgl.createProgramInfo(gl, [src('toon-vert'), src('toon-frag')])
+// twgl reads a shader from the <script> whose id it is given
+const toon = twgl.createProgramInfo(gl, ['toon-vert', 'toon-frag'])
 // twgl's primitives name their arrays position / normal; toon.vert declares aPosition / aNormal
 const buffer = (v) => twgl.createBufferInfoFromArrays(gl, { aPosition: v.position, aNormal: v.normal, indices: v.indices })
 const shapes = [

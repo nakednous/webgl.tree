@@ -3,9 +3,15 @@
  * @module twgl.tree/camera
  * @license AGPL-3.0-only
  *
- *   setCamera(gl, V, P, opts)   // from matrices
- *   setCamera(gl, cam, opts)    // from a camera state: V = cameraView(cam), P = cameraProj(cam, aspect, WEBGL)
+ * `setCamera` installs the view and projection every later draw and gizmo
+ * uses, from two matrices or from a camera state.
  *
+ * ```
+ * setCamera(gl, V, P, opts)   // from matrices
+ * setCamera(gl, cam, opts)    // from a camera state { eye, center, up, fov, near, far }
+ * ```
+ *
+ * @details
  * Both copy V and P into the context, recompute P · V and, with a host,
  * write the same matrices into its view bag, so handles, labels and the
  * orbit see the camera the draws use. The state form is the seam a track, a
@@ -37,8 +43,10 @@ export function installCamera(ctx, V, P) {
 }
 
 /**
- * Install the view and projection a draw uses.
- *
+ * Install the view and projection a draw uses, from V and P matrices or a
+ * camera state.
+ * @details The state form computes V = cameraView(cam) and
+ * P = cameraProj(cam, aspect, WEBGL).
  * @param {WebGL2RenderingContext} gl
  * @param {ArrayLike<number>|object} V  A view mat4, or a camera state.
  * @param {ArrayLike<number>|object} [P]  A projection mat4 (the matrix form), or opts (the state form).

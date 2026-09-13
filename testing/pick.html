@@ -76,11 +76,7 @@ for (const n of nodes) mat4FromTRS(n.M, n.pos[0], n.pos[1], n.pos[2], 0, 0, 0, 1
 let mx = -1, my = -1, picked = 0, pending = false, frame = 0, latency = 0, sync = false
 canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })
 canvas.addEventListener('pointerleave', () => { mx = my = -1 })
-let debug = false
-window.addEventListener('keydown', (e) => {
-  if (e.key === 's' || e.key === 'S') sync = !sync           // S: the synchronous readPixels mode
-  if (e.key === 'd' || e.key === 'D') debug = !debug         // D: the id pass drawn on screen under the narrowed projection
-})
+window.addEventListener('keydown', (e) => { if (e.key === 's' || e.key === 'S') sync = !sync })   // S: the synchronous readPixels mode
 
 function render() {
   frame++
@@ -92,13 +88,12 @@ function render() {
   if (mx >= 0 && !pending) {                             // the id pass: the flat program bound by pick, paint(id) per node
     pending = true
     const stamp = frame
-    pick(gl, mx, my, (paint) => { for (const n of nodes) { paint(n.id); draw(gl, sphere, n.M) } }, { sync, debug })
+    pick(gl, mx, my, (paint) => { for (const n of nodes) { paint(n.id); draw(gl, sphere, n.M) } }, { sync })
       .then((id) => { picked = id; latency = frame - stamp; pending = false })
       .catch((e) => { console.error(e); pending = false })
     const err = gl.getError()
     if (err) console.warn('[pick.html] gl error after the pick pass: 0x' + err.toString(16))
   }
-  if (debug) { out.textContent = 'debug: the id pass on screen — the canvas should fill with the colour of the id under the mouse (1 = faint red)'; requestAnimationFrame(render); return }
   for (const n of nodes) {                               // the lit pass
     bind(gl, lit, { uColor: n.rgb, uLightDir: [0.4, 0.6, 1], uEmissive: n.id === picked ? 1 : 0 })
     draw(gl, sphere, n.M)

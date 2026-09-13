@@ -126,13 +126,16 @@ export function pick(gl, x, y, drawFn, opts) {
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
   const prog = o.program || flatProgram(gl);
 
-  if (!o.debug) bindFramebufferInfo(gl, target);   // debug: the id pass lands on the current target, full size
+  bindFramebufferInfo(gl, target);
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST);
   installCamera(ctx, ctx.V, _Ppick);
   gl.useProgram(prog.program);
   ctx.prog = prog;
+  // the id program's sampler sits on unit 0, which may still hold the target's own texture: a feedback loop drops every draw
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
   if (prog.uniformSetters.uUseTexture) prog.uniformSetters.uUseTexture(false);
   const paint = (id) => { if (prog.uniformSetters.uColor) prog.uniformSetters.uColor(idToRgba(_rgba, id)); };
   let syncId = -1;
@@ -147,7 +150,6 @@ export function pick(gl, x, y, drawFn, opts) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
     gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
   }
-  if (o.debug) return Promise.resolve(0);
   if (syncId >= 0) return Promise.resolve(syncId);
   return readPixel(gl, target, 0, 0).then((px) => rgbaToId(px[0], px[1], px[2]));
 }

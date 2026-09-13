@@ -199,6 +199,8 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
   s.uColor(color || WHITE);
   s.uUseTexture(!!texture);
   if (texture) s.uTexture(texture);
+  else { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null); }   // never sample the current target by accident
+
   drawBufferInfo(gl, g.buffer, gl.TRIANGLES, g.arrays.count);
   if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
   if (prev) gl.useProgram(prev.program);

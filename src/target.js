@@ -84,6 +84,27 @@ export function targetSpecs(gl, opts) {
  * @param {{ width?:number, height?:number, depth?:boolean, depthTexture?:boolean,
  *           color?:string[]|false, float?:boolean }} [opts]
  * @returns {object} The framebufferInfo, extended.
+ * @example
+ * <caption>Axes rendered into a 100 × 75 target and shown at 400 × 300: soft, low-resolution lines.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, axes, renderTarget, image, SCREEN } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const small = renderTarget(gl, { width: 100, height: 75 })
+ * twgl.bindFramebufferInfo(gl, small)
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ *
+ * twgl.bindFramebufferInfo(gl, SCREEN)
+ * image(gl, small.color)
  */
 export function renderTarget(gl, opts) {
   const ctx = contextOf(gl);

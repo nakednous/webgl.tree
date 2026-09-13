@@ -59,6 +59,23 @@ const _res = [0, 0], _texel = [0, 0];
  * @param {WebGL2RenderingContext} gl
  * @param {string} frag  GLSL ES 3.00 fragment source; vTexCoord in, tex0 by convention.
  * @returns {object|null} A twgl programInfo, or null on a compile error (logged by twgl).
+ * @example
+ * <caption>A fragment shader alone: red grows to the right, green upward.</caption>
+ * import { program, filter } from 'twgl.tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const gradient = program(gl, `#version 300 es
+ * precision highp float;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   outColor = vec4(vTexCoord, 0.5, 1.0);
+ * }`)
+ * filter(gl, gradient)
  */
 export function program(gl, frag) {
   return createProgramInfo(gl, [PASS_VERT, frag]) || null;
@@ -68,6 +85,25 @@ export function program(gl, frag) {
  * The covering geometry: two triangles in NDC, aTexCoord with v = 0 at the bottom.
  * @param {WebGL2RenderingContext} gl
  * @returns {object} A twgl bufferInfo, cached per context.
+ * @example
+ * <caption>The covering quad drawn with bind and draw: an 8 × 6 checker of 50 px squares.</caption>
+ * import { program, fullscreen, bind, draw } from 'twgl.tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const checker = program(gl, `#version 300 es
+ * precision highp float;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   float cell = mod(floor(vTexCoord.x * 8.0) + floor(vTexCoord.y * 6.0), 2.0);
+ *   outColor = vec4(mix(vec3(0.075, 0.553, 0.459), vec3(1.0, 0.82, 0.4), cell), 1.0);
+ * }`)
+ * bind(gl, checker)
+ * draw(gl, fullscreen(gl))
  */
 export function fullscreen(gl) {
   const ctx = contextOf(gl);
@@ -90,6 +126,36 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * @param {WebGL2RenderingContext} gl
  * @param {object} prog  A pass program from program(gl, frag).
  * @param {object} [uniforms]  tex0 is the image filtered.
+ * @example
+ * <caption>Axes drawn into a target, then shown colour-inverted: the green background turns pink.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, axes, renderTarget, program, filter, SCREEN } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const scene = renderTarget(gl)
+ * const invert = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform sampler2D tex0;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   outColor = vec4(1.0 - texture(tex0, vTexCoord).rgb, 1.0);
+ * }`)
+ *
+ * twgl.bindFramebufferInfo(gl, scene)
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ *
+ * twgl.bindFramebufferInfo(gl, SCREEN)
+ * filter(gl, invert, { tex0: scene.color })
  */
 export function filter(gl, prog, uniforms) {
   const ctx = contextOf(gl);
@@ -139,6 +205,29 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  *        a multiplier (default white); mask a colorMask (RED, …); blend
  *        NORMAL · ADD · MULTIPLY (default: the state as it is). The previous
  *        program, depth test, mask and blend are restored after.
+ * @example
+ * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of a yellow canvas.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, axes, renderTarget, image, SCREEN } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const scene = renderTarget(gl)
+ * twgl.bindFramebufferInfo(gl, scene)
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ *
+ * twgl.bindFramebufferInfo(gl, SCREEN)
+ * gl.clearColor(1, 0.82, 0.4, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * image(gl, scene.color, { x: 20, y: 20, width: 160, height: 120 })
  */
 export function image(gl, tex, opts) {
   const ctx = contextOf(gl);
@@ -203,6 +292,45 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  *        clearDisplayFn(gl): the same for the display. draw(gl, tex, pass):
  *        how a pass renders its input (default filter with tex0).
  * @returns {object|null} The target holding the result, or null without passes.
+ * @example
+ * <caption>Two passes in a chain: the axes pixelated into 40 × 40 cells, then inverted.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, axes, renderTarget, program, pipe, SCREEN } from 'twgl.tree'
+ * import { createCamera } from '@nakednous/tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const scene = renderTarget(gl)
+ * const pixelate = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform sampler2D tex0;
+ * uniform float uCells;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   outColor = texture(tex0, (floor(vTexCoord * uCells) + 0.5) / uCells);
+ * }`)
+ * const invert = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform sampler2D tex0;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   outColor = vec4(1.0 - texture(tex0, vTexCoord).rgb, 1.0);
+ * }`)
+ *
+ * twgl.bindFramebufferInfo(gl, scene)
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, createCamera({ eye: [300, 250, 400] }))
+ * axes(gl, { size: 100 })
+ *
+ * twgl.bindFramebufferInfo(gl, SCREEN)
+ * pipe(gl, scene, [{ program: pixelate, uniforms: { uCells: 40 } }, invert])
  */
 export function pipe(gl, source, passes, opts) {
   const ctx = contextOf(gl);

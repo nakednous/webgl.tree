@@ -3,13 +3,20 @@
  * @module twgl.tree/pass
  * @license AGPL-3.0-only
  *
- *   program(gl, frag)                // the fragment source with the fixed NDC pass-through vertex stage
- *   fullscreen(gl)                   // the cached covering geometry, aTexCoord bottom-up (GL's orientation)
- *   filter(gl, prog, uniforms)       // bind + draw(fullscreen), depth test off; the image arrives as tex0
- *   image(gl, tex, opts)             // draw a texture to the current target: { x, y, width, height, tint, mask, blend }
- *   pipe(gl, source, passes, opts)   // the ping-pong chain; releasePipe(gl, key | true) frees its cached targets
+ * Fullscreen passes: `program` compiles a fragment shader, `filter` runs it
+ * over the current target, `image` draws a texture, and `pipe` chains passes
+ * through two cached targets.
  *
- * filter fills uResolution (the current viewport) and uTexelSize
+ * ```
+ * program(gl, frag)                // a pass program; vTexCoord in, tex0 the input
+ * filter(gl, prog, uniforms)       // run one pass
+ * image(gl, tex, opts)             // { x, y, width, height, tint, mask, blend }
+ * pipe(gl, source, passes, opts)   // the chain; releasePipe(gl) frees its targets
+ * ```
+ *
+ * @details
+ * The pass-through vertex stage is fixed in NDC; the covering geometry's
+ * aTexCoord is bottom-up. filter fills uResolution (the current viewport) and uTexelSize
  * ([1 / w, 1 / h] of tex0) only when the program declares them. image goes
  * through the internal flat program with a rect in target pixels, origin
  * bottom-left, default cover; no flip option anywhere — orientation is
@@ -47,9 +54,8 @@ const _white = [1, 1, 1, 1];
 const _res = [0, 0], _texel = [0, 0];
 
 /**
- * A fullscreen-pass program: the fragment source with the bridge's
- * pass-through vertex stage. The two-argument program is twgl's
- * createProgramInfo.
+ * A fullscreen-pass program from a fragment shader alone; for your own
+ * vertex stage use `twgl.createProgramInfo`.
  * @param {WebGL2RenderingContext} gl
  * @param {string} frag  GLSL ES 3.00 fragment source; vTexCoord in, tex0 by convention.
  * @returns {object|null} A twgl programInfo, or null on a compile error (logged by twgl).
@@ -78,8 +84,9 @@ export function fullscreen(gl) {
 const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0]; _vp[1] = v[1]; _vp[2] = v[2]; _vp[3] = v[3]; return _vp; };
 
 /**
- * Run a fullscreen pass: bind(prog, uniforms) with the depth test off, then
- * draw(fullscreen). uResolution and uTexelSize are filled iff declared.
+ * Run a fullscreen pass over the current target. `uResolution` and
+ * `uTexelSize` are filled when the program declares them.
+ * @details bind(prog, uniforms) with the depth test off, then draw(fullscreen).
  * @param {WebGL2RenderingContext} gl
  * @param {object} prog  A pass program from program(gl, frag).
  * @param {object} [uniforms]  tex0 is the image filtered.
@@ -105,9 +112,12 @@ export function filter(gl, prog, uniforms) {
  * The matrix taking the fullscreen quad ([−1, 1]²) to a pixel rect of the
  * viewport, in NDC.
  * @param {Float32Array} out  16 elements.
- * @param {number} x, y  The rect's bottom-left, target px.
- * @param {number} w, h  The rect's size, target px.
- * @param {number} vw, vh  The viewport size.
+ * @param {number} x  The rect's left, target px.
+ * @param {number} y  The rect's bottom, target px.
+ * @param {number} w  The rect's width.
+ * @param {number} h  The rect's height.
+ * @param {number} vw  The viewport width.
+ * @param {number} vh  The viewport height.
  * @returns {Float32Array} out
  */
 export function rectMatrix(out, x, y, w, h, vw, vh) {
@@ -175,9 +185,9 @@ export function passOf(entry) {
 const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); };
 
 /**
- * Run a source through a chain of fullscreen passes, ping-ponging between
- * two cached targets, and show the result on the current target.
- *
+ * Run a source through a chain of fullscreen passes and show the result on
+ * the current target.
+ * @details Ping-pongs between two targets cached under `key`.
  * @param {WebGL2RenderingContext} gl
  * @param {WebGLTexture|object} source  A texture, or a target (its .color).
  * @param {object|object[]} passes  One pass or an array; each a program from

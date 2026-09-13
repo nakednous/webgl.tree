@@ -403,3 +403,67 @@ export function handleLocus(gl, h, opts) {
     _drawTris(gl, ctx, d, null, o.dotColor || o.color, null, o.depth);
   }
 }
+
+// ── HUD ─────────────────────────────────────────────────────────────────
+
+/**
+ * Start drawing in screen space: the installed camera is saved, an
+ * orthographic projection over the current viewport in y-down target
+ * pixels with an identity view goes in, and the depth test goes off. Pair
+ * with endHUD. The screen-space gizmos and image are the usual contents.
+ * @param {WebGL2RenderingContext} gl
+ */
+export function beginHUD(gl) {
+  const ctx = contextOf(gl);
+  if (ctx.hud) return;
+  const vp = _viewport(gl);
+  ctx.hud = { V: new Float32Array(ctx.V), P: new Float32Array(ctx.P), depth: gl.isEnabled(gl.DEPTH_TEST) };
+  if (ctx.hud.depth) gl.disable(gl.DEPTH_TEST);
+  installCamera(ctx, IDENTITY, mat4Ortho(_P, 0, vp[2], vp[3], 0, -1, 1, ctx.ndcZMin));
+}
+
+/**
+ * End HUD mode: the camera and the depth test come back.
+ * @param {WebGL2RenderingContext} gl
+ */
+export function endHUD(gl) {
+  const ctx = contextOf(gl);
+  if (!ctx.hud) return;
+  installCamera(ctx, ctx.hud.V, ctx.hud.P);
+  if (ctx.hud.depth) gl.enable(gl.DEPTH_TEST);
+  ctx.hud = null;
+}
+
+/** Run a HUD gizmo inside beginHUD / endHUD unless HUD mode is already on. */
+function _inHud(gl, ctx, draw) {
+  const wrap = !ctx.hud;
+  if (wrap) beginHUD(gl);
+  draw();
+  if (wrap) endHUD(gl);
+}
+
+/**
+ * A crosshair at (x, y) in target pixels, y down. World anchoring is the
+ * sketch's mapLocation.
+ * @param {WebGL2RenderingContext} gl
+ * @param {{ x?:number, y?:number, size?:number, color?:number[] }} [opts]
+ */
+export function cross(gl, opts) {
+  const ctx = contextOf(gl), o = opts || {};
+  const g = _keyed(ctx, 'cross');
+  fill(gl, g, (a) => crossLines(a, o));
+  _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false));
+}
+
+/**
+ * A bulls-eye at (x, y) in target pixels, y down: a circle (CIRCLE) or the
+ * cornered square (SQUARE) of `size`, with the central cross.
+ * @param {WebGL2RenderingContext} gl
+ * @param {{ x?:number, y?:number, size?:number, shape?:number, detail?:number, color?:number[] }} [opts]
+ */
+export function bullsEye(gl, opts) {
+  const ctx = contextOf(gl), o = opts || {};
+  const g = _keyed(ctx, 'bullsEye');
+  fill(gl, g, (a) => bullsEyeLines(a, o));
+  _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false));
+}

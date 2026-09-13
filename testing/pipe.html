@@ -100,8 +100,8 @@ const scene = renderTarget(gl)
 const pixelate = program(gl, src('pixelate-frag'))
 const vignette = program(gl, src('vignette-frag'))
 
-// the p5 sketch's lookat, in a y-up world: p5's y-down eye at −220 is +220 here
-const cam = createCamera({ eye: [260, 220, 420], center: [0, 30, 0], up: [0, 1, 0], fov: Math.PI / 3, near: 1, far: 2000 })
+// the p5 sketch's lookat in a y-up world (p5's y-down eye at −220 is +220 here) under p5's default lens: 2 · atan(height / 2 / 800), near 80, far 8000
+const cam = createCamera({ eye: [260, 220, 420], center: [0, 30, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
 const M1 = new Float32Array(16), M2 = new Float32Array(16), q = [0, 0, 0, 1]
 const offset = [170, 30, 0], p2 = [0, 0, 0]              // the small box sits in the big one's rotating frame, as p5's translate-after-rotate puts it
 const light = [0.4, 0.6, 1]
@@ -154,7 +154,8 @@ new p5((p) => {
     scene.end()
     const cells = 4 + (p.mouseX >= 0 && p.mouseX <= p.width ? p.mouseX / p.width : 0.5) * 116
     pixelate.setUniform('uCells', cells)
-    vignette.setUniform('uResolution', [p.width, p.height])   // p5 fills no uResolution: set by hand for the same hairline
+    const d = p.pixelDensity()                                  // p5 fills no uResolution: set by hand, in the framebuffer's own pixels
+    vignette.setUniform('uResolution', [p.width * d, p.height * d])
     p.pipe(scene, [pixelate, vignette])
   }
 }, document.getElementById('p5'))

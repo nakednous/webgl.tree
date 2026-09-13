@@ -99,7 +99,8 @@ const triangle = twgl.createBufferInfoFromArrays(gl, {
 const scene = renderTarget(gl)                       // canvas-sized, colour + depth
 const blur = program(gl, src('blur-frag'))           // the fragment stage only; the bridge supplies the vertex stage
 
-const cam = createCamera({ eye: [0, 0, 400], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 3, near: 0.1, far: 1000 })
+// p5's default camera: eye z 800, the lens 2 · atan(height / 2 / 800), near 80, far 8000
+const cam = createCamera({ eye: [0, 0, 800], center: [0, 0, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
 const M = new Float32Array(16), q = [0, 0, 0, 1]
 
 function render() {

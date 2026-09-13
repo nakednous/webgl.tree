@@ -14,9 +14,15 @@ export function createGL({ width = 640, height = 480 } = {}) {
     DEPTH_COMPONENT: 6402, DEPTH_COMPONENT24: 33190, UNSIGNED_INT: 5125, DEPTH_STENCIL: 34041,
     LINEAR: 9729, NEAREST: 9728, CLAMP_TO_EDGE: 33071,
     COLOR_ATTACHMENT0: 36064, DEPTH_ATTACHMENT: 36096, FRAMEBUFFER: 36160, VIEWPORT: 2978, FRAMEBUFFER_BINDING: 36006,
+    ARRAY_BUFFER: 34962, ELEMENT_ARRAY_BUFFER: 34963, STATIC_DRAW: 35044, FLOAT: 5126,
     deleteProgram(p) { log.push(['deleteProgram', p]); },
     deleteBuffer(b) { log.push(['deleteBuffer', b]); },
     getExtension() { return {}; },
+    createBuffer() { const b = { id: ++gl.buffers }; log.push(['createBuffer', b.id]); return b; },
+    bindBuffer(target, b) { gl.bound = b; },
+    bufferData(target, data) { if (gl.bound) gl.bound.size = data.byteLength; log.push(['bufferData', gl.bound ? gl.bound.id : null, data.length]); },
+    getBufferParameter() { return gl.bound ? gl.bound.size : 0; },
+    buffers: 0, bound: null,
   };
   return gl;
 }

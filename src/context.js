@@ -68,6 +68,9 @@ export function contextOf(gl) {
     sizes: new WeakMap(),              // texture → [width, height], for uTexelSize
     pipes: {},                         // key → { ping, pong }
     targets: new Set(),                // every renderTarget made here
+    gizmos: {},                        // name → { arrays, buffer, capacity }, the line pipe's caches
+    rigs: new WeakMap(),               // helm → { fbo, size }, the rig HUD overload's targets
+    hud: null,                         // the camera saved by beginHUD, while active
   };
   _registry.set(gl, ctx);
   return ctx;
@@ -101,6 +104,10 @@ export function dispose(gl) {
     if (p && p.program && typeof gl.deleteProgram === 'function') gl.deleteProgram(p.program);
   }
   ctx.programs = {};
+  for (const g of Object.values(ctx.gizmos)) {
+    if (g.buffer && typeof gl.deleteBuffer === 'function') for (const a of Object.values(g.buffer.attribs)) gl.deleteBuffer(a.buffer);
+  }
+  ctx.gizmos = {};
   if (ctx.quad) {
     for (const a of Object.values(ctx.quad.attribs || {})) { if (a.buffer && typeof gl.deleteBuffer === 'function') gl.deleteBuffer(a.buffer); }
     if (ctx.quad.indices && typeof gl.deleteBuffer === 'function') gl.deleteBuffer(ctx.quad.indices);

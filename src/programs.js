@@ -46,6 +46,27 @@ void main() {
   outColor = uUseTexture ? texture(uTexture, vTexCoord) * uColor : uColor;
 }`;
 
+const LINE_VERT = `#version 300 es
+in vec3 aPosition;
+in vec4 aColor;
+uniform mat4 uPV;
+uniform mat4 uModel;
+out vec4 vColor;
+void main() {
+  vColor = aColor;
+  gl_Position = uPV * uModel * vec4(aPosition, 1.0);
+}`;
+
+const LINE_FRAG = `#version 300 es
+precision highp float;
+in vec4 vColor;
+uniform vec4 uColor;
+uniform bool uUseColor;
+out vec4 outColor;
+void main() {
+  outColor = uUseColor ? vColor : uColor;
+}`;
+
 /**
  * The flat colour / texture program of a context: uColor, uTexture,
  * uUseTexture, uModelViewProjectionMatrix.
@@ -56,4 +77,16 @@ export function flatProgram(gl) {
   const ctx = contextOf(gl);
   if (!ctx.programs.flat) ctx.programs.flat = createProgramInfo(gl, [FLAT_VERT, FLAT_FRAG]);
   return ctx.programs.flat;
+}
+
+/**
+ * The line pipe's program of a context: aPosition, optional aColor (read
+ * when uUseColor), uPV, uModel, uColor.
+ * @param {WebGL2RenderingContext} gl
+ * @returns {object} A twgl programInfo.
+ */
+export function lineProgram(gl) {
+  const ctx = contextOf(gl);
+  if (!ctx.programs.line) ctx.programs.line = createProgramInfo(gl, [LINE_VERT, LINE_FRAG]);
+  return ctx.programs.line;
 }

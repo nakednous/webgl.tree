@@ -18,4 +18,5 @@ export { setCamera } from './camera.js';
 export { bind, draw, drawInstanced, declaredTransforms, uploadTransforms, TRANSFORMS } from './draw.js';
 export { renderTarget, targetSpecs, SCREEN } from './target.js';
 export { program, fullscreen, filter, image, pipe, releasePipe, rectMatrix, passOf, RED, GREEN, BLUE, ALPHA, RGB, NORMAL, ADD, MULTIPLY } from './pass.js';
+export { fill, axes, grid, hermite, pane } from './gizmo.js';
 export { WEBGL as ndcZMin } from '@nakednous/tree';

@@ -202,6 +202,53 @@ function _draw(gl, obj, M, opts, instances) {
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
+ * @example
+ * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, bind, draw, host, tree } from 'twgl.tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ *
+ * // { position, normal, texcoord, indices }; the shader names its attributes aPosition / aNormal
+ * const model = await host.loadModel('models/torus.obj')
+ * const torus = twgl.createBufferInfoFromArrays(gl, { aPosition: model.position, aNormal: model.normal, indices: model.indices })
+ * const cam = tree.createCamera({ eye: [0, 250, 300] })
+ * const M = new Float32Array(16)
+ * const q = [0, 0, 0, 1]
+ *
+ * function frame(ms) {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   tree.qFromAxisAngle(q, 1, 0, 0, ms / 1000)
+ *   bind(gl, prog, { uColor: [1, 0.82, 0.4] })
+ *   draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function draw(gl, obj, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }   // draw(gl, obj, opts)

@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "description": "twgl.tree — @nakednous/tree + @nakednous/host on raw WebGL2 through twgl: gizmo line pipe, HUD, render targets, filter passes, the pipe chain, async colour-ID picking, camera install.",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/twgl.tree.umd.cjs",
   "module": "dist/index.js",
+  "jsdelivr": "dist/twgl.tree.umd.cjs",
   "exports": {
     ".": {
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/twgl.tree.umd.cjs"
     }
   },
   "files": [

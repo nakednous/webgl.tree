@@ -385,6 +385,50 @@ export function pipe(gl, source, passes, opts) {
  * pair with true. Targets you supplied yourself are left alone.
  * @param {WebGL2RenderingContext} gl
  * @param {string|boolean} [key]
+ * @example
+ * <caption>Click to switch the pixelation off and on: switching it off releases its cached pair, and the readout lists the pipes still cached.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, axes, renderTarget, program, pipe, releasePipe, image, contextOf, SCREEN, tree } from 'twgl.tree'
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const out = document.body.appendChild(document.createElement('div'))
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ *
+ * const scene = renderTarget(gl)
+ * const pixelate = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform sampler2D tex0;
+ * uniform float uCells;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   outColor = texture(tex0, (floor(vTexCoord * uCells) + 0.5) / uCells);
+ * }`)
+ * const cam = tree.createCamera({ eye: [300, 250, 400] })
+ * let effect = true
+ *
+ * canvas.addEventListener('click', () => {
+ *   effect = !effect
+ *   if (!effect) releasePipe(gl, 'fx')
+ * })
+ *
+ * function frame() {
+ *   twgl.bindFramebufferInfo(gl, scene)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 100 })
+ *   twgl.bindFramebufferInfo(gl, SCREEN)
+ *   if (effect) pipe(gl, scene, { program: pixelate, uniforms: { uCells: 40 } }, { key: 'fx' })
+ *   else image(gl, scene.color)
+ *   out.textContent = 'cached pipes: ' + (Object.keys(contextOf(gl).pipes).join(', ') || 'none')
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function releasePipe(gl, key) {
   const ctx = contextOf(gl);

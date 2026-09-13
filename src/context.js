@@ -156,6 +156,51 @@ export function viewOf(gl) {
  * @details Targets, the pipe caches, textures, pending readbacks, the
  * internal programs and the fullscreen geometry go, then the entry.
  * @param {WebGL2RenderingContext} gl
+ * @example
+ * <caption>Click to tear down: the loop stops, dispose frees the target and caches, the context is lost and the canvas goes; click again for a fresh canvas.</caption>
+ * import * as twgl from 'twgl.js'
+ * import { setCamera, axes, renderTarget, image, dispose, SCREEN, tree } from 'twgl.tree'
+ *
+ * const out = document.body.appendChild(document.createElement('div'))
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ * let gl = null
+ * let frameId = 0
+ *
+ * function start() {
+ *   const canvas = document.body.appendChild(document.createElement('canvas'))
+ *   canvas.width = 400
+ *   canvas.height = 300
+ *   gl = canvas.getContext('webgl2')
+ *   const scene = renderTarget(gl)
+ *   const cam = tree.createCamera({ eye: [0, 200, 400] })
+ *   const frame = (ms) => {
+ *     cam.eye[0] = 400 * Math.sin(ms / 1000)
+ *     cam.eye[2] = 400 * Math.cos(ms / 1000)
+ *     twgl.bindFramebufferInfo(gl, scene)
+ *     gl.enable(gl.DEPTH_TEST)
+ *     gl.clearColor(0.075, 0.553, 0.459, 1)
+ *     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *     setCamera(gl, cam)
+ *     axes(gl, { size: 100 })
+ *     twgl.bindFramebufferInfo(gl, SCREEN)
+ *     image(gl, scene.color)
+ *     frameId = requestAnimationFrame(frame)
+ *   }
+ *   frameId = requestAnimationFrame(frame)
+ *   out.textContent = 'running · click to dispose'
+ * }
+ *
+ * function stop() {
+ *   cancelAnimationFrame(frameId)
+ *   dispose(gl)
+ *   gl.getExtension('WEBGL_lose_context').loseContext()
+ *   gl.canvas.remove()
+ *   gl = null
+ *   out.textContent = 'disposed · click to start again'
+ * }
+ *
+ * document.addEventListener('click', () => (gl ? stop() : start()))
+ * start()
  */
 export function dispose(gl) {
   const ctx = _registry.get(gl);

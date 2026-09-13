@@ -3,15 +3,19 @@
  * @module twgl.tree/gizmo
  * @license AGPL-3.0-only
  *
- * Thin generator-then-draw wrappers, each (gl, subject?, opts) with
- * { M, color, bits, size, … } and no ambient state, named as in p5.tree:
+ * Gizmos drawn by name under the installed camera — frames, grids, curves,
+ * frustums, track paths, helm rigs, handles — and screen-space marks between
+ * `beginHUD` and `endHUD`. Each takes `gl`, its subject, and options such as
+ * `M`, `color`, `bits`, `size` and `depth`.
  *
- *   axes(gl, opts) · grid(gl, opts) · hermite(gl, p0, t0, p1, t1, opts)
- *   cross(gl, opts) · bullsEye(gl, opts)                 // HUD space, { x, y } in target px, y down
- *   viewFrustum(gl, opts) · trackPath(gl, track, opts) · helmRig(gl, helm, opts) · handleLocus(gl, h, opts)
- *   pane(gl, p0, p1, p2, p3, opts)                       // a textured or flat quad
- *   beginHUD(gl) · endHUD(gl)                            // an orthographic P over the viewport, y down
+ * ```
+ * axes(gl, opts) · grid(gl, opts) · hermite(gl, p0, t0, p1, t1, opts)
+ * viewFrustum(gl, opts) · trackPath(gl, track, opts) · helmRig(gl, helm, opts) · handleLocus(gl, h, opts)
+ * pane(gl, p0, p1, p2, p3, opts)                       // a textured or flat quad
+ * beginHUD(gl) · cross(gl, opts) · bullsEye(gl, opts) · endHUD(gl)   // { x, y } in px, y down
+ * ```
  *
+ * @details
  * The pipe: one internal program per context (aPosition, optional aColor,
  * uPV, uModel, uColor), drawn as gl.LINES. Each gizmo owns one cached
  * bufferInfo per context, allocated from the generator's returned count and
@@ -236,8 +240,10 @@ export function grid(gl, opts) {
 /**
  * One cubic Hermite segment as a polyline.
  * @param {WebGL2RenderingContext} gl
- * @param {number[]} p0,t0  Start point and outgoing tangent.
- * @param {number[]} p1,t1  End point and incoming tangent.
+ * @param {number[]} p0  Start point.
+ * @param {number[]} t0  Outgoing tangent.
+ * @param {number[]} p1  End point.
+ * @param {number[]} t1  Incoming tangent.
  * @param {{ M?:ArrayLike<number>, samples?:number, color?:number[], depth?:boolean }} [opts]
  */
 export function hermite(gl, p0, t0, p1, t1, opts) {
@@ -248,12 +254,16 @@ export function hermite(gl, p0, t0, p1, t1, opts) {
 }
 
 /**
- * A textured or flat quad through the internal flat program: corners p0
- * top-left, then clockwise; default uvs put the top-left at v = 1, so a
- * texture in GL's bottom-up space reads upright. `uvs` maps a sub-rectangle
- * or tiles, four pairs flat in corner order; it never flips.
+ * A quad, textured or flat, from four corners clockwise from the top-left;
+ * a texture reads upright. `uvs` maps a sub-rectangle or tiles.
+ * @details Drawn through the internal flat program; default uvs put the
+ * top-left at v = 1, matching GL's bottom-up texture space. `uvs` is four
+ * pairs flat in corner order; it never flips.
  * @param {WebGL2RenderingContext} gl
- * @param {number[]} p0,p1,p2,p3
+ * @param {number[]} p0  Top-left corner.
+ * @param {number[]} p1  Top-right corner.
+ * @param {number[]} p2  Bottom-right corner.
+ * @param {number[]} p3  Bottom-left corner.
  * @param {{ M?:ArrayLike<number>, texture?:WebGLTexture, uvs?:number[], color?:number[], depth?:boolean }} [opts]
  */
 export function pane(gl, p0, p1, p2, p3, opts) {
@@ -514,8 +524,7 @@ function _inHud(gl, ctx, draw) {
 }
 
 /**
- * A crosshair at (x, y) in target pixels, y down. World anchoring is the
- * sketch's mapLocation.
+ * A crosshair at (x, y) in target pixels, y down.
  * @param {WebGL2RenderingContext} gl
  * @param {{ x?:number, y?:number, size?:number, color?:number[] }} [opts]
  */

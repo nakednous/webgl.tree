@@ -9,9 +9,10 @@ declares. No engine, no scene graph — twgl's own verbs stay yours.
 > **Status: 0.0.x, building.** Shipped: the context registry (`init`, `dispose`, `viewOf`),
 > `setCamera` in both forms, `bind` · `draw` · `drawInstanced` under the declared transforms,
 > `renderTarget` in every shape with `SCREEN`, `program(frag)` · `fullscreen` · `filter` ·
-> `image` · `pipe` · `releasePipe`. Still to land: picking, textures, the gizmo line pipe, HUD
-> and panes. The harness under `testing/` runs the notebook's imaging heroes on the bridge with
-> p5.tree beside for parity.
+> `image` · `pipe` · `releasePipe`; the gizmo line pipe with `axes` · `grid` · `hermite` ·
+> `viewFrustum` · `trackPath` · `helmRig` · `handleLocus` · `pane`, and `beginHUD` · `endHUD`
+> with `cross` · `bullsEye`. Still to land: picking and textures. The harness under `testing/`
+> runs the notebook's imaging heroes and every gizmo on the bridge with p5.tree beside for parity.
 
 ---
 

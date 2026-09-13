@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>twgl.tree · gizmos</title>
+<style>
+  :root { color-scheme: dark }
+  html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
+  main { display: flex; gap: 16px; flex-wrap: wrap; padding: 16px; align-items: flex-start }
+  section { position: relative }
+  h2 { font-size: 12px; font-weight: 600; margin: 0 0 6px; color: #9ca3af } h2 b { color: #f472b6 }
+  canvas { display: block; box-shadow: 0 0 0 1px #1f2937; touch-action: none }
+  .host-label { color: #a3e635; font: 11px ui-monospace, monospace; text-shadow: 0 1px 2px #000 }
+  #note { padding: 0 16px 8px; color: #9ca3af }
+  a.back { position: fixed; top: 12px; right: 14px; color: #9ca3af; text-decoration: none }
+</style>
+<script type="importmap">
+{ "imports": {
+  "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
+  "twgl.tree": "../dist/index.js",
+  "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
+  "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
+} }
+</script>
+</head>
+<body>
+<a class="back" href="index.html">← harness</a>
+<div id="note">same fixed camera on both sides · drag the two handle dots (sphere, plane) on either side · the rig is fed a synthetic push · bottom-left cross and centre bulls-eye are HUD gizmos</div>
+<main>
+  <section><h2><b>twgl.tree</b> · the line pipe</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>p5.tree</b> · the same gizmos</h2><div id="p5"></div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+<script src="../../p5.tree/dist/p5.tree.js"></script>
+
+<script type="module">
+// The bridge column: a host on the canvas for the handles and the rig labels,
+// the camera installed once per frame, every gizmo drawn by name.
+import * as twgl from 'twgl.js'
+import { init, setCamera, axes, grid, hermite, viewFrustum, trackPath, helmRig, handleLocus, cross, bullsEye, beginHUD, endHUD } from 'twgl.tree'
+import { createCamera, PoseTrack, CameraTrack, PoseHelm, SPHERE, PLANE, PATH, CONTROLS, TANGENTS, CENTER, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+import { createHost } from '@nakednous/host'
+
+const canvas = document.getElementById('gl')
+const gl = canvas.getContext('webgl2')
+const host = createHost(canvas)
+init(gl, { host })
+
+// p5's default lens, the sketch's lookat mirrored into a y-up world
+const cam = createCamera({ eye: [320, 260, 520], center: [0, 20, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
+
+// a second camera to draw the frustum of
+const other = createCamera({ eye: [-160, 90, 140], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 4, near: 30, far: 220 })
+
+// a pose track and a camera track, three and two keyframes
+const pose = new PoseTrack()
+pose.add([{ pos: [-220, 40, -60], rot: [0, 0, 0, 1] }, { pos: [-120, 120, 60], rot: qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, 0.8) }, { pos: [20, 60, 140], rot: qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, 0.6) }])
+const camTrack = new CameraTrack()
+camTrack.add([{ eye: [220, 140, -180], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 5, near: 40, far: 300 },
+              { eye: [120, 200, -260], center: [40, 0, 0], up: [0, 1, 0], fov: Math.PI / 5, near: 40, far: 300 }])
+
+// a helm fed a synthetic push: lane 1 (Tz) and lane 2 (Ry)
+const helm = new PoseHelm()
+const lin = [0, 0, 0], ang = [0, 0, 0]
+const pose0 = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }     // step's scratch: the rig reads the helm's activity, not this
+
+// two handles on the host
+const sphere = host.handle({ constraint: SPHERE, anchor: [0, 60, 150], radius: 50 })
+const plane = host.handle({ constraint: PLANE, anchor: [150, 0, 40], normal: [0, 1, 0] })
+
+const ground = mat4FromTRS(new Float32Array(16), 0, 0, 0, ...qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+const rigAt = mat4FromTRS(new Float32Array(16), 150, 60, -120, 0, 0, 0, 1, 1, 1, 1)
+let last = performance.now()
+
+function render() {
+  const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now
+  const t = now / 1000
+  lin[1] = 250 * Math.sin(t * 0.9); ang[2] = 250 * Math.cos(t * 0.9)
+  helm.feed(lin, ang); helm.step(pose0, dt)
+  host.tick(dt)
+
+  twgl.bindFramebufferInfo(gl, null)
+  gl.enable(gl.DEPTH_TEST)
+  gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  setCamera(gl, cam)
+  sphere.update(); plane.update()
+
+  grid(gl, { M: ground, size: 300, subdivisions: 12, color: [0.35, 0.38, 0.45, 1] })
+  axes(gl, { size: 100 })
+  hermite(gl, [-200, 0, 200], [200, 300, 0], [200, 0, 200], [200, -300, 0], { color: [1, 0.84, 0.4, 1] })
+  viewFrustum(gl, { camera: other, color: [1, 1, 1, 1] })
+  trackPath(gl, pose, { bits: PATH | CONTROLS | TANGENTS, color: [0.6, 0.85, 1, 1] })
+  trackPath(gl, camTrack, { bits: PATH | CENTER, color: [1, 0.6, 0.85, 1] })
+  helmRig(gl, helm, { M: rigAt, size: 70, identify: true })
+  handleLocus(gl, sphere, { color: [1, 1, 1, 1], dotColor: [1, 0.31, 0.85, 1] })
+  handleLocus(gl, plane, { color: [1, 1, 1, 1], dotColor: [1, 0.31, 0.85, 1] })
+  helmRig(gl, helm, { x: 600 - 136, y: 16, size: 120 })
+  beginHUD(gl)
+  cross(gl, { x: 60, y: 340, size: 40, color: [1, 1, 1, 1] })
+  bullsEye(gl, { x: 300, y: 200, size: 60, color: [0.64, 0.9, 0.2, 1] })
+  endHUD(gl)
+
+  host.labels.tick()
+  host.pointer.flush()
+  requestAnimationFrame(render)
+}
+requestAnimationFrame(render)
+</script>
+
+<script>
+// The parity column: p5.tree's gizmos at the same lookat in its y-down world.
+new p5((p) => {
+  let pose, camTrack, helm, sphere, plane
+  const lin = [0, 0, 0], ang = [0, 0, 0]
+  p.setup = () => {
+    p.createCanvas(600, 400, p.WEBGL)
+    p.camera(320, -260, 520, 0, -20, 0, 0, 1, 0)
+    pose = p.createPoseTrack()
+    pose.add([{ pos: [-220, -40, -60] }, { pos: [-120, -120, 60], rot: [0, Math.sin(0.4), 0, Math.cos(0.4)] }, { pos: [20, -60, 140], rot: [Math.sin(0.3), 0, 0, Math.cos(0.3)] }])
+    camTrack = p.createCameraTrack()
+    camTrack.add([{ eye: [220, -140, -180], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 5, near: 40, far: 300 },
+                  { eye: [120, -200, -260], center: [40, 0, 0], up: [0, 1, 0], fov: Math.PI / 5, near: 40, far: 300 }])
+    helm = p.createPoseHelm({ from: p5.Tree.WORLD })
+    sphere = p.createHandle({ constraint: p5.Tree.SPHERE, anchor: [0, -60, 150], radius: 50 })
+    plane = p.createHandle({ constraint: p5.Tree.PLANE, anchor: [150, 0, 40], normal: [0, 1, 0] })
+  }
+  p.draw = () => {
+    const t = performance.now() / 1000
+    lin[1] = 250 * Math.sin(t * 0.9); ang[2] = 250 * Math.cos(t * 0.9)
+    helm.feed(lin, ang)
+    p.background(20)
+    sphere.update(); plane.update()
+    p.push(); p.rotateX(p.HALF_PI); p.stroke(90, 97, 115); p.grid({ size: 300, subdivisions: 12 }); p.pop()
+    p.axes({ size: 100 })
+    p.stroke(255, 214, 102); p.noFill()
+    p.hermite([-200, 0, 200], [200, -300, 0], [200, 0, 200], [200, 300, 0])
+    p.stroke(255)
+    p.viewFrustum({ camera: { eye: [-160, -90, 140], center: [0, 0, 0], up: [0, 1, 0], fov: Math.PI / 4, near: 30, far: 220 } })
+    p.stroke(153, 217, 255)
+    p.trackPath(pose, { bits: p5.Tree.PATH | p5.Tree.CONTROLS | p5.Tree.TANGENTS })
+    p.stroke(255, 153, 217)
+    p.trackPath(camTrack, { bits: p5.Tree.PATH | p5.Tree.CENTER })
+    p.push(); p.translate(150, -60, -120); p.helmRig(helm, { size: 70, identify: true }); p.pop()
+    p.stroke(255); p.fill(255, 79, 216)
+    sphere.draw(); plane.draw()
+    p.helmRig(helm, { x: p.width - 136, y: 16, size: 120 })
+    p.stroke(255)
+    p.cross({ x: 60, y: 340, size: 40 })
+    p.stroke(163, 230, 51)
+    p.bullsEye({ x: 300, y: 200, size: 60 })
+  }
+}, document.getElementById('p5'))
+</script>
+</body>
+</html>

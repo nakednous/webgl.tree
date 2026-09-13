@@ -53,8 +53,8 @@ void main() { float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
 // a small scene rendered into a target; a third-person outer view shows that
 // image textured onto the inner camera's near plane — the orientation gate.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, viewFrustum, grid } from 'twgl.tree'
-import { createCamera, cameraOrbit, mat4FromTRS, qFromAxisAngle, BODY, APEX, NEAR } from '@nakednous/tree'
+import { setCamera, bind, draw, renderTarget, viewFrustum, grid, tree } from 'twgl.tree'
+const { createCamera, cameraOrbit, mat4FromTRS, qFromAxisAngle, BODY, APEX, NEAR } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

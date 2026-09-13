@@ -56,8 +56,8 @@ void main() {
 // for the pick (paint(id) on the flat program) and lit for the eye. The pick
 // is asynchronous: the readout shows the id and how many frames late it landed.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, pick } from 'twgl.tree'
-import { createCamera, mat4FromTRS } from '@nakednous/tree'
+import { setCamera, bind, draw, pick, tree } from 'twgl.tree'
+const { createCamera, mat4FromTRS } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

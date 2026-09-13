@@ -83,8 +83,8 @@ void main() {
 // uploads it), then the two-stage chain; the first stage's uCells reads the
 // mouse, the second declares uResolution and gets it filled.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe } from 'twgl.tree'
-import { createCamera, mat4FromTRS, qFromAxisAngle, qRotateVec3 } from '@nakednous/tree'
+import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'twgl.tree'
+const { createCamera, mat4FromTRS, qFromAxisAngle, qRotateVec3 } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

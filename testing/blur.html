@@ -82,8 +82,8 @@ void main() {
 //   render    beginPass(scene) · clear · setCamera(cam) · bind(tri) · draw(triangle, M)
 //             pipe(scene, [blur(uDir = H), blur(uDir = V)])   → screen
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe } from 'twgl.tree'
-import { createCamera, mat4FromTRS, qFromAxisAngle } from '@nakednous/tree'
+import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'twgl.tree'
+const { createCamera, mat4FromTRS, qFromAxisAngle } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

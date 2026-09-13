@@ -10,7 +10,9 @@
  *
  * - Editor: CodeMirror 5 over the source textarea; the bare textarea is the
  *   fallback when CodeMirror is absent.
- * - Canvas: a sandboxed `srcdoc` iframe whose import map sends `twgl.js` to
+ * - Canvas: a same-origin `srcdoc` iframe, unsandboxed (the examples are the
+ *   site's own code; the runner reaches into each frame to release its WebGL
+ *   context, and the site-local modules load without CORS), whose import map sends `twgl.js` to
  *   the pinned CDN module and `twgl.tree`, `@nakednous/tree` and
  *   `@nakednous/host` to site-local builds; the box contents run as a module
  *   script and make their own canvas. `srcdoc` inherits the page's base URL,
@@ -36,11 +38,6 @@
   const FAR      = '1500px 0px';  // unmount once it is beyond this margin
   const STAGE_BG = '#0a0a0e';     // fixed stage — never the page theme
 
-  // `allow-same-origin` keeps the frame on the page's origin: the module
-  // fetches of the site-local bundle and WebHID permissions both need a real
-  // (non-opaque) origin. Drop it for a strict sandbox at the cost of both.
-  const SANDBOX  = 'allow-scripts allow-same-origin';
-
   /** The iframe document: the import map, then the example as a module. */
   function srcdoc(code) {
     const map = JSON.stringify({ imports: cfg.imports });
@@ -61,7 +58,7 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
       const canvas = frame.contentWindow.document.querySelector('canvas');
       const gl = canvas && canvas.getContext('webgl2');
       if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext();
-    } catch (_) { /* opaque origin under a stricter SANDBOX — removal has to do */ }
+    } catch (_) { /* the frame's document is already gone — removal has to do */ }
     frame.remove();
   }
 
@@ -98,7 +95,6 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
     const f = document.createElement('iframe');
     f.className = 'sketch';
     f.title     = r.title;
-    f.setAttribute('sandbox', SANDBOX);
     f.setAttribute('allow', 'hid');
     f.srcdoc = srcdoc(code(r));
     r.stage.replaceChildren(f);

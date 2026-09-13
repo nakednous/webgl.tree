@@ -11,7 +11,9 @@ declares. No engine, no scene graph — twgl's own verbs stay yours.
 > `renderTarget` in every shape with `SCREEN`, `program(frag)` · `fullscreen` · `filter` ·
 > `image` · `pipe` · `releasePipe`; the gizmo line pipe with `axes` · `grid` · `hermite` ·
 > `viewFrustum` · `trackPath` · `helmRig` · `handleLocus` · `pane`, and `beginHUD` · `endHUD`
-> with `cross` · `bullsEye`. Still to land: picking and textures. The harness under `testing/`
+> with `cross` · `bullsEye`; a `width` option on every gizmo expands its lines into screen-space
+> quads (experimental: raw one-pixel lines stay the default, and the harness decides whether the
+> mode stays). Still to land: picking and textures. The harness under `testing/`
 > runs the notebook's imaging heroes and every gizmo on the bridge with p5.tree beside for parity.
 
 ---

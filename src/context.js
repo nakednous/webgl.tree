@@ -68,7 +68,7 @@ export function contextOf(gl) {
     sizes: new WeakMap(),              // texture → [width, height], for uTexelSize
     pipes: {},                         // key → { ping, pong }
     targets: new Set(),                // every renderTarget made here
-    gizmos: {},                        // name → { arrays, buffer, capacity }, the line pipe's caches
+    gizmos: {},                        // name → { arrays, buffer, capacity, wide }, the line pipe's caches
     rigs: new WeakMap(),               // helm → { fbo, size }, the rig HUD overload's targets
     hud: null,                         // the camera saved by beginHUD, while active
   };

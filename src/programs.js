@@ -79,6 +79,46 @@ export function flatProgram(gl) {
   return ctx.programs.flat;
 }
 
+const WIDE_VERT = `#version 300 es
+in vec3 aA;
+in vec3 aB;
+in float aT;
+in float aSide;
+in vec4 aColor;
+uniform mat4 uPV;
+uniform mat4 uModel;
+uniform vec2 uViewport;
+uniform float uWidth;
+out vec4 vColor;
+void main() {
+  vColor = aColor;
+  vec4 cA = uPV * uModel * vec4(aA, 1.0);
+  vec4 cB = uPV * uModel * vec4(aB, 1.0);
+  vec2 half = uViewport * 0.5;
+  vec2 sA = cA.xy / cA.w * half;
+  vec2 sB = cB.xy / cB.w * half;
+  vec2 d = sB - sA;
+  float l = length(d);
+  d = l > 0.0 ? d / l : vec2(1.0, 0.0);
+  vec2 n = vec2(-d.y, d.x) * (uWidth * 0.5 * aSide);
+  vec4 c = aT < 0.5 ? cA : cB;
+  gl_Position = c + vec4(n / half * c.w, 0.0, 0.0);
+}`;
+
+/**
+ * The wide line program of a context (experimental): each segment as a
+ * quad expanded in screen space by uWidth pixels — aA, aB the endpoints,
+ * aT which one, aSide the side, optional aColor; uPV, uModel, uViewport,
+ * uColor.
+ * @param {WebGL2RenderingContext} gl
+ * @returns {object} A twgl programInfo.
+ */
+export function wideLineProgram(gl) {
+  const ctx = contextOf(gl);
+  if (!ctx.programs.wide) ctx.programs.wide = createProgramInfo(gl, [WIDE_VERT, LINE_FRAG]);
+  return ctx.programs.wide;
+}
+
 /**
  * The line pipe's program of a context: aPosition, optional aColor (read
  * when uUseColor), uPV, uModel, uColor.

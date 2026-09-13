@@ -73,6 +73,8 @@ const plane = host.handle({ constraint: PLANE, anchor: [150, 0, 40], normal: [0,
 const ground = mat4FromTRS(new Float32Array(16), 0, 0, 0, ...qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
 const rigAt = mat4FromTRS(new Float32Array(16), 150, 60, -120, 0, 0, 0, 1, 1, 1, 1)
 let last = performance.now()
+let width = 1                                          // W toggles the experimental wide-line mode on every gizmo
+window.addEventListener('keydown', (e) => { if (e.key === 'w' || e.key === 'W') { width = width === 1 ? 3 : 1; document.getElementById('note').textContent = 'line width ' + width + (width > 1 ? ' (experimental quad expansion)' : ' (raw gl.LINES)') + ' · press W to toggle' } })
 
 function render() {
   const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now
@@ -88,19 +90,19 @@ function render() {
   setCamera(gl, cam)
   sphere.update(); plane.update()
 
-  grid(gl, { M: ground, size: 300, subdivisions: 12, color: [0.35, 0.38, 0.45, 1] })
-  axes(gl, { size: 100 })
-  hermite(gl, [-200, 0, 200], [200, 300, 0], [200, 0, 200], [200, -300, 0], { color: [1, 0.84, 0.4, 1] })
-  viewFrustum(gl, { camera: other, color: [1, 1, 1, 1] })
-  trackPath(gl, pose, { bits: PATH | CONTROLS | TANGENTS, color: [0.6, 0.85, 1, 1] })
-  trackPath(gl, camTrack, { bits: PATH | CENTER, color: [1, 0.6, 0.85, 1] })
-  helmRig(gl, helm, { M: rigAt, size: 70, identify: true })
-  handleLocus(gl, sphere, { color: [1, 1, 1, 1], dotColor: [1, 0.31, 0.85, 1] })
-  handleLocus(gl, plane, { color: [1, 1, 1, 1], dotColor: [1, 0.31, 0.85, 1] })
+  grid(gl, { M: ground, size: 300, subdivisions: 12, color: [0.35, 0.38, 0.45, 1], width })
+  axes(gl, { size: 100, width })
+  hermite(gl, [-200, 0, 200], [200, 300, 0], [200, 0, 200], [200, -300, 0], { color: [1, 0.84, 0.4, 1], width })
+  viewFrustum(gl, { camera: other, color: [1, 1, 1, 1], width })
+  trackPath(gl, pose, { bits: PATH | CONTROLS | TANGENTS, color: [0.6, 0.85, 1, 1], width })
+  trackPath(gl, camTrack, { bits: PATH | CENTER, color: [1, 0.6, 0.85, 1], width })
+  helmRig(gl, helm, { M: rigAt, size: 70, identify: true, width })
+  handleLocus(gl, sphere, { color: [1, 1, 1, 1], dotColor: [1, 0.31, 0.85, 1], width })
+  handleLocus(gl, plane, { color: [1, 1, 1, 1], dotColor: [1, 0.31, 0.85, 1], width })
   helmRig(gl, helm, { x: 600 - 136, y: 16, size: 120 })
   beginHUD(gl)
-  cross(gl, { x: 60, y: 340, size: 40, color: [1, 1, 1, 1] })
-  bullsEye(gl, { x: 300, y: 200, size: 60, color: [0.64, 0.9, 0.2, 1] })
+  cross(gl, { x: 60, y: 340, size: 40, color: [1, 1, 1, 1], width })
+  bullsEye(gl, { x: 300, y: 200, size: 60, color: [0.64, 0.9, 0.2, 1], width })
   endHUD(gl)
 
   host.labels.tick()

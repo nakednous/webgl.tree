@@ -18,9 +18,11 @@
  * grown when it exceeds capacity; per frame the generator writes into the
  * cached arrays and the buffer is re-uploaded — zero allocation once warm.
  * Depth test on by default; { depth: false } for overlays. One-pixel GL
- * lines. Colour is semantic where the generator writes a palette (axes, the
- * helm rig), else opts.color (default white). A gizmo binds its own program
- * and restores the one bound before it.
+ * lines by default; { width } in pixels (experimental) expands each segment
+ * into a screen-space quad through a second internal program, the
+ * generators untouched. Colour is semantic where the generator writes a
+ * palette (axes, the helm rig), else opts.color (default white). A gizmo
+ * binds its own program and restores the one bound before it.
  */
 
 'use strict';
@@ -38,7 +40,7 @@ import { contextOf, viewOf } from './context.js';
 import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
 import { image } from './pass.js';
-import { lineProgram, flatProgram } from './programs.js';
+import { lineProgram, wideLineProgram, flatProgram } from './programs.js';
 
 const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const WHITE = [1, 1, 1, 1];
@@ -57,7 +59,7 @@ const _vp = [0, 0, 0, 0];
 const _keyed = (ctx, name, opts) => {
   let g = ctx.gizmos[name];
   if (!g) {
-    g = { arrays: createArrays(64, opts), buffer: null, capacity: 0, tris: !!(opts && opts.texcoord) };
+    g = { arrays: createArrays(64, opts), buffer: null, capacity: 0, wide: null };
     ctx.gizmos[name] = g;
   }
   return g;
@@ -95,25 +97,92 @@ export function fill(gl, g, gen) {
 
 const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0]; _vp[1] = v[1]; _vp[2] = v[2]; _vp[3] = v[3]; return _vp; };
 
-/** Draw a filled gizmo's lines under M with the pipe program; uColor unless the arrays carry colour. */
-function _drawLines(gl, ctx, g, M, color, depth) {
+/**
+ * Expand a gizmo's line list into the wide-line quads (experimental): four
+ * vertices per segment carrying both endpoints, which end they sit at and
+ * their side, plus the endpoint's colour when the arrays carry one; six
+ * indices per segment. Cached beside the raw buffer, grown like it.
+ * @param {WebGL2RenderingContext} gl
+ * @param {object} g  A cached gizmo entry.
+ * @returns {object} The wide cache: { A, B, T, S, color?, indices, buffer, segments }.
+ */
+export function expand(gl, g) {
+  const segs = (g.arrays.count / 2) | 0;
+  let w = g.wide;
+  if (!w || w.capacity < segs) {
+    const cap = Math.max(segs, w ? w.capacity * 2 : 16);
+    w = {
+      A: new Float32Array(12 * cap), B: new Float32Array(12 * cap), T: new Float32Array(4 * cap), S: new Float32Array(4 * cap),
+      color: g.arrays.color ? new Float32Array(16 * cap) : null, indices: new Uint32Array(6 * cap),
+      buffer: null, capacity: cap, segments: 0,
+    };
+    for (let i = 0; i < cap; i++) {
+      const v = 4 * i;
+      w.T[v] = 0; w.T[v + 1] = 0; w.T[v + 2] = 1; w.T[v + 3] = 1;
+      w.S[v] = -1; w.S[v + 1] = 1; w.S[v + 2] = -1; w.S[v + 3] = 1;
+      const k = 6 * i;
+      w.indices[k] = v; w.indices[k + 1] = v + 1; w.indices[k + 2] = v + 2;
+      w.indices[k + 3] = v + 1; w.indices[k + 4] = v + 3; w.indices[k + 5] = v + 2;
+    }
+    if (g.wide && g.wide.buffer) for (const a of Object.values(g.wide.buffer.attribs)) gl.deleteBuffer(a.buffer);
+    g.wide = w;
+  }
+  const p = g.arrays.position.data, c = g.arrays.color ? g.arrays.color.data : null;
+  for (let i = 0; i < segs; i++) {
+    const a = 6 * i, b = a + 3;
+    for (let v = 0; v < 4; v++) {
+      const o = 12 * i + 3 * v;
+      w.A[o] = p[a]; w.A[o + 1] = p[a + 1]; w.A[o + 2] = p[a + 2];
+      w.B[o] = p[b]; w.B[o + 1] = p[b + 1]; w.B[o + 2] = p[b + 2];
+      if (c) {
+        const src = v < 2 ? 4 * (2 * i) : 4 * (2 * i + 1), dst = 16 * i + 4 * v;
+        w.color[dst] = c[src]; w.color[dst + 1] = c[src + 1]; w.color[dst + 2] = c[src + 2]; w.color[dst + 3] = c[src + 3];
+      }
+    }
+  }
+  w.segments = segs;
+  if (!w.buffer) {
+    const arrays = { aA: { numComponents: 3, data: w.A }, aB: { numComponents: 3, data: w.B }, aT: { numComponents: 1, data: w.T }, aSide: { numComponents: 1, data: w.S }, indices: { numComponents: 3, data: w.indices } };
+    if (w.color) arrays.aColor = { numComponents: 4, data: w.color };
+    w.buffer = createBufferInfoFromArrays(gl, arrays);
+  } else if (segs > 0) {
+    setAttribInfoBufferFromArray(gl, w.buffer.attribs.aA, w.A);
+    setAttribInfoBufferFromArray(gl, w.buffer.attribs.aB, w.B);
+    if (w.color) setAttribInfoBufferFromArray(gl, w.buffer.attribs.aColor, w.color);
+  }
+  return w;
+}
+
+/** Draw a filled gizmo's lines under M: raw gl.LINES, or the expanded quads when width > 1; uColor unless the arrays carry colour. */
+function _drawLines(gl, ctx, g, M, color, depth, width) {
   if (!g.arrays.count) return;
-  const prog = lineProgram(gl);
+  const wide = typeof width === 'number' && width > 1;
+  const prog = wide ? wideLineProgram(gl) : lineProgram(gl);
   if (!prog) return;
   const prev = ctx.prog;
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
   if (depth === false && wasDepth) gl.disable(gl.DEPTH_TEST);
   gl.useProgram(prog.program);
-  setBuffersAndAttributes(gl, prog, g.buffer);
   const s = prog.uniformSetters;
   s.uPV(ctx.PV); s.uModel(M || IDENTITY); s.uColor(color || WHITE);
   const useColor = !!g.arrays.color;
   s.uUseColor(useColor);
   if (!useColor && prog.attribSetters.aColor) gl.disableVertexAttribArray(prog.attribSetters.aColor.location);
-  drawBufferInfo(gl, g.buffer, gl.LINES, g.arrays.count);
+  if (wide) {
+    const w = expand(gl, g);
+    const vp = _viewport(gl);
+    _res2[0] = vp[2]; _res2[1] = vp[3];
+    s.uViewport(_res2); s.uWidth(width);
+    setBuffersAndAttributes(gl, prog, w.buffer);
+    drawBufferInfo(gl, w.buffer, gl.TRIANGLES, 6 * w.segments);
+  } else {
+    setBuffersAndAttributes(gl, prog, g.buffer);
+    drawBufferInfo(gl, g.buffer, gl.LINES, g.arrays.count);
+  }
   if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
   if (prev) gl.useProgram(prev.program);
 }
+const _res2 = [0, 0];
 
 /** Draw a filled gizmo's triangles through the flat program under M. */
 function _drawTris(gl, ctx, g, M, color, texture, depth) {
@@ -147,7 +216,7 @@ export function axes(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
   const g = _keyed(ctx, 'axes', { color: true });
   fill(gl, g, (a) => axesLines(a, o));
-  _drawLines(gl, ctx, g, o.M, null, o.depth);
+  _drawLines(gl, ctx, g, o.M, null, o.depth, o.width);
 }
 
 /**
@@ -159,7 +228,7 @@ export function grid(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
   const g = _keyed(ctx, 'grid');
   fill(gl, g, (a) => gridLines(a, o));
-  _drawLines(gl, ctx, g, o.M, o.color, o.depth);
+  _drawLines(gl, ctx, g, o.M, o.color, o.depth, o.width);
 }
 
 /**
@@ -173,7 +242,7 @@ export function hermite(gl, p0, t0, p1, t1, opts) {
   const ctx = contextOf(gl), o = opts || {};
   const g = _keyed(ctx, 'hermite');
   fill(gl, g, (a) => hermiteLines(a, p0, t0, p1, t1, o));
-  _drawLines(gl, ctx, g, o.M, o.color, o.depth);
+  _drawLines(gl, ctx, g, o.M, o.color, o.depth, o.width);
 }
 
 /**
@@ -226,7 +295,7 @@ export function viewFrustum(gl, opts) {
   const lineBits = bits & ~((o.nearTexture ? NEAR : 0) | (o.farTexture ? FAR : 0));
   const g = _keyed(ctx, 'frustum');
   fill(gl, g, (a) => frustumLines(a, cam, { aspect, ndcZMin: ctx.ndcZMin, bits: lineBits, color: o.color }));
-  _drawLines(gl, ctx, g, null, o.color, o.depth);
+  _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (((bits & FAR) && o.farTexture) || ((bits & NEAR) && o.nearTexture)) {
     if (frustumCorners(_c24, cam, aspect, ctx.ndcZMin)) {
       if ((bits & FAR) && o.farTexture) pane(gl, _corner(_q0, 7), _corner(_q1, 6), _corner(_q2, 5), _corner(_q3, 4), { texture: o.farTexture, depth: o.depth });
@@ -250,7 +319,7 @@ function _cameraMarker(gl, kf, i, track, o) {
   const ctx = contextOf(gl);
   const g = _keyed(ctx, 'marker');
   fill(gl, g, (a) => frustumLines(a, kf, { aspect: _aspect(gl, o), ndcZMin: ctx.ndcZMin, bits: NEAR | APEX, color: o.color }));
-  _drawLines(gl, ctx, g, null, o.color, o.depth);
+  _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   axes(gl, { M: track.mat4Eye(_E, i, 0), size: typeof kf.near === 'number' ? kf.near : 0.1, bits: X | Y | _Z, depth: o.depth });
 }
 
@@ -271,7 +340,7 @@ export function trackPath(gl, track, opts) {
   const bits = o.bits ?? PATH;
   const g = _keyed(ctx, 'path');
   fill(gl, g, (a) => pathLines(a, track, { bits: bits & ~HANDLES, samples: o.samples, target: o.target, tangentScale: o.tangentScale, centerSize: o.centerSize, color: o.color }));
-  _drawLines(gl, ctx, g, null, o.color, o.depth);
+  _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   const isCamera = typeof track.sampleEye === 'function';
   const marker = 'marker' in o ? o.marker : (isCamera ? (o.target === 'center' ? null : _cameraMarker) : _poseMarker);
   if (typeof marker === 'function') {
@@ -311,7 +380,7 @@ export function helmRig(gl, helm, opts) {
   }
   const g = _keyed(ctx, 'helmRig', { color: true, labels: true });
   fill(gl, g, (a) => helmRigLines(a, helm, { size: o.size, bits: o.bits, identify: o.identify === true }));
-  _drawLines(gl, ctx, g, M, null, o.depth);
+  _drawLines(gl, ctx, g, M, null, o.depth, o.width);
   const host = ctx.host;
   if (o.identify === true && host && g.arrays.labels.length) {
     const id = helm._rigId || (helm._rigId = ++_rigSeq);
@@ -348,7 +417,7 @@ function _rigHud(gl, ctx, helm, o) {
   installCamera(ctx, _E, cameraProj(_P, _rigCam, 1, ctx.ndcZMin));
   const g = _keyed(ctx, 'helmRig', { color: true, labels: true });
   fill(gl, g, (a) => helmRigLines(a, helm, { size: 100, bits: o.bits }));
-  _drawLines(gl, ctx, g, null, null, true);
+  _drawLines(gl, ctx, g, null, null, true, o.width);
   installCamera(ctx, _V, _P2);
   if (!wasDepth) gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
@@ -391,7 +460,7 @@ export function handleLocus(gl, h, opts) {
   h.value(_p, { report: POINT });
   const g = _keyed(ctx, 'locus');
   fill(gl, g, (a) => locusLines(a, h._constraint, { bits: bits & (AIM | LOCUS | RING), mat4View: ctx.V, point: _p, color: o.color }));
-  _drawLines(gl, ctx, g, null, o.color, o.depth);
+  _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (bits & HANDLE) {
     const V = ctx.V, vp = _viewport(gl);
     const eyeZ = V[2]*_p[0] + V[6]*_p[1] + V[10]*_p[2] + V[14];
@@ -452,7 +521,7 @@ export function cross(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
   const g = _keyed(ctx, 'cross');
   fill(gl, g, (a) => crossLines(a, o));
-  _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false));
+  _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false, o.width));
 }
 
 /**
@@ -465,5 +534,5 @@ export function bullsEye(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
   const g = _keyed(ctx, 'bullsEye');
   fill(gl, g, (a) => bullsEyeLines(a, o));
-  _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false));
+  _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false, o.width));
 }

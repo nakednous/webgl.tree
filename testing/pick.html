@@ -73,9 +73,10 @@ const nodes = [
   { id: 3, pos: [40, -20, -120], rgb: [90 / 255, 230 / 255, 115 / 255], M: new Float32Array(16) },
 ]
 for (const n of nodes) mat4FromTRS(n.M, n.pos[0], n.pos[1], n.pos[2], 0, 0, 0, 1, 1, 1, 1)
-let mx = -1, my = -1, picked = 0, pending = false, frame = 0, latency = 0
+let mx = -1, my = -1, picked = 0, pending = false, frame = 0, latency = 0, sync = false
 canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })
 canvas.addEventListener('pointerleave', () => { mx = my = -1 })
+window.addEventListener('keydown', (e) => { if (e.key === 's' || e.key === 'S') sync = !sync })   // S: the synchronous readPixels mode, for the diagnosis
 
 function render() {
   frame++
@@ -87,15 +88,17 @@ function render() {
   if (mx >= 0 && !pending) {                             // the id pass: the flat program bound by pick, paint(id) per node
     pending = true
     const stamp = frame
-    pick(gl, mx, my, (paint) => { for (const n of nodes) { paint(n.id); draw(gl, sphere, n.M) } })
+    pick(gl, mx, my, (paint) => { for (const n of nodes) { paint(n.id); draw(gl, sphere, n.M) } }, { sync })
       .then((id) => { picked = id; latency = frame - stamp; pending = false })
-      .catch(() => { pending = false })
+      .catch((e) => { console.error(e); pending = false })
+    const err = gl.getError()
+    if (err) console.warn('[pick.html] gl error after the pick pass: 0x' + err.toString(16))
   }
   for (const n of nodes) {                               // the lit pass
     bind(gl, lit, { uColor: n.rgb, uLightDir: [0.4, 0.6, 1], uEmissive: n.id === picked ? 1 : 0 })
     draw(gl, sphere, n.M)
   }
-  out.textContent = (picked ? 'picked ' + picked : 'miss') + '   latency ' + latency + ' frame' + (latency === 1 ? '' : 's') + '   frame ' + frame
+  out.textContent = (picked ? 'picked ' + picked : 'miss') + '   latency ' + latency + ' frame' + (latency === 1 ? '' : 's') + '   frame ' + frame + '   mode ' + (sync ? 'sync (S)' : 'async (S)')
   requestAnimationFrame(render)
 }
 requestAnimationFrame(render)

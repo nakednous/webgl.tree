@@ -103,7 +103,7 @@ export function readPixel(gl, fbo, x, y) {
  * @param {number} x, y  The query pixel, y down, in the attached host's
  *        logical canvas px when there is one, else in drawing-buffer px.
  * @param {function(function(number):void):void} drawFn  Draws the scene; call paint(id) before each object's draw.
- * @param {{ program?:object, vp?:number[] }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed.
+ * @param {{ program?:object, vp?:number[], sync?:boolean }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed. sync: read the pixel back at once with readPixels, stalling the pipeline — p5's way; the promise then resolves in the same tick.
  * @returns {Promise<number>} The id under the pixel, 0 for a miss.
  */
 export function pick(gl, x, y, drawFn, opts) {
@@ -135,8 +135,11 @@ export function pick(gl, x, y, drawFn, opts) {
   ctx.prog = prog;
   if (prog.uniformSetters.uUseTexture) prog.uniformSetters.uUseTexture(false);
   const paint = (id) => { if (prog.uniformSetters.uColor) prog.uniformSetters.uColor(idToRgba(_rgba, id)); };
-  try { drawFn(paint); }
-  finally {
+  let syncId = -1;
+  try {
+    drawFn(paint);
+    if (o.sync) { gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, _px); syncId = rgbaToId(_px[0], _px[1], _px[2]); }
+  } finally {
     installCamera(ctx, _V, _P);
     if (!wasDepth) gl.disable(gl.DEPTH_TEST);
     if (prevProg) gl.useProgram(prevProg.program);
@@ -144,5 +147,7 @@ export function pick(gl, x, y, drawFn, opts) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
     gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
   }
+  if (syncId >= 0) return Promise.resolve(syncId);
   return readPixel(gl, target, 0, 0).then((px) => rgbaToId(px[0], px[1], px[2]));
 }
+const _px = new Uint8Array(4);

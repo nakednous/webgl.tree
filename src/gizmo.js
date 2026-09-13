@@ -292,16 +292,16 @@ export function viewFrustum(gl, opts) {
   else { console.error('[twgl.tree] viewFrustum: needs `camera` (a camera state or a CameraTrack) or `mat4Eye` and `mat4Proj`.'); return; }
   const aspect = _aspect(gl, o);
   const bits = o.bits ?? (NEAR | FAR | BODY);
-  const lineBits = bits & ~((o.nearTexture ? NEAR : 0) | (o.farTexture ? FAR : 0));
-  const g = _keyed(ctx, 'frustum');
-  fill(gl, g, (a) => frustumLines(a, cam, { aspect, ndcZMin: ctx.ndcZMin, bits: lineBits, color: o.color }));
-  _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
+  // a textured face is drawn first and keeps its outline, as p5's stroked pane does
   if (((bits & FAR) && o.farTexture) || ((bits & NEAR) && o.nearTexture)) {
     if (frustumCorners(_c24, cam, aspect, ctx.ndcZMin)) {
       if ((bits & FAR) && o.farTexture) pane(gl, _corner(_q0, 7), _corner(_q1, 6), _corner(_q2, 5), _corner(_q3, 4), { texture: o.farTexture, depth: o.depth });
       if ((bits & NEAR) && o.nearTexture) pane(gl, _corner(_q0, 3), _corner(_q1, 2), _corner(_q2, 1), _corner(_q3, 0), { texture: o.nearTexture, depth: o.depth });
     }
   }
+  const g = _keyed(ctx, 'frustum');
+  fill(gl, g, (a) => frustumLines(a, cam, { aspect, ndcZMin: ctx.ndcZMin, bits, color: o.color }));
+  _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (o.viewer === null) return;
   const E = cam === _matCam ? cam.mat4Eye : cameraEye(_E, cam);
   if (typeof o.viewer === 'function') o.viewer(gl, E);

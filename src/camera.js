@@ -25,6 +25,18 @@ const _isCameraState = (c) => !!(c && c.eye && c.center && c.up);
 const _isMat4 = (m) => m != null && typeof m === 'object' && typeof m.length === 'number' && m.length >= 16;
 
 /**
+ * Install V and P on a context alone — no host write. What the HUD and the
+ * rig overload use to swap the camera for a few draws and put it back.
+ * @param {object} ctx
+ * @param {ArrayLike<number>} V
+ * @param {ArrayLike<number>} P
+ */
+export function installCamera(ctx, V, P) {
+  for (let i = 0; i < 16; i++) { ctx.V[i] = V[i]; ctx.P[i] = P[i]; }
+  mat4Mul(ctx.PV, ctx.P, ctx.V);
+}
+
+/**
  * Install the view and projection a draw uses.
  *
  * @param {WebGL2RenderingContext} gl
@@ -52,8 +64,7 @@ export function setCamera(gl, V, P, opts) {
     console.error('[twgl.tree] setCamera: pass (gl, V, P) matrices or (gl, cam) a camera state.');
     return ctx.host ? ctx.host.view : ctx.view;
   }
-  for (let i = 0; i < 16; i++) { ctx.V[i] = view[i]; ctx.P[i] = proj[i]; }
-  mat4Mul(ctx.PV, ctx.P, ctx.V);
+  installCamera(ctx, view, proj);
   ctx.view.set(ctx.P, ctx.V);
   const host = (o && o.host) || ctx.host;
   if (host && host.view) host.view.set(ctx.P, ctx.V);

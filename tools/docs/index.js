@@ -52,6 +52,13 @@ function main() {
   for (const [file, html] of pages) writeFileSync(join(out, file), html);
 
   copyFileSync(bundle, join(out, site.bundle));
+  for (const [name, file] of Object.entries(paths.deps)) {
+    if (!existsSync(at(file))) {
+      console.error(`[docs] ${file} not found — ${name} is not installed.`);
+      process.exit(1);
+    }
+    copyFileSync(at(file), join(out, site.deps[name]));
+  }
   if (existsSync(at(paths.static))) cpSync(at(paths.static), out, { recursive: true });
 
   const examples = parsed.doclets.reduce((n, d) => n + d.examples.length, 0);

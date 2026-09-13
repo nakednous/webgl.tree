@@ -184,7 +184,9 @@ function shell({ title, active, body, nav, pkg, examples }) {
   const cm = examples ? `
   <link rel="stylesheet" href="${codemirror.css}">
   ${codemirror.js.map((u) => `<script src="${u}"></script>`).join('\n  ')}` : '';
-  const cfg = { twgl: twgl.url, lib: `./${site.bundle}`, index: site.index };
+  const imports = { 'twgl.js': twgl.url, 'twgl.tree': `./${site.bundle}` };
+  for (const [name, file] of Object.entries(site.deps)) imports[name] = `./${file}`;
+  const cfg = { imports, index: site.index };
   return `<!doctype html>
 <html lang="en">
 <head>

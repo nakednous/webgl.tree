@@ -45,6 +45,10 @@ export const paths = {
   pkg:    'package.json',
   readme: 'README.md',
   bundle: 'dist/index.js',      // ES build of the same commit, twgl.js external
+  deps: {                       // the builds the bundle was made against
+    '@nakednous/tree': 'node_modules/@nakednous/tree/dist/index.js',
+    '@nakednous/host': 'node_modules/@nakednous/host/dist/index.js',
+  },
   static: 'tools/docs/static',  // copied verbatim into site/ (assets/)
   site:   'site',
 };
@@ -52,6 +56,7 @@ export const paths = {
 /** Site-local URLs the pages hand to the runner. */
 export const site = {
   bundle: 'twgl.tree.js',
+  deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js' },
   style:  'assets/style.css',
   runner: 'assets/runner.js',
   search: 'assets/search.js',

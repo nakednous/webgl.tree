@@ -4,16 +4,17 @@
  * @license AGPL-3.0-only
  *
  * Classic deferred script on every page; no-op where there are no examples.
- * Config arrives in `window.twglTreeDocs` ({ twgl, lib }); markup is the
+ * Config arrives in `window.twglTreeDocs` ({ imports, index }); markup is the
  * renderer's `figure.example` (`textarea.source`, `[data-stage]`,
  * `[data-run]`, `[data-reset]`).
  *
  * - Editor: CodeMirror 5 over the source textarea; the bare textarea is the
  *   fallback when CodeMirror is absent.
  * - Canvas: a sandboxed `srcdoc` iframe whose import map sends `twgl.js` to
- *   the pinned CDN module and `twgl.tree` to the site-local bundle; the box
- *   contents run as a module script and make their own canvas. `srcdoc`
- *   inherits the page's base URL, so the bundle resolves relatively.
+ *   the pinned CDN module and `twgl.tree`, `@nakednous/tree` and
+ *   `@nakednous/host` to site-local builds; the box contents run as a module
+ *   script and make their own canvas. `srcdoc` inherits the page's base URL,
+ *   so the site-local builds resolve relatively.
  * - Run reassembles the iframe from the box; Reset restores the source text.
  *   Edits are page-local — nothing persists.
  * - Lifecycle: an IntersectionObserver mounts an iframe as its figure nears
@@ -42,7 +43,7 @@
 
   /** The iframe document: the import map, then the example as a module. */
   function srcdoc(code) {
-    const map = JSON.stringify({ imports: { 'twgl.js': cfg.twgl, 'twgl.tree': cfg.lib } });
+    const map = JSON.stringify({ imports: cfg.imports });
     return `<!doctype html>
 <html><head><meta charset="utf-8">
 <style>html,body{margin:0;overflow:hidden;background:${STAGE_BG}}canvas{display:block}</style>

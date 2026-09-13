@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>twgl.tree · portal</title>
+<style>
+  :root { color-scheme: dark }
+  html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
+  main { display: flex; gap: 16px; flex-wrap: wrap; padding: 16px; align-items: flex-start }
+  h2 { font-size: 12px; font-weight: 600; margin: 0 0 6px; color: #9ca3af } h2 b { color: #f472b6 }
+  canvas { display: block; box-shadow: 0 0 0 1px #1f2937 }
+  #note { padding: 0 16px 8px; color: #9ca3af }
+  a.back { position: fixed; top: 12px; right: 14px; color: #9ca3af; text-decoration: none }
+</style>
+<script type="importmap">
+{ "imports": {
+  "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
+  "twgl.tree": "../dist/index.js",
+  "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js"
+} }
+</script>
+</head>
+<body>
+<a class="back" href="index.html">← harness</a>
+<div id="note">the inner camera's view, rendered to a target, textured onto its own near plane by viewFrustum's nearTexture with the default uvs — it must read upright, the red sphere left and low, the yellow cone right; the outer view orbits slowly</div>
+<main>
+  <section><h2><b>twgl.tree</b> · renderTarget → viewFrustum({ nearTexture }) — one orientation, no flip</h2><canvas id="gl" width="600" height="420"></canvas></section>
+  <section><h2><b>p5.tree</b> · createFramebuffer → viewFrustum({ nearTexture })</h2><div id="p5"></div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+<script src="../../p5.tree/dist/p5.tree.js"></script>
+
+<script id="lit-vert" type="x-shader">#version 300 es
+in vec4 aPosition;
+in vec3 aNormal;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform mat3 uNormalMatrix;
+out vec3 vNormal;
+void main() { vNormal = uNormalMatrix * aNormal; gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition; }</script>
+<script id="lit-frag" type="x-shader">#version 300 es
+precision highp float;
+in vec3 vNormal;
+uniform vec3 uColor;
+uniform vec3 uLightDir;
+out vec4 outColor;
+void main() { float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0); outColor = vec4(uColor * (0.35 + 0.65 * d), 1.0); }</script>
+
+<script type="module">
+// The portal_projection companion on the bridge: a fixed inner camera looks at
+// a small scene rendered into a target; a third-person outer view shows that
+// image textured onto the inner camera's near plane — the orientation gate.
+import * as twgl from 'twgl.js'
+import { setCamera, bind, draw, renderTarget, viewFrustum, grid } from 'twgl.tree'
+import { createCamera, cameraOrbit, mat4FromTRS, qFromAxisAngle, BODY, APEX, NEAR } from '@nakednous/tree'
+
+const src = (id) => document.getElementById(id).textContent
+const canvas = document.getElementById('gl')
+const gl = canvas.getContext('webgl2')
+const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
+const cube = twgl.primitives.createCubeVertices(1)
+const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
+const sv = twgl.primitives.createSphereVertices(1, 24, 16)
+const ball = twgl.createBufferInfoFromArrays(gl, { aPosition: sv.position, aNormal: sv.normal, indices: sv.indices })
+const cv = twgl.primitives.createTruncatedConeVertices(1, 0, 1, 24, 1)
+const cone = twgl.createBufferInfoFromArrays(gl, { aPosition: cv.position, aNormal: cv.normal, indices: cv.indices })
+
+// the notebook's INNER pose, in a y-up world: its −Y-up eye at −120 is +120 here
+const inner = createCamera({ eye: [0, 120, 250], center: [0, 30, 0], up: [0, 1, 0], fov: Math.PI / 4, near: 120, far: 380 })
+const outer = createCamera({ eye: [340, 180, 420], center: [0, 40, 0], up: [0, 1, 0], fov: 2 * Math.atan(210 / 800), near: 80, far: 8000 })
+const fbo = renderTarget(gl)
+const ground = mat4FromTRS(new Float32Array(16), 0, 0, 0, ...qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+const M = new Float32Array(16), q = [0, 0, 0, 1]
+const light = [0.4, 0.6, 1]
+
+function scene() {
+  grid(gl, { M: ground, size: 140, subdivisions: 10, color: [0.42, 0.44, 0.52, 1] })
+  bind(gl, lit, { uLightDir: light, uColor: [1, 0.15, 0.1] })
+  draw(gl, ball, mat4FromTRS(M, -48, 36, 10, 0, 0, 0, 1, 36, 36, 36))
+  bind(gl, lit, { uColor: [0.1, 0.5, 1] })
+  qFromAxisAngle(q, 0, 1, 0, 0.6)
+  draw(gl, box, mat4FromTRS(M, 58, 32, -34, q[0], q[1], q[2], q[3], 46, 70, 46))
+  bind(gl, lit, { uColor: [1, 0.85, 0.05] })
+  draw(gl, cone, mat4FromTRS(M, 16, 26, 64, 0, 0, 0, 1, 24, 60, 24))
+  bind(gl, lit, { uColor: [0.15, 0.85, 0.35] })
+  draw(gl, box, mat4FromTRS(M, -30, 22, -70, 0, 0, 0, 1, 16, 90, 16))
+}
+
+function render() {
+  twgl.bindFramebufferInfo(gl, fbo)                      // the inner pass
+  gl.enable(gl.DEPTH_TEST)
+  gl.clearColor(22 / 255, 18 / 255, 38 / 255, 1)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  setCamera(gl, inner)
+  scene()
+  twgl.bindFramebufferInfo(gl, null)                     // the outer pass
+  gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  cameraOrbit(outer, 0.003, 0)
+  setCamera(gl, outer)
+  scene()
+  viewFrustum(gl, { camera: inner, bits: BODY | APEX | NEAR, nearTexture: fbo.color, viewer: null, color: [0.4, 0.9, 1, 1] })
+  requestAnimationFrame(render)
+}
+requestAnimationFrame(render)
+</script>
+
+<script>
+// The parity column: p5.tree's viewFrustum with nearTexture over a plain framebuffer.
+new p5((p) => {
+  const INNER = { eye: [0, -120, 250], center: [0, -30, 0], up: [0, 1, 0], fov: Math.PI / 4, near: 120, far: 380 }
+  let fbo, fboCam, outer
+  p.setup = () => {
+    p.createCanvas(600, 420, p.WEBGL)
+    outer = p.createCamera()
+    fbo = p.createFramebuffer()
+    fbo.begin(); fboCam = fbo.createCamera(); fbo.end()
+  }
+  function scene() {
+    p.push(); p.rotateX(p.HALF_PI); p.stroke(107, 112, 133); p.grid({ size: 140, subdivisions: 10 }); p.pop()
+    p.noStroke()
+    p.fill(255, 38, 25); p.push(); p.translate(-48, -36, 10); p.sphere(36); p.pop()
+    p.fill(25, 128, 255); p.push(); p.translate(58, -32, -34); p.rotateY(0.6); p.box(46, 70, 46); p.pop()
+    p.fill(255, 217, 13); p.push(); p.translate(16, -26, 64); p.rotateX(p.PI); p.cone(24, 60); p.pop()
+    p.fill(38, 217, 89); p.push(); p.translate(-30, -22, -70); p.box(16, 90, 16); p.pop()
+  }
+  p.draw = () => {
+    fbo.begin()
+    p.setCamera(fboCam)
+    fboCam.perspective(INNER.fov, fbo.width / fbo.height, INNER.near, INNER.far)
+    fboCam.camera(...INNER.eye, ...INNER.center, ...INNER.up)
+    p.background(22, 18, 38)
+    p.ambientLight(90); p.directionalLight(255, 255, 255, 0.4, -0.6, -1)
+    scene()
+    fbo.end()
+    const a = p.frameCount * 0.003
+    outer.camera(340 * Math.cos(a) + 420 * Math.sin(a), -180, -340 * Math.sin(a) + 420 * Math.cos(a), 0, -40, 0, 0, 1, 0)
+    p.setCamera(outer)
+    p.background(20)
+    p.ambientLight(90); p.directionalLight(255, 255, 255, 0.4, -0.6, -1)
+    scene()
+    p.stroke(102, 230, 255); p.noFill()
+    p.viewFrustum({ camera: INNER, bits: p5.Tree.BODY | p5.Tree.APEX | p5.Tree.NEAR, nearTexture: fbo.color, viewer: () => {} })
+  }
+}, document.getElementById('p5'))
+</script>
+</body>
+</html>

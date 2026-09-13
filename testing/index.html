@@ -40,6 +40,16 @@
       <div class="d">axes, grid, hermite, viewFrustum, trackPath (a pose track with tangents, a camera track with its gaze lines and camera markers), helmRig in the scene with identify labels and in the corner, handleLocus on a sphere and a plane handle you can drag, cross and bullsEye in the HUD. One-pixel GL lines on the left, p5's strokes on the right — the line-width gate (stack-design §7 #2) is read here.</div>
       <div class="gate">gizmo gate · line width · label anchors</div>
     </a></li>
+    <li><a class="card" href="pick.html">
+      <div class="t"><span class="k">pick</span> · colour-id picking, asynchronous</div>
+      <div class="d">The notebook's ptree_pick hero: three spheres tagged through paint(id) for the pick pass, lit for the eye. The readout stamps each resolved id with how many frames late it landed — the readback latency gate. p5.tree's synchronous mousePick beside.</div>
+      <div class="gate">latency gate · bridge-design §14</div>
+    </a></li>
+    <li><a class="card" href="portal.html">
+      <div class="t"><span class="k">portal</span> · the inner camera's image on its own near plane</div>
+      <div class="d">The portal_projection companion: a fixed inner camera renders to a target; the outer view textures it onto the inner frustum's near plane through viewFrustum's nearTexture with the default uvs. Upright means the one-orientation rule holds with no flip anywhere. p5.tree's nearTexture beside.</div>
+      <div class="gate">orientation gate · bridge-design §14</div>
+    </a></li>
   </ul>
 </main>
 </body>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>twgl.tree · pick</title>
+<style>
+  :root { color-scheme: dark }
+  html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
+  main { display: flex; gap: 16px; flex-wrap: wrap; padding: 16px; align-items: flex-start }
+  h2 { font-size: 12px; font-weight: 600; margin: 0 0 6px; color: #9ca3af } h2 b { color: #f472b6 }
+  canvas { display: block; box-shadow: 0 0 0 1px #1f2937 }
+  .readout { color: #a3e635; margin-top: 6px; min-height: 1.5em }
+  a.back { position: fixed; top: 12px; right: 14px; color: #9ca3af; text-decoration: none }
+</style>
+<script type="importmap">
+{ "imports": {
+  "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
+  "twgl.tree": "../dist/index.js",
+  "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js"
+} }
+</script>
+</head>
+<body>
+<a class="back" href="index.html">← harness</a>
+<main>
+  <section><h2><b>twgl.tree</b> · pick(gl, x, y, drawFn) — async, a frame-stamp per resolved id</h2><canvas id="gl" width="600" height="400"></canvas><div class="readout" id="out">move over a sphere</div></section>
+  <section><h2><b>p5.tree</b> · mousePick — synchronous readPixels</h2><div id="p5"></div><div class="readout" id="p5out">move over a sphere</div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+<script src="../../p5.tree/dist/p5.tree.js"></script>
+
+<script id="lit-vert" type="x-shader">#version 300 es
+in vec4 aPosition;
+in vec3 aNormal;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform mat3 uNormalMatrix;
+out vec3 vNormal;
+void main() { vNormal = uNormalMatrix * aNormal; gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition; }</script>
+<script id="lit-frag" type="x-shader">#version 300 es
+precision highp float;
+in vec3 vNormal;
+uniform vec3 uColor;
+uniform vec3 uLightDir;
+uniform float uEmissive;
+out vec4 outColor;
+void main() {
+  float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
+  outColor = vec4(uColor * mix(0.3 + 0.7 * d, 1.0, uEmissive), 1.0);
+}</script>
+
+<script type="module">
+// The notebook's ptree_pick hero on the bridge: one scene drawn twice, tagged
+// for the pick (paint(id) on the flat program) and lit for the eye. The pick
+// is asynchronous: the readout shows the id and how many frames late it landed.
+import * as twgl from 'twgl.js'
+import { setCamera, bind, draw, pick } from 'twgl.tree'
+import { createCamera, mat4FromTRS } from '@nakednous/tree'
+
+const src = (id) => document.getElementById(id).textContent
+const canvas = document.getElementById('gl')
+const gl = canvas.getContext('webgl2')
+const out = document.getElementById('out')
+const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
+const sv = twgl.primitives.createSphereVertices(60, 24, 16)
+const sphere = twgl.createBufferInfoFromArrays(gl, { aPosition: sv.position, aNormal: sv.normal, indices: sv.indices })
+const cam = createCamera({ eye: [0, 160, 480], center: [0, 0, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
+const nodes = [
+  { id: 1, pos: [-40, 0, 120], rgb: [220 / 255, 70 / 255, 80 / 255], M: new Float32Array(16) },
+  { id: 2, pos: [0, 30, 0], rgb: [75 / 255, 150 / 255, 1], M: new Float32Array(16) },
+  { id: 3, pos: [40, -20, -120], rgb: [90 / 255, 230 / 255, 115 / 255], M: new Float32Array(16) },
+]
+for (const n of nodes) mat4FromTRS(n.M, n.pos[0], n.pos[1], n.pos[2], 0, 0, 0, 1, 1, 1, 1)
+let mx = -1, my = -1, picked = 0, pending = false, frame = 0, latency = 0
+canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })
+canvas.addEventListener('pointerleave', () => { mx = my = -1 })
+
+function render() {
+  frame++
+  twgl.bindFramebufferInfo(gl, null)
+  gl.enable(gl.DEPTH_TEST)
+  gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  setCamera(gl, cam)
+  if (mx >= 0 && !pending) {                             // the id pass: the flat program bound by pick, paint(id) per node
+    pending = true
+    const stamp = frame
+    pick(gl, mx, my, (paint) => { for (const n of nodes) { paint(n.id); draw(gl, sphere, n.M) } })
+      .then((id) => { picked = id; latency = frame - stamp; pending = false })
+      .catch(() => { pending = false })
+  }
+  for (const n of nodes) {                               // the lit pass
+    bind(gl, lit, { uColor: n.rgb, uLightDir: [0.4, 0.6, 1], uEmissive: n.id === picked ? 1 : 0 })
+    draw(gl, sphere, n.M)
+  }
+  out.textContent = (picked ? 'picked ' + picked : 'miss') + '   latency ' + latency + ' frame' + (latency === 1 ? '' : 's') + '   frame ' + frame
+  requestAnimationFrame(render)
+}
+requestAnimationFrame(render)
+</script>
+
+<script>
+// The parity column: the notebook's ptree_pick sketch as it is.
+new p5((p) => {
+  let picked = 0
+  const nodes = [
+    { id: 1, pos: [-40, 0, 120], rgb: [220, 70, 80] },
+    { id: 2, pos: [0, -30, 0], rgb: [75, 150, 255] },
+    { id: 3, pos: [40, 20, -120], rgb: [90, 230, 115] },
+  ]
+  p.setup = () => { p.createCanvas(600, 400, p.WEBGL); p.camera(0, -160, 480, 0, 0, 0, 0, 1, 0) }
+  p.draw = () => {
+    p.background(20)
+    picked = p.mousePick(() => scene(true))
+    p.ambientLight(80)
+    p.directionalLight(255, 230, 200, 0.4, 0.6, -1)
+    p.noStroke()
+    scene(false)
+    document.getElementById('p5out').textContent = picked ? 'picked ' + picked : 'miss'
+  }
+  function scene(idPass) {
+    for (const n of nodes) {
+      p.push()
+      p.translate(n.pos[0], n.pos[1], n.pos[2])
+      if (idPass) p.fill(p.tag(n.id))
+      else if (n.id === picked) p.emissiveMaterial(n.rgb[0], n.rgb[1], n.rgb[2])
+      else { p.specularMaterial(n.rgb[0], n.rgb[1], n.rgb[2]); p.shininess(60) }
+      p.sphere(60, 24, 16)
+      p.pop()
+    }
+  }
+}, document.getElementById('p5'))
+</script>
+</body>
+</html>

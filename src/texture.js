@@ -66,7 +66,7 @@ function _opts(gl, o) {
  *
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [0, 0, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [0, 0, 205] }))
  * pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
  */
 export function texture(gl, source, opts) {
@@ -103,7 +103,7 @@ export function texture(gl, source, opts) {
  * board.height = 256
  * const g = board.getContext('2d')
  * const tex = texture(gl, board)
- * const cam = tree.createCamera({ eye: [0, 0, 400] })
+ * const cam = tree.createCamera({ eye: [0, 0, 205] })
  *
  * function frame(ms) {
  *   g.fillStyle = '#222'
@@ -177,7 +177,7 @@ export function upload(gl, tex, source) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [126, 105, 168] }))
  * bind(gl, prog, { uCube: cube })
  * draw(gl, box)
  */

@@ -144,14 +144,14 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = vec4(1.0 - texture(uSource,vTexCoord).rgb, 1.0);
+ *   outColor = vec4(1.0 - texture(uSource, vTexCoord).rgb, 1.0);
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
@@ -221,7 +221,7 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
@@ -293,9 +293,9 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  *        how a pass renders its input (default filter with uSource).
  * @returns {object|null} The target holding the result, or null without passes.
  * @example
- * <caption>Two passes in a chain: the axes pixelated into 40 × 40 cells, then inverted.</caption>
+ * <caption>Pixelate into 20 × 20 cells, then invert: magenta turns green, yellow blue, the ground pink.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, program, pipe, SCREEN, tree } from 'twgl.tree'
+ * import { setCamera, pane, renderTarget, program, pipe, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -310,7 +310,7 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = texture(uSource,(floor(vTexCoord * uCells) + 0.5) / uCells);
+ *   outColor = texture(uSource, (floor(vTexCoord * uCells) + 0.5) / uCells);
  * }`)
  * const invert = program(gl, `#version 300 es
  * precision highp float;
@@ -318,18 +318,18 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = vec4(1.0 - texture(uSource,vTexCoord).rgb, 1.0);
+ *   outColor = vec4(1.0 - texture(uSource, vTexCoord).rgb, 1.0);
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
- * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
- * axes(gl, { size: 100 })
+ * setCamera(gl, tree.createCamera({ eye: [0, 0, 170] }))
+ * pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [1, 0.31, 0.85, 1] })
+ * pane(gl, [-30, 70, 1], [110, 70, 1], [110, -70, 1], [-30, -70, 1], { color: [1, 0.82, 0.4, 1] })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
- * pipe(gl, scene, [{ program: pixelate, uniforms: { uCells: 40 } }, invert])
+ * pipe(gl, scene, [{ program: pixelate, uniforms: { uCells: 20 } }, invert])
  */
 export function pipe(gl, source, passes, opts) {
   const ctx = contextOf(gl);
@@ -408,9 +408,9 @@ export function pipe(gl, source, passes, opts) {
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = texture(uSource,(floor(vTexCoord * uCells) + 0.5) / uCells);
+ *   outColor = texture(uSource, (floor(vTexCoord * uCells) + 0.5) / uCells);
  * }`)
- * const cam = tree.createCamera({ eye: [300, 250, 400] })
+ * const cam = tree.createCamera({ eye: [129, 107, 172] })
  * let effect = true
  *
  * canvas.addEventListener('click', () => {

@@ -124,7 +124,7 @@ export function uploadTransforms(ctx, prog, M) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [150, 200, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [76, 102, 204] }))
  * bind(gl, prog, { uColor: [1, 0.31, 0.85] })
  * draw(gl, box, tree.mat4FromTRS(new Float32Array(16), -80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
  * bind(gl, prog, { uColor: [1, 0.82, 0.4] })
@@ -187,7 +187,7 @@ function _draw(gl, obj, M, opts, instances) {
  * }`])
  * const cube = twgl.primitives.createCubeVertices(120)
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
- * const cam = tree.createCamera({ eye: [150, 200, 400] })
+ * const cam = tree.createCamera({ eye: [76, 102, 204] })
  * const M = new Float32Array(16)
  * const q = [0, 0, 0, 1]
  *
@@ -234,7 +234,7 @@ function _draw(gl, obj, M, opts, instances) {
  * // { position, normal, texcoord, indices }; the shader names its attributes aPosition / aNormal
  * const model = await host.loadModel('models/torus.obj')
  * const torus = twgl.createBufferInfoFromArrays(gl, { aPosition: model.position, aNormal: model.normal, indices: model.indices })
- * const cam = tree.createCamera({ eye: [0, 250, 300] })
+ * const cam = tree.createCamera({ eye: [0, 160, 192] })
  * const M = new Float32Array(16)
  * const q = [0, 0, 0, 1]
  *
@@ -297,7 +297,7 @@ export function draw(gl, obj, M, opts) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [150, 200, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [99, 131, 263] }))
  * bind(gl, prog, { uColor: [1, 0.82, 0.4] })
  * drawInstanced(gl, box, 5)
  */

@@ -63,12 +63,12 @@ export function installCamera(ctx, V, P) {
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const cam = tree.createCamera({ eye: [0, 200, 400] })
+ * const cam = tree.createCamera({ eye: [0, 107, 215] })
  *
  * function frame(ms) {
  *   const t = ms / 1000
- *   cam.eye[0] = 400 * Math.sin(t)
- *   cam.eye[2] = 400 * Math.cos(t)
+ *   cam.eye[0] = 215 * Math.sin(t)
+ *   cam.eye[2] = 215 * Math.cos(t)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -85,7 +85,7 @@ export function installCamera(ctx, V, P) {
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 150 })
+ * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 115 })
  * const V = tree.cameraView(new Float32Array(16), cam)
  * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300, tree.WEBGL)
  *

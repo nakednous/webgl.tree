@@ -50,7 +50,7 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  *
- * const cam = tree.createCamera({ eye: [300, 250, 400] })
+ * const cam = tree.createCamera({ eye: [129, 107, 172] })
  * const h = canvasHost.handle({ constraint: tree.SPHERE, anchor: [0, 0, 0], radius: 100 })
  *
  * function frame() {
@@ -127,14 +127,14 @@ export function contextOf(gl, opts) {
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  *
- * const cam = tree.createCamera({ eye: [0, 200, 400] })
+ * const cam = tree.createCamera({ eye: [0, 107, 215] })
  * const tip = [0, 0, 0]
  * const W = tree.mat4Viewport(new Float32Array(16), [0, 300, 400, -300], tree.WEBGL)   // y down, as cross takes it
  * const WPV = new Float32Array(16)
  *
  * function frame(ms) {
- *   cam.eye[0] = 400 * Math.sin(ms / 1000)
- *   cam.eye[2] = 400 * Math.cos(ms / 1000)
+ *   cam.eye[0] = 215 * Math.sin(ms / 1000)
+ *   cam.eye[2] = 215 * Math.cos(ms / 1000)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -175,10 +175,10 @@ export function viewOf(gl) {
  *   canvas.height = 300
  *   gl = canvas.getContext('webgl2')
  *   const scene = renderTarget(gl)
- *   const cam = tree.createCamera({ eye: [0, 200, 400] })
+ *   const cam = tree.createCamera({ eye: [0, 107, 215] })
  *   const frame = (ms) => {
- *     cam.eye[0] = 400 * Math.sin(ms / 1000)
- *     cam.eye[2] = 400 * Math.cos(ms / 1000)
+ *     cam.eye[0] = 215 * Math.sin(ms / 1000)
+ *     cam.eye[2] = 215 * Math.cos(ms / 1000)
  *     twgl.bindFramebufferInfo(gl, scene)
  *     gl.enable(gl.DEPTH_TEST)
  *     gl.clearColor(0.075, 0.553, 0.459, 1)

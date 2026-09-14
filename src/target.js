@@ -136,13 +136,13 @@ export function targetSpecs(gl, opts) {
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, tree.createCamera({ eye: [300, 250, 400] }))
+ * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
  * image(gl, small.color)
  * @example
- * <caption>The same axes into two 200 × 300 targets: single-sampled on the left, samples: 4 and resolved on the right, where the lines' stair-steps are smoothed.</caption>
+ * <caption>The same axes in two 100 × 150 targets shown at twice their size: single-sampled on the left with hard stair-steps, samples: 4 and resolved on the right with softened edges.</caption>
  * import * as twgl from 'twgl.js'
  * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'twgl.tree'
  *
@@ -151,16 +151,17 @@ export function targetSpecs(gl, opts) {
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2', { antialias: false })
  *
- * const cam = tree.createCamera({ eye: [300, 250, 400] })
- * const plain = renderTarget(gl, { width: 200, height: 300 })
- * const smooth = renderTarget(gl, { width: 200, height: 300, samples: 4 })
+ * // small targets, magnified with nearest sampling, make each pixel visible
+ * const cam = tree.createCamera({ eye: [169, 141, 225] })
+ * const plain = renderTarget(gl, { width: 100, height: 150, minMag: gl.NEAREST })
+ * const smooth = renderTarget(gl, { width: 100, height: 150, minMag: gl.NEAREST, samples: 4 })
  * for (const target of [plain, smooth]) {
  *   twgl.bindFramebufferInfo(gl, target)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- *   setCamera(gl, cam, { aspect: 200 / 300 })
- *   axes(gl, { size: 100 })
+ *   setCamera(gl, cam, { aspect: 100 / 150 })
+ *   axes(gl, { size: 100, width: 2 })
  * }
  * smooth.resolve()
  *

@@ -93,7 +93,7 @@ function _poll(gl, ctx) {
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  *
- * const cam = tree.createCamera({ eye: [0, 0, 400] })
+ * const cam = tree.createCamera({ eye: [0, 0, 280] })
  * let pending = false
  *
  * function frame(ms) {
@@ -176,7 +176,7 @@ export function readPixel(gl, fbo, x, y) {
  * const verts = twgl.primitives.createCubeVertices(80)
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: verts.position, aNormal: verts.normal, indices: verts.indices })
  * const cubes = [-120, 0, 120].map((x, i) => ({ id: i + 1, M: tree.mat4FromTRS(new Float32Array(16), x, 0, 0, 0, 0, 0, 1, 1, 1, 1) }))
- * const cam = tree.createCamera({ eye: [150, 200, 400] })
+ * const cam = tree.createCamera({ eye: [99, 131, 263] })
  *
  * let mx = -1, my = -1, picked = 0, pending = false
  * canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })

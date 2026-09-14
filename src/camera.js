@@ -56,6 +56,23 @@ export function installCamera(ctx, V, P) {
  *        drawing buffer's).
  * @returns {object} The context's view bag.
  * @example
+ * <caption>The matrix form: an orthographic view and projection built by hand.</caption>
+ * const { setCamera, axes, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 115 })
+ * const V = tree.cameraView(new Float32Array(16), cam)
+ * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300, tree.WEBGL)
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, V, P)
+ * axes(gl, { size: 100 })
+ * @example
  * <caption>A camera state circling the axes, one turn every 6.3 seconds.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
@@ -77,23 +94,6 @@ export function installCamera(ctx, V, P) {
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
- * @example
- * <caption>The matrix form: an orthographic view and projection built by hand.</caption>
- * const { setCamera, axes, tree } = webglTree
- *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
- * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 115 })
- * const V = tree.cameraView(new Float32Array(16), cam)
- * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300, tree.WEBGL)
- *
- * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.075, 0.553, 0.459, 1)
- * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, V, P)
- * axes(gl, { size: 100 })
  */
 export function setCamera(gl, V, P, opts) {
   const ctx = contextOf(gl);

@@ -22,6 +22,23 @@
  * @param {number} [opts.near=0.1]
  * @param {number} [opts.far=1000]
  * @returns {object} The camera state.
+ * @example
+ * <caption>An orthographic camera state, halfHeight 150, above and in front of the grid: the grid's far and near edges are the same length.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 200, 300], halfHeight: 150 })
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, cam)
+ * grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ * axes(gl, { size: 60 })
  */
 
 /**
@@ -31,6 +48,31 @@
  * @param {object} out
  * @param {object} cam
  * @returns {object} out
+ * @example
+ * <caption>The eye orbits; every three seconds cameraCopy restores the state saved at the start, snapping the view back.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const home = tree.cameraCopy(tree.createCamera(), cam)
+ * let last = 0
+ *
+ * function frame(ms) {
+ *   if (ms - last > 3000) { last = ms; tree.cameraCopy(cam, home) }
+ *   tree.cameraOrbit(cam, 0.02, 0)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -40,6 +82,31 @@
  * @param {Float32Array|number[]} out
  * @param {object} cam
  * @returns {Float32Array|number[]} out
+ * @example
+ * <caption>cameraView and cameraProj make the matrices setCamera(gl, cam) would install: installed as V and P, the view circles the axes.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const V = new Float32Array(16)
+ * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300, tree.WEBGL)
+ *
+ * function frame() {
+ *   tree.cameraOrbit(cam, 0.01, 0)
+ *   tree.cameraView(V, cam)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, V, P)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -49,6 +116,31 @@
  * @param {Float32Array|number[]} out
  * @param {object} cam
  * @returns {Float32Array|number[]} out
+ * @example
+ * <caption>The frame of a second camera circling the origin sits at the apex of its white frustum, blue pointing back, away from what it sees.</caption>
+ * const { setCamera, axes, viewFrustum, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [0, 250, 330] })
+ * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 80 })
+ * const E = new Float32Array(16)
+ *
+ * function frame() {
+ *   tree.cameraOrbit(other, 0.01, 0)
+ *   tree.cameraEye(E, other)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
+ *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: E, size: 40 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -61,6 +153,29 @@
  * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @param {number} [ndcYSign=1]  −1 flips y.
  * @returns {Float32Array|number[]|null} out, or null when the lens is degenerate.
+ * @example
+ * <caption>The lens zooms between 20° and 80° while the eye stays put: the axes swell and shrink on screen.</caption>
+ * const { setCamera, axes, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const V = tree.cameraView(new Float32Array(16), cam)
+ * const P = new Float32Array(16)
+ *
+ * function frame(ms) {
+ *   cam.fov = (50 + 30 * Math.sin(ms / 1000)) * Math.PI / 180
+ *   tree.cameraProj(P, cam, 400 / 300, tree.WEBGL)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, V, P)
+ *   axes(gl, { size: 60 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -73,6 +188,28 @@
  * @param {object} [opts]
  * @param {number} [opts.maxEl]  The elevation limit, radians.
  * @returns {object} cam
+ * @example
+ * <caption>Each frame the eye steps around the origin and rises; at the 60° elevation limit it stops climbing and keeps circling above the grid.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 0, 330] })
+ *
+ * function frame() {
+ *   tree.cameraOrbit(cam, 0.01, 0.004, { maxEl: Math.PI / 3 })
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -83,6 +220,31 @@
  * @param {number} dx  World units along right.
  * @param {number} dy  World units along up.
  * @returns {object} cam
+ * @example
+ * <caption>The camera pans right and left, 100 each way: the grid and axes slide across the view without turning.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * let x = 0
+ *
+ * function frame(ms) {
+ *   const next = 100 * Math.sin(ms / 1000)
+ *   tree.cameraPan(cam, next - x, 0)
+ *   x = next
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -95,6 +257,31 @@
  * @param {number} [opts.min]  The closest distance.
  * @param {number} [opts.max]  The farthest distance.
  * @returns {object} cam
+ * @example
+ * <caption>The eye dollies in and out along its line of sight, held between 150 and 500 from the center: the readout's distance stops at both limits.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const out = document.body.appendChild(document.createElement('div'))
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ *
+ * function frame(ms) {
+ *   tree.cameraDolly(cam, Math.sin(ms / 1000) > 0 ? 0.99 : 1.01, { min: 150, max: 500 })
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   out.textContent = 'distance: ' + Math.hypot(cam.eye[0], cam.eye[1], cam.eye[2]).toFixed(0)
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -104,6 +291,32 @@
  * @param {object} cam
  * @param {{ pos: number[], rot: number[] }} pose
  * @returns {object} cam
+ * @example
+ * <caption>A pose circling at radius 300, 150 up, its −z aimed at the origin, drives the camera state: the view circles the axes.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera()
+ * const pose = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }
+ *
+ * function frame(ms) {
+ *   const t = ms / 2000
+ *   pose.pos[0] = 300 * Math.sin(t); pose.pos[1] = 150; pose.pos[2] = 300 * Math.cos(t)
+ *   tree.qFromLookDir(pose.rot, [-pose.pos[0], -pose.pos[1], -pose.pos[2]])
+ *   tree.cameraFromPose(cam, pose)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -113,6 +326,32 @@
  * @param {{ pos: number[], rot: number[] }} pose  Destination.
  * @param {object} cam
  * @returns {{ pos: number[], rot: number[] }} pose
+ * @example
+ * <caption>The pose of a second, circling camera, drawn as a frame: at the apex of its white frustum, blue pointing back.</caption>
+ * const { setCamera, axes, viewFrustum, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [0, 250, 330] })
+ * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 80 })
+ * const pose = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }
+ * const M = new Float32Array(16)
+ *
+ * function frame() {
+ *   tree.cameraOrbit(other, 0.01, 0)
+ *   tree.cameraToPose(pose, other)
+ *   tree.mat4FromTRS(M, pose.pos[0], pose.pos[1], pose.pos[2], pose.rot[0], pose.rot[1], pose.rot[2], pose.rot[3], 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 40 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -124,6 +363,26 @@
  * @param {ArrayLike<number>} P  The projection.
  * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @returns {object} cam
+ * @example
+ * <caption>Read back from an eye matrix at (100, 60, 80) and a 60° projection: the readout recovers that eye and fov, and installing the state shows the origin at the canvas center.</caption>
+ * const { setCamera, axes, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const out = document.body.appendChild(document.createElement('div'))
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ * const E = tree.mat4Eye(new Float32Array(16), 100, 60, 80, 0, 0, 0, 0, 1, 0)
+ * const P = tree.cameraProj(new Float32Array(16), tree.createCamera({ fov: Math.PI / 3, near: 1, far: 1000 }), 400 / 300, tree.WEBGL)
+ * const cam = tree.cameraFromMat4(tree.createCamera(), E, P, tree.WEBGL)
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, cam)
+ * axes(gl, { size: 30 })
+ * out.textContent = 'eye ' + cam.eye.map((v) => v.toFixed(0)).join(', ') + '   fov ' + (cam.fov * 180 / Math.PI).toFixed(0) + '°'
  */
 
 /**
@@ -134,6 +393,32 @@
  * @param {object} cam
  * @param {number} aspect  Width over height.
  * @returns {Float64Array|null} planes, or null when the lens is degenerate.
+ * @example
+ * <caption>The small axes sweep through the white frustum: drawn in their colors while tree.pointVisibility against its planes says visible, yellow while it says not.</caption>
+ * const { setCamera, axes, viewFrustum, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [0, 300, 250] })
+ * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
+ * const planes = tree.cameraPlanes(new Float64Array(24), lens, 4 / 3)
+ * const M = new Float32Array(16)
+ *
+ * function frame(ms) {
+ *   const x = 120 * Math.sin(ms / 1000)
+ *   tree.mat4FromTranslation(M, x, 0, 0)
+ *   const seen = tree.pointVisibility(planes, x, 0, 0) === tree.VISIBLE
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, seen ? { M, size: 20 } : { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -145,4 +430,29 @@
  * @param {number} [aspect]  Width over height.
  * @param {number} [ndcZMin]  `tree.WEBGL` for WebGL.
  * @returns {Float64Array|number[]|null} out24, or null when the lens is degenerate.
+ * @example
+ * <caption>The magenta pane fills the circling camera's far face, from corners 7, 6, 5 and 4 — top-left, top-right, bottom-right, bottom-left — inside its white frustum.</caption>
+ * const { setCamera, pane, viewFrustum, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [0, 250, 330] })
+ * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 100 })
+ * const c = new Float64Array(24)
+ * const corner = (i) => [c[3 * i], c[3 * i + 1], c[3 * i + 2]]
+ *
+ * function frame() {
+ *   tree.cameraOrbit(other, 0.01, 0)
+ *   tree.frustumCorners(c, other, 4 / 3, tree.WEBGL)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   pane(gl, corner(7), corner(6), corner(5), corner(4), { color: [1, 0.31, 0.85, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */

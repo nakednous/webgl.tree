@@ -4,11 +4,42 @@
  * @license AGPL-3.0-only
  *
  * `canvasHost.poseTrack()` and `canvasHost.cameraTrack(cam)` make tracks the
- * host plays: add keyframes, `play()`, and read the moving pose each frame —
- * a camera track writes straight into its camera state. Positions follow a
- * smooth curve through the keyframes, rotations interpolate spherically.
- * Both tracks share the transport — `play`, `stop`, `seek`, `time`, `info`,
- * `remove`, `reset` — listed under PoseTrack. `trackPath` draws either.
+ * host plays: add keyframes, `play()`, and each frame `canvasHost.tick(dt)`
+ * advances every playing track — a camera track writes straight into its
+ * camera state. Positions follow a smooth curve through the keyframes,
+ * rotations interpolate spherically. Both tracks share the transport —
+ * `play`, `stop`, `seek`, `time`, `info`, `remove`, `reset` — listed under
+ * PoseTrack. `trackPath` draws either.
+ */
+
+/**
+ * trackPath bit: the interpolated path.
+ * @constant {number} PATH
+ * @memberof tree
+ */
+
+/**
+ * trackPath bit: the keyframes' control points.
+ * @constant {number} CONTROLS
+ * @memberof tree
+ */
+
+/**
+ * trackPath bit: the tangents at each keyframe.
+ * @constant {number} TANGENTS
+ * @memberof tree
+ */
+
+/**
+ * trackPath bit, camera tracks: the path of the centers.
+ * @constant {number} CENTER
+ * @memberof tree
+ */
+
+/**
+ * trackPath bit: the track's draggable keyframe handles.
+ * @constant {number} HANDLES
+ * @memberof tree
  */
 
 /**
@@ -18,6 +49,34 @@
  * @param {object|object[]} spec  `pos: [x, y, z]`, `rot: [x, y, z, w]`, `scl: [x, y, z]`; missing fields take the identity.
  * @param {object} [opts]
  * @param {boolean} [opts.deduplicate]  Skip a keyframe equal to the last.
+ * @example
+ * <caption>Click the canvas: each click adds a keyframe at a random spot, and the yellow path, with a small frame at every keyframe, grows through it.</caption>
+ * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const track = canvasHost.poseTrack()
+ * const random = () => 200 * Math.random() - 100
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [100, 0, 0] }])
+ * canvas.addEventListener('click', () => track.add({ pos: [random(), 60 * Math.random(), random()] }))
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -27,6 +86,33 @@
  * @param {number} index
  * @param {object} spec
  * @returns {boolean}
+ * @example
+ * <caption>The middle keyframe is set to a new height every frame, rising and falling: the yellow path reshapes through it.</caption>
+ * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 150, 330] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 0, 0] }, { pos: [100, 0, 0] }])
+ *
+ * function frame(ms) {
+ *   track.set(1, { pos: [0, 80 * Math.sin(ms / 1000), 0] })
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -35,6 +121,36 @@
  * @memberof PoseTrack
  * @param {number} index
  * @returns {boolean}
+ * @example
+ * <caption>Click the button: each click removes the last keyframe and the yellow path loses its last stretch.</caption>
+ * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const track = canvasHost.poseTrack()
+ * track.add([-100, -50, 0, 50, 100].map((x, i) => ({ pos: [x, 0, i % 2 ? -60 : 60] })))
+ * const button = document.body.appendChild(document.createElement('button'))
+ * button.textContent = 'remove last'
+ * button.style.cssText = 'position:absolute;left:8px;top:8px'
+ * button.onclick = () => track.remove(track.keyframes.length - 1)
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -42,6 +158,37 @@
  * @function reset
  * @memberof PoseTrack
  * @returns {PoseTrack}
+ * @example
+ * <caption>Every three seconds the track resets and refills, one keyframe every half second around a circle: the yellow path vanishes and grows again.</caption>
+ * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 250, 250] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const track = canvasHost.poseTrack()
+ *
+ * function frame(ms) {
+ *   const n = Math.floor((ms % 3000) / 500) + 1
+ *   if (n < track.keyframes.length) track.reset()
+ *   while (track.keyframes.length < n) {
+ *     const a = track.keyframes.length * Math.PI / 3
+ *     track.add({ pos: [90 * Math.cos(a), 0, 90 * Math.sin(a)] })
+ *   }
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -55,6 +202,40 @@
  * @param {number} [rateOrOpts.rate=1]
  * @param {function} [rateOrOpts.onEnd]
  * @returns {PoseTrack}
+ * @example
+ * <caption>Played back and forth, 60 frames per segment, as the host ticks: the frame drawn from eval() rides the yellow path, turning as the keyframes do.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([
+ *   { pos: [-100, 0, 0] },
+ *   { pos: [0, 60, -60], rot: tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2) },
+ *   { pos: [100, 0, 0], rot: tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI) },
+ * ])
+ * track.play({ duration: 60, loop: true, bounce: true })
+ * const pose = { pos: tree.vec3(), rot: tree.quat(), scl: tree.vec3() }, M = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   track.eval(pose)
+ *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, ...pose.scl)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M, size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -63,6 +244,35 @@
  * @memberof PoseTrack
  * @param {boolean} [rewind]  Also seek back to the end playback started from.
  * @returns {PoseTrack}
+ * @example
+ * <caption>Click the canvas to stop the frame riding the path where it is; click again to play on from there.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * track.play({ duration: 60, loop: true, bounce: true })
+ * canvas.addEventListener('click', () => (track.playing ? track.stop() : track.play()))
+ * const M = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -72,6 +282,33 @@
  * @param {number} t  0–1 across the whole track, or within segment `segIndex`.
  * @param {number} [segIndex]
  * @returns {PoseTrack}
+ * @example
+ * <caption>Move the pointer across the canvas: its x seeks the playhead from the start of the path at the left edge to its end at the right, and the frame follows.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * canvas.addEventListener('pointermove', (e) => track.seek(e.offsetX / canvas.clientWidth))
+ * const M = tree.mat4()
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -79,6 +316,37 @@
  * @function time
  * @memberof PoseTrack
  * @returns {number}
+ * @example
+ * <caption>As the frame plays along the path, the white bulls-eye slides along the bottom of the canvas to match: left at the path's start, right at its end.</caption>
+ * const { init, setCamera, axes, trackPath, beginHUD, endHUD, bullsEye, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * track.play({ duration: 90, loop: true, bounce: true })
+ * const M = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
+ *   beginHUD(gl)
+ *   bullsEye(gl, { x: 40 + 320 * track.time(), y: 275, size: 20, color: [1, 1, 1, 1] })
+ *   endHUD(gl)
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -86,6 +354,36 @@
  * @function info
  * @memberof PoseTrack
  * @returns {object}
+ * @example
+ * <caption>Click the canvas to pause and resume: the path is drawn yellow while info() reports playing, white while paused.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * track.play({ duration: 60, loop: true, bounce: true })
+ * canvas.addEventListener('click', () => (track.info().playing ? track.stop() : track.play()))
+ * const M = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   const playing = track.info().playing
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: playing ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -94,6 +392,39 @@
  * @memberof PoseTrack
  * @param {object} [out]  Destination `{ pos, rot, scl }`.
  * @returns {{ pos: number[], rot: number[], scl: number[] }} out
+ * @example
+ * <caption>The pose evaluated at the playhead, position, rotation and scale, builds the frame's model matrix: the frame grows to twice its size on the way to the last keyframe and turns a half turn.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([
+ *   { pos: [-100, 0, 0] },
+ *   { pos: [100, 0, 0], rot: tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI), scl: [2, 2, 2] },
+ * ])
+ * track.play({ duration: 120, loop: true, bounce: true })
+ * const pose = { pos: tree.vec3(), rot: tree.quat(), scl: tree.vec3() }, M = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   track.eval(pose)
+ *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, ...pose.scl)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M, size: 30 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -104,6 +435,39 @@
  * @param {number} [seg]  Segment index; omitted, the playhead.
  * @param {number} [t]  0–1 within the segment.
  * @returns {Float32Array|number[]} out
+ * @example
+ * <caption>The playing frame is drawn with mat4Model() at the playhead; the white frames with mat4Model(out, seg, 0.5), fixed halfway along each segment.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([
+ *   { pos: [-100, 0, 0] },
+ *   { pos: [0, 60, -60], rot: tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2) },
+ *   { pos: [100, 0, 0], rot: tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI) },
+ * ])
+ * track.play({ duration: 60, loop: true, bounce: true })
+ * const M = tree.mat4(), H = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   for (let seg = 0; seg < 2; seg++) axes(gl, { M: track.mat4Model(H, seg, 0.5), size: 25, semantic: false, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -114,6 +478,35 @@
  * @param {number} [seg]
  * @param {number} [t]
  * @returns {number[]} out
+ * @example
+ * <caption>Small white crosses at samplePos(out, seg, t) for t = 0, 0.25, 0.5 and 0.75 of each segment bead the yellow path.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * const p = tree.vec3(), T = tree.mat4()
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   for (let seg = 0; seg < 2; seg++) for (const t of [0, 0.25, 0.5, 0.75]) {
+ *     track.samplePos(p, seg, t)
+ *     axes(gl, { M: tree.mat4FromTranslation(T, p[0], p[1], p[2]), size: 8, semantic: false, color: [1, 1, 1, 1] })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -124,6 +517,37 @@
  * @param {number[]} outOut
  * @param {number} index
  * @returns {PoseTrack}
+ * @example
+ * <caption>At each keyframe, the white line runs along the incoming tangent into it and the magenta line along the outgoing tangent out of it — both lying along the yellow path.</caption>
+ * const { init, setCamera, hermite, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * const tin = tree.vec3(), tout = tree.vec3()
+ * const line = (from, d, s, color) => { const v = d.map((x) => x * s); hermite(gl, from, v, from.map((x, i) => x + v[i]), v, { color }) }
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   track.keyframes.forEach((kf, i) => {
+ *     track.tangents(tin, tout, i)
+ *     line(kf.pos, tin, -0.3, [1, 1, 1, 1])
+ *     line(kf.pos, tout, 0.3, [1, 0.31, 0.85, 1])
+ *   })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -133,6 +557,39 @@
  * @param {object|object[]} spec  A camera state's fields; `halfHeight` in place of `fov` for orthographic.
  * @param {object} [opts]
  * @param {boolean} [opts.deduplicate]  Skip a keyframe equal to the last.
+ * @example
+ * <caption>Three camera keyframes around the axes, each drawn by trackPath as a small camera on the white path of eyes; the played camera's white frustum travels between them.</caption>
+ * const { init, setCamera, axes, trackPath, viewFrustum, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const lens = tree.createCamera({ fov: Math.PI / 4, near: 20, far: 60 })
+ * const track = canvasHost.cameraTrack(lens)
+ * track.add([
+ *   { eye: [-120, 30, 60], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 },
+ *   { eye: [0, 60, 130], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 },
+ *   { eye: [120, 30, 60], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 },
+ * ])
+ * track.play({ duration: 90, loop: true, bounce: true })
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 50 })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 1, 1, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -142,6 +599,33 @@
  * @param {number} index
  * @param {object} spec
  * @returns {boolean}
+ * @example
+ * <caption>The middle camera keyframe is set every frame to an eye rising and falling above the axes: the white path of eyes and its small camera move with it.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const track = canvasHost.cameraTrack(tree.createCamera())
+ * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 })
+ * track.add([key([-120, 30, 60]), key([0, 60, 130]), key([120, 30, 60])])
+ *
+ * function frame(ms) {
+ *   track.set(1, key([0, 60 + 50 * Math.sin(ms / 1000), 130]))
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 50 })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 1, 1, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -150,6 +634,43 @@
  * @memberof CameraTrack
  * @param {object} [out]  Destination camera state.
  * @returns {object} out
+ * @example
+ * <caption>Click the canvas to switch views: the canvas either shows the scene from outside, with the played camera's frustum, or looks through the camera state eval() writes as it travels.</caption>
+ * const { init, setCamera, axes, grid, trackPath, viewFrustum, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const outside = tree.createCamera({ eye: [0, 300, 360] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const track = canvasHost.cameraTrack(tree.createCamera())
+ * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 3, near: 20, far: 500 })
+ * track.add([key([-150, 60, 80]), key([0, 100, 160]), key([150, 60, 80])])
+ * track.play({ duration: 120, loop: true, bounce: true })
+ * const seen = tree.createCamera()
+ * let through = false
+ * canvas.addEventListener('click', () => { through = !through })
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   track.eval(seen)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, through ? seen : outside)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   if (!through) {
+ *     trackPath(gl, track, { bits: tree.PATH, color: [1, 1, 1, 1] })
+ *     viewFrustum(gl, { camera: seen, aspect: 4 / 3, color: [1, 0.82, 0.4, 1] })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -160,6 +681,36 @@
  * @param {number} [seg]
  * @param {number} [t]
  * @returns {Float32Array|number[]} out
+ * @example
+ * <caption>The frame drawn with mat4Eye() rides the white path of eyes, its blue axis pointing back away from the axes the camera keeps looking at.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const track = canvasHost.cameraTrack(tree.createCamera())
+ * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 })
+ * track.add([key([-120, 30, 60]), key([0, 60, 130]), key([120, 30, 60])])
+ * track.play({ duration: 90, loop: true, bounce: true })
+ * const E = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH, marker: null, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: track.mat4Eye(E), size: 30 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -170,6 +721,37 @@
  * @param {number} [seg]
  * @param {number} [t]
  * @returns {number[]} out
+ * @example
+ * <caption>Small yellow crosses at sampleEye(out, seg, t) for t = 0, 0.25, 0.5 and 0.75 of each segment bead the white path of eyes.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const track = canvasHost.cameraTrack(tree.createCamera())
+ * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 })
+ * track.add([key([-120, 30, 60]), key([0, 60, 130]), key([120, 30, 60])])
+ * const p = tree.vec3(), T = tree.mat4()
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 50 })
+ *   trackPath(gl, track, { bits: tree.PATH, marker: null, color: [1, 1, 1, 1] })
+ *   for (let seg = 0; seg < 2; seg++) for (const t of [0, 0.25, 0.5, 0.75]) {
+ *     track.sampleEye(p, seg, t)
+ *     axes(gl, { M: tree.mat4FromTranslation(T, p[0], p[1], p[2]), size: 10, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -180,4 +762,34 @@
  * @param {number} [seg]
  * @param {number} [t]
  * @returns {number[]} out
+ * @example
+ * <caption>The camera keyframes look at centers spread along x; small yellow crosses at sampleCenter(out, seg, t) bead the white path of centers that trackPath's CENTER bit draws.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const track = canvasHost.cameraTrack(tree.createCamera())
+ * const key = (eye, center) => ({ eye, center, fov: Math.PI / 4, near: 20, far: 60 })
+ * track.add([key([-120, 80, 150], [-80, 0, 0]), key([0, 100, 180], [0, 0, -40]), key([120, 80, 150], [80, 0, 0])])
+ * const p = tree.vec3(), T = tree.mat4()
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH | tree.CENTER, marker: null, color: [1, 1, 1, 1] })
+ *   for (let seg = 0; seg < 2; seg++) for (const t of [0, 0.25, 0.5, 0.75]) {
+ *     track.sampleCenter(p, seg, t)
+ *     axes(gl, { M: tree.mat4FromTranslation(T, p[0], p[1], p[2]), size: 10, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */

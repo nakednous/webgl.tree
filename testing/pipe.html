@@ -85,7 +85,6 @@ void main() {
 // mouse, the second declares uResolution and gets it filled.
 import * as twgl from 'twgl.js'
 import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'twgl.tree'
-const { createCamera, mat4FromTRS, qFromAxisAngle, qRotateVec3 } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')
@@ -102,7 +101,7 @@ const pixelate = program(gl, src('pixelate-frag'))
 const vignette = program(gl, src('vignette-frag'))
 
 // the p5 sketch's lookat in a y-up world (p5's y-down eye at −220 is +220 here) under p5's default lens: 2 · atan(height / 2 / 800), near 80, far 8000
-const cam = createCamera({ eye: [260, 220, 420], center: [0, 30, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
+const cam = tree.createCamera({ eye: [260, 220, 420], center: [0, 30, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
 const M1 = new Float32Array(16), M2 = new Float32Array(16), q = [0, 0, 0, 1]
 const offset = [170, 30, 0], p2 = [0, 0, 0]              // the small box sits in the big one's rotating frame, as p5's translate-after-rotate puts it
 const light = [0.4, 0.6, 1]
@@ -114,12 +113,12 @@ function render() {
   gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   setCamera(gl, cam)
-  qFromAxisAngle(q, 0, 1, 0, t * 0.0006)                   // the same θ as the p5 column: a y-flip leaves a rotation about y alone
+  tree.qFromAxisAngle(q, 0, 1, 0, t * 0.0006)              // the same θ as the p5 column: a y-flip leaves a rotation about y alone
   bind(gl, lit, { uLightDir: light, uColor: [75 / 255, 150 / 255, 1] })
-  draw(gl, box, mat4FromTRS(M1, 0, 0, 0, q[0], q[1], q[2], q[3], 110, 110, 110))
-  qRotateVec3(p2, q, offset)
+  draw(gl, box, tree.mat4FromTRS(M1, 0, 0, 0, q[0], q[1], q[2], q[3], 110, 110, 110))
+  tree.qRotateVec3(p2, q, offset)
   bind(gl, lit, { uColor: [220 / 255, 70 / 255, 80 / 255] })
-  draw(gl, box, mat4FromTRS(M2, p2[0], p2[1], p2[2], q[0], q[1], q[2], q[3], 50, 50, 50))
+  draw(gl, box, tree.mat4FromTRS(M2, p2[0], p2[1], p2[2], q[0], q[1], q[2], q[3], 50, 50, 50))
   twgl.bindFramebufferInfo(gl, null)
   const cells = 4 + mx * 116
   pipe(gl, scene, [{ program: pixelate, uniforms: { uCells: cells } }, vignette])

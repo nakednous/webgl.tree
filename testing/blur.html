@@ -84,7 +84,6 @@ void main() {
 //             pipe(scene, [blur(uDir = H), blur(uDir = V)])   → screen
 import * as twgl from 'twgl.js'
 import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'twgl.tree'
-const { createCamera, mat4FromTRS, qFromAxisAngle } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')
@@ -101,7 +100,7 @@ const scene = renderTarget(gl)                       // canvas-sized, colour + d
 const blur = program(gl, src('blur-frag'))           // the fragment stage only; the bridge supplies the vertex stage
 
 // p5's default camera: eye z 800, the lens 2 · atan(height / 2 / 800), near 80, far 8000
-const cam = createCamera({ eye: [0, 0, 800], center: [0, 0, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
+const cam = tree.createCamera({ eye: [0, 0, 800], center: [0, 0, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
 const M = new Float32Array(16), q = [0, 0, 0, 1]
 
 function render() {
@@ -113,8 +112,8 @@ function render() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   setCamera(gl, cam)
   bind(gl, tri)
-  qFromAxisAngle(q, 0, 1, 0, t * 0.001)                    // a y-flip leaves a rotation about y alone: the same θ as the p5 column
-  draw(gl, triangle, mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+  tree.qFromAxisAngle(q, 0, 1, 0, t * 0.001)               // a y-flip leaves a rotation about y alone: the same θ as the p5 column
+  draw(gl, triangle, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
   twgl.bindFramebufferInfo(gl, null)
   pipe(gl, scene, [
     { program: blur, uniforms: { uDir: [r / canvas.width, 0] } },

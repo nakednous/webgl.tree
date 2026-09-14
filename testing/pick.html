@@ -58,7 +58,6 @@ void main() {
 // is asynchronous: the readout shows the id and how many frames late it landed.
 import * as twgl from 'twgl.js'
 import { setCamera, bind, draw, pick, tree } from 'twgl.tree'
-const { createCamera, mat4FromTRS } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')
@@ -67,13 +66,13 @@ const out = document.getElementById('out')
 const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
 const sv = twgl.primitives.createSphereVertices(60, 24, 16)
 const sphere = twgl.createBufferInfoFromArrays(gl, { aPosition: sv.position, aNormal: sv.normal, indices: sv.indices })
-const cam = createCamera({ eye: [0, 160, 480], center: [0, 0, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
+const cam = tree.createCamera({ eye: [0, 160, 480], center: [0, 0, 0], up: [0, 1, 0], fov: 2 * Math.atan(200 / 800), near: 80, far: 8000 })
 const nodes = [
   { id: 1, pos: [-40, 0, 120], rgb: [220 / 255, 70 / 255, 80 / 255], M: new Float32Array(16) },
   { id: 2, pos: [0, 30, 0], rgb: [75 / 255, 150 / 255, 1], M: new Float32Array(16) },
   { id: 3, pos: [40, -20, -120], rgb: [90 / 255, 230 / 255, 115 / 255], M: new Float32Array(16) },
 ]
-for (const n of nodes) mat4FromTRS(n.M, n.pos[0], n.pos[1], n.pos[2], 0, 0, 0, 1, 1, 1, 1)
+for (const n of nodes) tree.mat4FromTRS(n.M, n.pos[0], n.pos[1], n.pos[2], 0, 0, 0, 1, 1, 1, 1)
 let mx = -1, my = -1, picked = 0, pending = false, frame = 0, latency = 0, sync = false
 canvas.addEventListener('pointermove', (e) => { mx = e.offsetX; my = e.offsetY })
 canvas.addEventListener('pointerleave', () => { mx = my = -1 })

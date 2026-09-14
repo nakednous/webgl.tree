@@ -55,7 +55,6 @@ void main() { float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
 // image textured onto the inner camera's near plane — the orientation gate.
 import * as twgl from 'twgl.js'
 import { setCamera, bind, draw, renderTarget, viewFrustum, grid, tree } from 'twgl.tree'
-const { createCamera, cameraOrbit, mat4FromTRS, qFromAxisAngle, BODY, APEX, NEAR } = tree
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')
@@ -69,24 +68,24 @@ const cv = twgl.primitives.createTruncatedConeVertices(1, 0, 1, 24, 1)
 const cone = twgl.createBufferInfoFromArrays(gl, { aPosition: cv.position, aNormal: cv.normal, indices: cv.indices })
 
 // the notebook's INNER pose, in a y-up world: its −Y-up eye at −120 is +120 here
-const inner = createCamera({ eye: [0, 120, 250], center: [0, 30, 0], up: [0, 1, 0], fov: Math.PI / 4, near: 120, far: 380 })
-const outer = createCamera({ eye: [340, 180, 420], center: [0, 40, 0], up: [0, 1, 0], fov: 2 * Math.atan(210 / 800), near: 80, far: 8000 })
+const inner = tree.createCamera({ eye: [0, 120, 250], center: [0, 30, 0], up: [0, 1, 0], fov: Math.PI / 4, near: 120, far: 380 })
+const outer = tree.createCamera({ eye: [340, 180, 420], center: [0, 40, 0], up: [0, 1, 0], fov: 2 * Math.atan(210 / 800), near: 80, far: 8000 })
 const fbo = renderTarget(gl)
-const ground = mat4FromTRS(new Float32Array(16), 0, 0, 0, ...qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
 const M = new Float32Array(16), q = [0, 0, 0, 1]
 const light = [0.4, 0.6, 1]
 
 function scene() {
   grid(gl, { M: ground, size: 140, subdivisions: 10, color: [0.42, 0.44, 0.52, 1] })
   bind(gl, lit, { uLightDir: light, uColor: [1, 0.15, 0.1] })
-  draw(gl, ball, mat4FromTRS(M, -48, 36, 10, 0, 0, 0, 1, 36, 36, 36))
+  draw(gl, ball, tree.mat4FromTRS(M, -48, 36, 10, 0, 0, 0, 1, 36, 36, 36))
   bind(gl, lit, { uColor: [0.1, 0.5, 1] })
-  qFromAxisAngle(q, 0, 1, 0, 0.6)
-  draw(gl, box, mat4FromTRS(M, 58, 32, -34, q[0], q[1], q[2], q[3], 46, 70, 46))
+  tree.qFromAxisAngle(q, 0, 1, 0, 0.6)
+  draw(gl, box, tree.mat4FromTRS(M, 58, 32, -34, q[0], q[1], q[2], q[3], 46, 70, 46))
   bind(gl, lit, { uColor: [1, 0.85, 0.05] })
-  draw(gl, cone, mat4FromTRS(M, 16, 26, 64, 0, 0, 0, 1, 24, 60, 24))
+  draw(gl, cone, tree.mat4FromTRS(M, 16, 26, 64, 0, 0, 0, 1, 24, 60, 24))
   bind(gl, lit, { uColor: [0.15, 0.85, 0.35] })
-  draw(gl, box, mat4FromTRS(M, -30, 22, -70, 0, 0, 0, 1, 16, 90, 16))
+  draw(gl, box, tree.mat4FromTRS(M, -30, 22, -70, 0, 0, 0, 1, 16, 90, 16))
 }
 
 function render() {
@@ -99,10 +98,10 @@ function render() {
   twgl.bindFramebufferInfo(gl, null)                     // the outer pass
   gl.clearColor(20 / 255, 20 / 255, 20 / 255, 1)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  cameraOrbit(outer, 0.003, 0)
+  tree.cameraOrbit(outer, 0.003, 0)
   setCamera(gl, outer)
   scene()
-  viewFrustum(gl, { camera: inner, bits: BODY | APEX | NEAR, nearTexture: fbo.color, viewer: null, color: [0.4, 0.9, 1, 1] })
+  viewFrustum(gl, { camera: inner, bits: tree.BODY | tree.APEX | tree.NEAR, nearTexture: fbo.color, viewer: null, color: [0.4, 0.9, 1, 1] })
   requestAnimationFrame(render)
 }
 requestAnimationFrame(render)

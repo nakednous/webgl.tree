@@ -3,9 +3,39 @@
  * @module tree.quaternions
  * @license AGPL-3.0-only
  *
- * A rotation is a unit quaternion in a plain 4-element array, `[x, y, z, w]`,
- * the identity being `[0, 0, 0, 1]`. Every function writes into `out` and
- * returns it; `tree.mat4FromTRS` turns one into a model matrix.
+ * A rotation is a unit quaternion in a plain 4-element array, `[x, y, z, w]`.
+ * Every function writes into its first argument, `out`, and returns it:
+ * storage is made once at setup with `tree.quat()` and reused every frame.
+ * `tree.mat4FromTRS` turns a quaternion into a model matrix.
+ */
+
+/**
+ * A new identity quaternion, `[0, 0, 0, 1]`: storage for the functions below, made at setup.
+ * @function quat
+ * @memberof tree
+ * @returns {number[]}
+ * @example
+ * <caption>One quaternion made at setup, rewritten every frame: the axes spin about y without allocating.</caption>
+ * const { setCamera, axes, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const q = tree.quat(), M = tree.mat4()
+ *
+ * function frame(ms) {
+ *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
+ *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -19,7 +49,7 @@
  * @param {number} w
  * @returns {number[]} out
  * @example
- * <caption>qSet writes (0, sin θ/2, 0, cos θ/2) every frame: the axes spin about y.</caption>
+ * <caption>qSet writes (0, sin θ/2, 0, cos θ/2) every frame: the axes drawn with it spin about y.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -27,8 +57,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const q = tree.quat(), M = tree.mat4()
  *
  * function frame(ms) {
  *   const half = ms / 2000
@@ -52,7 +81,7 @@
  * @param {number[]} a
  * @returns {number[]} out
  * @example
- * <caption>The left frame spins; the right one copies its rotation once a second, so it jumps to catch up.</caption>
+ * <caption>The left frame spins; the right one is drawn with a copy of its rotation taken once a second, so it jumps to catch up.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -60,8 +89,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
- * const A = new Float32Array(16), B = new Float32Array(16)
- * const q = [0, 0, 0, 1], copy = [0, 0, 0, 1]
+ * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), copy = tree.quat()
  * let last = -1
  *
  * function frame(ms) {
@@ -88,29 +116,24 @@
  * @param {number[]} b
  * @returns {number}
  * @example
- * <caption>A spin's dot with the identity is cos(θ / 2): 1 at rest, 0 after half a turn, −1 after a full turn — the same orientation, from the other hemisphere.</caption>
+ * <caption>A spin's dot with the identity is cos(θ / 2), and its sign tells the hemisphere: the axes turn yellow while it is negative — from half a turn to one and a half turns — though every orientation repeats, from the other side.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1], identity = [0, 0, 0, 1]
+ * const q = tree.quat(), identity = tree.quat(), M = tree.mat4()
  *
  * function frame(ms) {
- *   const turns = (ms / 8000) % 2
- *   tree.qFromAxisAngle(q, 0, 1, 0, turns * 2 * Math.PI)
+ *   tree.qFromAxisAngle(q, 0, 1, 0, (ms / 2000) % (4 * Math.PI))
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
- *   out.textContent = 'turns ' + turns.toFixed(2) + '   dot ' + tree.qDot(q, identity).toFixed(2)
+ *   axes(gl, tree.qDot(q, identity) >= 0 ? { M, size: 80 } : { M, size: 80, semantic: false, color: [1, 0.82, 0.4, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -133,10 +156,9 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [250, 100, 250] })
- * const M = new Float32Array(16)
- * const tilt = tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, Math.PI / 4)
- * const spin = [0, 0, 0, 1], q = [0, 0, 0, 1]
- * const axis = tree.qRotateVec3([0, 0, 0], tilt, [0, 120, 0])
+ * const tilt = tree.qFromAxisAngle(tree.quat(), 1, 0, 0, Math.PI / 4)
+ * const spin = tree.quat(), q = tree.quat(), M = tree.mat4()
+ * const axis = tree.qRotateVec3(tree.vec3(), tilt, [0, 120, 0])
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(spin, 0, 1, 0, ms / 1000)
@@ -169,8 +191,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
- * const A = new Float32Array(16), B = new Float32Array(16)
- * const q = [0, 0, 0, 1], c = [0, 0, 0, 1]
+ * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), c = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -195,18 +216,16 @@
  * @param {number[]} out
  * @returns {number[]} out
  * @example
- * <caption>(0, 2, 0, 2) normalized is (0, 0.71, 0, 0.71), a quarter turn about y: against the white axes, the frame's red x now points along −z.</caption>
+ * <caption>(0, 2, 0, 2) normalized is a quarter turn about y: against the white axes, the frame drawn with it has its red x along −z.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const q = tree.qNormalize([0, 2, 0, 2])
- * const M = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ * const q = tree.qNormalize(tree.qSet(tree.quat(), 0, 2, 0, 2))
+ * const M = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -214,7 +233,6 @@
  * setCamera(gl, cam)
  * axes(gl, { size: 100, semantic: false, color: [1, 1, 1, 1] })
  * axes(gl, { M, size: 80 })
- * out.textContent = 'normalized: ' + q.map((v) => v.toFixed(2)).join(', ')
  */
 
 /**
@@ -233,8 +251,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
- * const A = new Float32Array(16), B = new Float32Array(16)
- * const q = [0, 0, 0, 1], n = [0, 0, 0, 1]
+ * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), n = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, Math.SQRT1_2, Math.SQRT1_2, 0, ms / 1000)
@@ -261,7 +278,7 @@
  * @param {number[]} v  The vector.
  * @returns {number[]} out
  * @example
- * <caption>(100, 0, 0) rotated by a quaternion turning about the white (1, 1, 0) axis: the yellow line sweeps a cone around it.</caption>
+ * <caption>(100, 0, 0) rotated by a quaternion turning about the white (1, 1, 0) axis: the yellow line drawn to the result sweeps a cone around it.</caption>
  * const { setCamera, axes, hermite, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -269,7 +286,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [-150, 150, 300] })
- * const q = [0, 0, 0, 1], v = [0, 0, 0]
+ * const q = tree.quat(), v = tree.vec3()
  * const axis = [100, 100, 0]
  *
  * function frame(ms) {
@@ -305,16 +322,14 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 150, 360] })
- * const a = [0, 0, 0, 1]
- * const b = tree.qFromAxisAngle([0, 0, 0, 1], 0, 0, 1, Math.PI * 0.9)
- * const A = tree.mat4FromTRS(new Float32Array(16), -120, 0, 0, a[0], a[1], a[2], a[3], 1, 1, 1)
- * const B = tree.mat4FromTRS(new Float32Array(16), 120, 0, 0, b[0], b[1], b[2], b[3], 1, 1, 1)
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const a = tree.quat()
+ * const b = tree.qFromAxisAngle(tree.quat(), 0, 0, 1, Math.PI * 0.9)
+ * const A = tree.mat4FromTRS(tree.mat4(), -120, 0, 0, a[0], a[1], a[2], a[3], 1, 1, 1)
+ * const B = tree.mat4FromTRS(tree.mat4(), 120, 0, 0, b[0], b[1], b[2], b[3], 1, 1, 1)
+ * const M = tree.mat4(), q = tree.quat()
  *
  * function frame(ms) {
- *   const t = 0.5 - 0.5 * Math.cos(ms / 1000)
- *   tree.qSlerp(q, a, b, t)
+ *   tree.qSlerp(q, a, b, 0.5 - 0.5 * Math.cos(ms / 1000))
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -338,20 +353,17 @@
  * @param {number} t  0 at a, 1 at b.
  * @returns {number[]} out
  * @example
- * <caption>Between the same two orientations, 170° apart: the yellow nlerp frame and the white slerp frame meet at both ends and halfway, and part in between.</caption>
+ * <caption>Between the same two orientations, 170° apart: the yellow nlerp frame lags the white slerp frame in the first half, leads it in the second, and meets it at both ends and halfway.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 200, 250] })
- * const a = [0, 0, 0, 1]
- * const b = tree.qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, 170 * Math.PI / 180)
- * const S = new Float32Array(16), N = new Float32Array(16)
- * const s = [0, 0, 0, 1], n = [0, 0, 0, 1]
+ * const a = tree.quat()
+ * const b = tree.qFromAxisAngle(tree.quat(), 0, 1, 0, 170 * Math.PI / 180)
+ * const S = tree.mat4(), N = tree.mat4(), s = tree.quat(), n = tree.quat()
  *
  * function frame(ms) {
  *   const t = (ms / 4000) % 1
@@ -365,7 +377,6 @@
  *   setCamera(gl, cam)
  *   axes(gl, { M: S, size: 100, semantic: false, color: [1, 1, 1, 1] })
  *   axes(gl, { M: N, size: 100, semantic: false, color: [1, 0.82, 0.4, 1] })
- *   out.textContent = 't ' + t.toFixed(2)
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -382,7 +393,7 @@
  * @param {number} angle  Radians, right-handed.
  * @returns {number[]} out
  * @example
- * <caption>A quarter turn per second about the white (1, 1, 1) axis, which the frame keeps pointing along.</caption>
+ * <caption>A quarter turn per second about the white (1, 1, 1) axis: the frame spins around the line.</caption>
  * const { setCamera, axes, hermite, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -390,8 +401,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [-150, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const M = tree.mat4(), q = tree.quat()
  * const k = 1 / Math.sqrt(3), axis = [100 * k, 100 * k, 100 * k]
  *
  * function frame(ms) {
@@ -425,8 +435,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 200, 300] })
- * const M = new Float32Array(16), T = new Float32Array(16)
- * const q = [0, 0, 0, 1], target = [0, 0, 0]
+ * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), target = tree.vec3()
  *
  * function frame(ms) {
  *   const t = ms / 1000
@@ -463,8 +472,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1], d = [0, 0, 0], line = [0, 0, 0]
+ * const M = tree.mat4(), q = tree.quat(), d = tree.vec3(), line = tree.vec3()
  *
  * function frame(ms) {
  *   const t = ms / 1000
@@ -499,9 +507,9 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [-200, 150, 250] })
- * const E = tree.mat4Eye(new Float32Array(16), 100, 60, 80, 0, 0, 0, 0, 1, 0)
- * const q = tree.qFromMat4([0, 0, 0, 1], E)
- * const M = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
+ * const q = tree.qFromMat4(tree.quat(), E)
+ * const M = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -512,14 +520,14 @@
  */
 
 /**
- * A rotation matrix from a quaternion.
+ * A rotation matrix from a quaternion; the translation is zero.
  * @function qToMat4
  * @memberof tree
  * @param {Float32Array|number[]} out
  * @param {number[]} q
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>qToMat4 writes a whole rotation matrix: the axes tumble about the origin.</caption>
+ * <caption>qToMat4 writes a whole rotation matrix: the axes drawn with it tumble about the origin.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -527,8 +535,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const M = tree.mat4(), q = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, Math.SQRT1_2, 0, Math.SQRT1_2, ms / 1000)
@@ -551,30 +558,31 @@
  * @param {object} [out]  Destination `{ axis, angle }`.
  * @returns {{ axis: number[], angle: number }} out
  * @example
- * <caption>Read back from a quaternion turning about z: the axis stays (0, 0, 1) while the angle climbs from 0 to 2π and wraps.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * <caption>The axis and angle read out of the tumbling left frame's quaternion rebuild the right frame and draw its axis in yellow: the right frame tumbles in step, turning about that line.</caption>
+ * const { setCamera, axes, hermite, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const cam = tree.createCamera({ eye: [0, 0, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1], aa = { axis: [0, 0, 0], angle: 0 }
+ * const cam = tree.createCamera({ eye: [0, 150, 320] })
+ * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), r = tree.quat()
+ * const aa = { axis: tree.vec3(), angle: 0 }, a0 = tree.vec3(), a1 = tree.vec3(), d = tree.vec3()
  *
  * function frame(ms) {
- *   const angle = (ms / 1000) % (2 * Math.PI)
- *   tree.qFromAxisAngle(q, 0, 0, 1, angle)
+ *   tree.qFromAxisAngle(q, 0.36, 0.48, 0.8, ms / 1000)
  *   tree.qToAxisAngle(q, aa)
- *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *   tree.qFromAxisAngle(r, aa.axis[0], aa.axis[1], aa.axis[2], aa.angle)
+ *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *   tree.mat4FromTRS(B, 80, 0, 0, r[0], r[1], r[2], r[3], 1, 1, 1)
+ *   for (let i = 0; i < 3; i++) { d[i] = 120 * aa.axis[i]; a0[i] = (i === 0 ? 80 : 0) - 60 * aa.axis[i]; a1[i] = a0[i] + d[i] }
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 100 })
- *   out.textContent = 'axis ' + aa.axis.map((v) => Math.round(v * 100) / 100 + 0).join(', ') + '   angle ' + aa.angle.toFixed(2)
+ *   axes(gl, { M: A, size: 50 })
+ *   axes(gl, { M: B, size: 50 })
+ *   hermite(gl, a0, d, a1, d, { color: [1, 0.82, 0.4, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

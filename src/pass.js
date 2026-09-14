@@ -391,7 +391,7 @@ export function pipe(gl, source, passes, opts) {
  * @example
  * <caption>Click to switch the pixelation off and on: switching it off releases its cached pair, and the readout lists the pipes still cached.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, program, pipe, releasePipe, image, contextOf, SCREEN, tree } from 'twgl.tree'
+ * import { setCamera, pane, renderTarget, program, pipe, releasePipe, image, contextOf, SCREEN, tree } from 'twgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -410,7 +410,7 @@ export function pipe(gl, source, passes, opts) {
  * void main() {
  *   outColor = texture(uSource, (floor(vTexCoord * uCells) + 0.5) / uCells);
  * }`)
- * const cam = tree.createCamera({ eye: [129, 107, 172] })
+ * const cam = tree.createCamera({ eye: [0, 0, 170] })
  * let effect = true
  *
  * canvas.addEventListener('click', () => {
@@ -420,13 +420,13 @@ export function pipe(gl, source, passes, opts) {
  *
  * function frame() {
  *   twgl.bindFramebufferInfo(gl, scene)
- *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 100 })
+ *   pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [1, 0.31, 0.85, 1] })
+ *   pane(gl, [-30, 70, 1], [110, 70, 1], [110, -70, 1], [-30, -70, 1], { color: [1, 0.82, 0.4, 1] })
  *   twgl.bindFramebufferInfo(gl, SCREEN)
- *   if (effect) pipe(gl, scene, { program: pixelate, uniforms: { uCells: 40 } }, { key: 'fx' })
+ *   if (effect) pipe(gl, scene, { program: pixelate, uniforms: { uCells: 20 } }, { key: 'fx' })
  *   else image(gl, scene.color)
  *   out.textContent = 'cached pipes: ' + (Object.keys(contextOf(gl).pipes).join(', ') || 'none')
  *   requestAnimationFrame(frame)

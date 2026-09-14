@@ -217,7 +217,9 @@ function surfaceOf(srcDir) {
   return names;
 }
 
-const jsFiles = (dir) => readdirSync(dir).filter((f) => f.endsWith('.js')).sort();
+// Sorted by name without the extension, so `host` precedes `host.handles`.
+const jsFiles = (dir) => readdirSync(dir).filter((f) => f.endsWith('.js'))
+  .sort((a, b) => (a.slice(0, -3) < b.slice(0, -3) ? -1 : 1));
 
 /**
  * Parse every `*.js` under `srcDir`, then every doc-only file under

@@ -144,7 +144,7 @@ const canvas = $('gl')
 const gl = canvas.getContext('webgl2', { antialias: true })
 const canvasHost = host.createHost(canvas)
 init(gl, { host: canvasHost })
-gl.enable(gl.DEPTH_TEST)                                  // p5 has it on silently; the notation never writes it
+gl.enable(gl.DEPTH_TEST)                                  // depthTest(on)
 
 // twgl reads a shader from the <script> whose id it is given
 const shadowProg = twgl.createProgramInfo(gl, ['shadow-vert', 'shadow-frag'])

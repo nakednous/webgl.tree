@@ -8,7 +8,7 @@ engine, no scene graph — twgl's own verbs stay yours.
 
 `twgl.tree` is an experimental implementation of the visual-computing notebook's pseudo-code
 design, expected to rest on its foundations: `@nakednous/tree`'s math, twgl's calls, and only
-what a framework supplies silently in between. A hero that ports line for line confirms a
+what the notebook's archetype columns write by hand and the notation leaves out. A hero that ports line for line confirms a
 piece of the notation; one that cannot is where the notation changes.
 
 > **Status: 0.0.x.** The whole surface below is shipped; the harness under `testing/` runs the

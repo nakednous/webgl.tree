@@ -94,15 +94,15 @@ void main() {
   vColor = aColor;
   vec4 cA = uPV * uModel * vec4(aA, 1.0);
   vec4 cB = uPV * uModel * vec4(aB, 1.0);
-  vec2 half = uViewport * 0.5;
-  vec2 sA = cA.xy / cA.w * half;
-  vec2 sB = cB.xy / cB.w * half;
+  vec2 halfVp = uViewport * 0.5;   // 'half' is reserved in GLSL ES 3.00
+  vec2 sA = cA.xy / cA.w * halfVp;
+  vec2 sB = cB.xy / cB.w * halfVp;
   vec2 d = sB - sA;
   float l = length(d);
   d = l > 0.0 ? d / l : vec2(1.0, 0.0);
   vec2 n = vec2(-d.y, d.x) * (uWidth * 0.5 * aSide);
   vec4 c = aT < 0.5 ? cA : cB;
-  gl_Position = c + vec4(n / half * c.w, 0.0, 0.0);
+  gl_Position = c + vec4(n / halfVp * c.w, 0.0, 0.0);
 }`;
 
 /**

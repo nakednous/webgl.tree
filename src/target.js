@@ -122,7 +122,7 @@ export function targetSpecs(gl, opts) {
  *        multisampled target (default 1).
  * @returns {object} The framebufferInfo, extended.
  * @example
- * <caption>Axes rendered into a 100 × 75 target and shown at 400 × 300: soft, low-resolution lines.</caption>
+ * <caption>Axes rendered into a 100 × 75 target and stretched to 400 × 300: the low resolution shows as blocky lines.</caption>
  * import * as twgl from 'twgl.js'
  * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'twgl.tree'
  *

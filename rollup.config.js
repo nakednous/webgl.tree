@@ -12,14 +12,14 @@ export default [
       sourcemap: true
     }
   },
-  // UMD: for script tags; tree and host bundled in as webglTree.tree and
+  // IIFE: for script tags; tree and host bundled in as webglTree.tree and
   // webglTree.host, twgl.js read from the global `twgl`.
   {
-    input: 'src/umd.js',
+    input: 'src/index.js',
     external: ['twgl.js'],
     output: {
-      file: 'dist/webgl.tree.umd.cjs',
-      format: 'umd',
+      file: 'dist/webgl.tree.js',
+      format: 'iife',
       name: 'webglTree',
       globals: { 'twgl.js': 'twgl' },
       sourcemap: true

@@ -92,8 +92,7 @@ export function uploadTransforms(ctx, prog, M) {
  * @returns {object} prog
  * @example
  * <caption>One program bound twice: a magenta cube on the left, a yellow one on the right.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, tree } from 'webgl.tree'
+ * const { setCamera, bind, draw, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -159,8 +158,7 @@ function _draw(gl, obj, M, opts, instances) {
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]  Forwarded to drawBufferInfo.
  * @example
  * <caption>A magenta cube turning about the vertical axis through its model matrix.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, tree } from 'webgl.tree'
+ * const { setCamera, bind, draw, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -204,8 +202,7 @@ function _draw(gl, obj, M, opts, instances) {
  * requestAnimationFrame(frame)
  * @example
  * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, host, tree } from 'webgl.tree'
+ * const { setCamera, bind, draw, host, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -232,8 +229,11 @@ function _draw(gl, obj, M, opts, instances) {
  * }`])
  *
  * // { position, normal, texcoord, indices }; the shader names its attributes aPosition / aNormal
- * const model = await host.loadModel('models/torus.obj')
- * const torus = twgl.createBufferInfoFromArrays(gl, { aPosition: model.position, aNormal: model.normal, indices: model.indices })
+ * let torus = null
+ * host.loadModel('models/torus.obj').then((model) => {
+ *   torus = twgl.createBufferInfoFromArrays(gl, { aPosition: model.position, aNormal: model.normal, indices: model.indices })
+ *   requestAnimationFrame(frame)
+ * })
  * const cam = tree.createCamera({ eye: [0, 160, 192] })
  * const M = new Float32Array(16)
  * const q = [0, 0, 0, 1]
@@ -248,7 +248,6 @@ function _draw(gl, obj, M, opts, instances) {
  *   draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
  *   requestAnimationFrame(frame)
  * }
- * requestAnimationFrame(frame)
  */
 export function draw(gl, obj, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }   // draw(gl, obj, opts)
@@ -264,8 +263,7 @@ export function draw(gl, obj, M, opts) {
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]
  * @example
  * <caption>Five yellow cubes in a row from one call; the vertex shader spaces them by gl_InstanceID.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, bind, drawInstanced, tree } from 'webgl.tree'
+ * const { setCamera, bind, drawInstanced, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

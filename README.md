@@ -19,13 +19,16 @@ piece of the notation; one that cannot is where the notation changes.
 
 ## Installation
 
-```bash
-npm install webgl.tree twgl.js
+Two script tags, twgl.js first; webgl.tree reads the global `twgl` and exposes the global
+`webglTree`:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/twgl.js@7/dist/7.x/twgl-full.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/webgl.tree/dist/webgl.tree.js"></script>
 ```
 
 ```js
-import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe, axes, tree } from 'webgl.tree'
+const { setCamera, bind, draw, axes, tree } = webglTree
 
 const gl = canvas.getContext('webgl2')
 const prog = twgl.createProgramInfo(gl, [vert, frag])          // twgl's verb, not re-wrapped
@@ -41,10 +44,10 @@ function frame() {
 }
 ```
 
-`tree` and `host` are `@nakednous/tree` and `@nakednous/host` as namespaces; importing the
-packages directly gives the same modules. The ES build keeps both external, so an import map
-needs entries for `twgl.js`, `@nakednous/tree` and `@nakednous/host`. For a plain script tag,
-load `dist/webgl.tree.umd.cjs` after twgl.js and read the global `webglTree`.
+`tree` holds the math — matrices, quaternions, camera states, visibility; `host` holds the canvas
+host — handles, tracks, orbit, devices, media. For ES modules, `npm install webgl.tree twgl.js`
+and `import { setCamera, axes, tree } from 'webgl.tree'`; the ES build keeps twgl.js,
+`@nakednous/tree` and `@nakednous/host` external, so a bundler or an import map resolves them.
 
 ---
 

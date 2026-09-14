@@ -5,8 +5,8 @@
  * @license AGPL-3.0-only
  *
  * Pipeline: parse doc blocks → validate (errors fail the build) → render →
- * write site/ alongside the ES bundle of the same commit and the static
- * chrome (assets/). Run `npm run build` first.
+ * write site/ alongside the IIFE and ES builds of the same commit and the
+ * static chrome (assets/). Run `npm run build` first.
  */
 
 import {
@@ -26,9 +26,10 @@ const at   = (p) => join(root, p);
 function main() {
   const pkg    = JSON.parse(readFileSync(at(paths.pkg), 'utf8'));
   const readme = readFileSync(at(paths.readme), 'utf8');
-  const bundle = at(paths.bundle);
-  if (!existsSync(bundle)) {
-    console.error(`[docs] ${paths.bundle} not found — run \`npm run build\` first.`);
+  const esm    = readFileSync(at(paths.esm), 'utf8');
+  for (const build of [paths.bundle, paths.module]) {
+    if (existsSync(at(build))) continue;
+    console.error(`[docs] ${build} not found — run \`npm run build\` first.`);
     process.exit(1);
   }
 
@@ -43,7 +44,7 @@ function main() {
   }
 
   // Render.
-  const pages = render(parsed, { pkg, readme });
+  const pages = render(parsed, { pkg, readme, esm });
 
   // Write site/ from scratch.
   const out = at(paths.site);
@@ -51,7 +52,8 @@ function main() {
   mkdirSync(out, { recursive: true });
   for (const [file, html] of pages) writeFileSync(join(out, file), html);
 
-  copyFileSync(bundle, join(out, site.bundle));
+  copyFileSync(at(paths.bundle), join(out, site.bundle));
+  copyFileSync(at(paths.module), join(out, site.module));
   for (const [name, file] of Object.entries(paths.deps)) {
     if (!existsSync(at(file))) {
       console.error(`[docs] ${file} not found — ${name} is not installed.`);

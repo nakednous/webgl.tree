@@ -84,7 +84,7 @@ function _poll(gl, ctx) {
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
  * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 19 141 117 otherwise.</caption>
- * import { setCamera, pane, readPixel, SCREEN, tree } from 'webgl.tree'
+ * const { setCamera, pane, readPixel, SCREEN, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -147,8 +147,7 @@ export function readPixel(gl, fbo, x, y) {
  * @returns {Promise<number>} The id under the pixel, 0 for a miss.
  * @example
  * <caption>Hover a cube: the one under the pointer turns magenta.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, pick, tree } from 'webgl.tree'
+ * const { setCamera, bind, draw, pick, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

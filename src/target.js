@@ -123,8 +123,7 @@ export function targetSpecs(gl, opts) {
  * @returns {object} The framebufferInfo, extended.
  * @example
  * <caption>Axes rendered into a 100 × 75 target and stretched to 400 × 300: the low resolution shows as blocky lines.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'webgl.tree'
+ * const { setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -143,8 +142,7 @@ export function targetSpecs(gl, opts) {
  * image(gl, small.color)
  * @example
  * <caption>The same axes in two 100 × 150 targets shown at twice their size: single-sampled on the left with hard stair-steps, samples: 4 and resolved on the right with softened edges.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'webgl.tree'
+ * const { setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

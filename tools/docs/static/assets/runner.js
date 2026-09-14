@@ -4,19 +4,22 @@
  * @license AGPL-3.0-only
  *
  * Classic deferred script on every page; no-op where there are no examples.
- * Config arrives in `window.webglTreeDocs` ({ imports, index }); markup is the
- * renderer's `figure.example` (`textarea.source`, `[data-stage]`,
- * `[data-run]`, `[data-reset]`).
+ * Config arrives in `window.webglTreeDocs` ({ twgl, lib, imports, index });
+ * markup is the renderer's `figure.example` (`textarea.source`,
+ * `[data-stage]`, `[data-run]`, `[data-reset]`, and `data-mode="module"` on
+ * the ES modules demo).
  *
  * - Editor: CodeMirror 5 over the source textarea; the bare textarea is the
  *   fallback when CodeMirror is absent.
  * - Canvas: a same-origin `srcdoc` iframe, unsandboxed (the examples are the
  *   site's own code; the runner reaches into each frame to release its WebGL
- *   context, and the site-local modules load without CORS), whose import map sends `twgl.js` to
- *   the pinned CDN module and `webgl.tree`, `@nakednous/tree` and
- *   `@nakednous/host` to site-local builds; the box contents run as a module
- *   script and make their own canvas. `srcdoc` inherits the page's base URL,
- *   so the site-local builds resolve relatively.
+ *   context, and WebHID needs the page's origin). An example loads pinned
+ *   twgl.js from the CDN and the site-local bundle as two scripts, then runs
+ *   the box contents as a classic script reading the `webglTree` global. The
+ *   module demo instead gets an import map — `twgl.js` to the pinned CDN
+ *   module, the rest to site-local ES builds — and runs as a module script.
+ *   `srcdoc` inherits the page's base URL, so site-local files resolve
+ *   relatively.
  * - Run reassembles the iframe from the box; Reset restores the source text.
  *   Edits are page-local — nothing persists.
  * - Lifecycle: an IntersectionObserver mounts an iframe as its figure nears
@@ -38,15 +41,19 @@
   const FAR      = '1500px 0px';  // unmount once it is beyond this margin
   const STAGE_BG = '#0a0a0e';     // fixed stage — never the page theme
 
-  /** The iframe document: the import map, then the example as a module. */
-  function srcdoc(code) {
-    const map = JSON.stringify({ imports: cfg.imports });
+  const attr = (s) => String(s).replace(/"/g, '&quot;');
+
+  /** The iframe document: pinned twgl and the bundle, or the import map, then the example. */
+  function srcdoc(code, module) {
+    const head = module
+      ? `<script type="importmap">${JSON.stringify({ imports: cfg.imports })}</script>`
+      : `<script src="${attr(cfg.twgl)}"></script>\n<script src="${attr(cfg.lib)}"></script>`;
     return `<!doctype html>
 <html><head><meta charset="utf-8">
 <style>html,body{margin:0;overflow:hidden;background:${STAGE_BG}}canvas{display:block}</style>
-<script type="importmap">${map}</script>
+${head}
 </head><body>
-<script type="module">
+<script${module ? ' type="module"' : ''}>
 ${code.replace(/<\/(script)/gi, '<\\/$1')}
 </script>
 </body></html>`;
@@ -96,7 +103,7 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
     f.className = 'sketch';
     f.title     = r.title;
     f.setAttribute('allow', 'hid');
-    f.srcdoc = srcdoc(code(r));
+    f.srcdoc = srcdoc(code(r), r.module);
     r.stage.replaceChildren(f);
     r.frame = f;
     live.push(r);
@@ -131,6 +138,7 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
     const r = {
       figure, stage, textarea,
       source: textarea.value,
+      module: figure.dataset.mode === 'module',
       title:  figure.querySelector('figcaption')?.textContent.trim() || figure.id,
       editor: null,
       frame:  null,

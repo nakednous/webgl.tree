@@ -9,9 +9,13 @@
 
 const CDN = 'https://cdn.jsdelivr.net/npm';
 
-/** twgl.js — the ES module every example iframe maps `twgl.js` to. */
+/**
+ * twgl.js — `url` is the script every example iframe loads before the bundle
+ * (global `twgl`); `module` is what the ES modules demo maps `twgl.js` to.
+ */
 export const twgl = { version: '7.0.0' };
-twgl.url = `${CDN}/twgl.js@${twgl.version}/dist/7.x/twgl-full.module.js`;
+twgl.url    = `${CDN}/twgl.js@${twgl.version}/dist/7.x/twgl-full.js`;
+twgl.module = `${CDN}/twgl.js@${twgl.version}/dist/7.x/twgl-full.module.js`;
 twgl.reference = 'https://twgljs.org/docs/';
 
 /**
@@ -44,8 +48,10 @@ export const paths = {
   src:    'src',
   pkg:    'package.json',
   readme: 'README.md',
-  bundle: 'dist/index.js',      // ES build of the same commit, twgl.js external
-  deps: {                       // the builds the bundle was made against
+  esm:    'tools/docs/esm.md',  // the index page's ES modules section and its live demo
+  bundle: 'dist/webgl.tree.js', // IIFE build of the same commit, twgl.js read from the global
+  module: 'dist/index.js',      // ES build of the same commit, for the ES modules demo
+  deps: {                       // the builds the ES build was made against
     '@nakednous/tree': 'node_modules/@nakednous/tree/dist/index.js',
     '@nakednous/host': 'node_modules/@nakednous/host/dist/index.js',
   },
@@ -56,6 +62,7 @@ export const paths = {
 /** Site-local URLs the pages hand to the runner. */
 export const site = {
   bundle: 'webgl.tree.js',
+  module: 'webgl.tree.esm.js',
   deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js' },
   style:  'assets/style.css',
   runner: 'assets/runner.js',

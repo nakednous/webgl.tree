@@ -41,7 +41,7 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * @returns {object} The entry.
  * @example
  * <caption>With a host attached, drag the magenta dot around a sphere of radius 100.</caption>
- * import { init, setCamera, axes, handleLocus, tree, host } from 'webgl.tree'
+ * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -120,7 +120,7 @@ export function contextOf(gl, opts) {
  * @returns {object}
  * @example
  * <caption>A magenta crosshair pinned to the tip of the X axis as the camera circles.</caption>
- * import { setCamera, axes, cross, viewOf, tree } from 'webgl.tree'
+ * const { setCamera, axes, cross, viewOf, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -161,8 +161,7 @@ export function viewOf(gl) {
  * @param {WebGL2RenderingContext} gl
  * @example
  * <caption>Click to tear down: the loop stops, dispose frees the target and caches, the context is lost and the canvas goes; click again for a fresh canvas.</caption>
- * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, dispose, SCREEN, tree } from 'webgl.tree'
+ * const { setCamera, axes, renderTarget, image, dispose, SCREEN, tree } = webglTree
  *
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'

@@ -116,10 +116,10 @@ function fieldTable(rows, table, caption) {
     </table>`;
 }
 
-function example(ex, id, i) {
+function example(ex, id, i, module = false) {
   const eid = `${id}-example-${i + 1}`;
   return `
-    <figure class="example" id="${esc(eid)}">
+    <figure class="example" id="${esc(eid)}"${module ? ' data-mode="module"' : ''}>
       ${ex.caption ? `<figcaption>${esc(ex.caption)}</figcaption>` : ''}
       <div class="editor"><textarea class="source" spellcheck="false" aria-label="sketch source">${esc(ex.code)}</textarea></div>
       <div class="stage" data-stage></div>
@@ -184,9 +184,9 @@ function shell({ title, active, body, nav, pkg, examples }) {
   const cm = examples ? `
   <link rel="stylesheet" href="${codemirror.css}">
   ${codemirror.js.map((u) => `<script src="${u}"></script>`).join('\n  ')}` : '';
-  const imports = { 'twgl.js': twgl.url, 'webgl.tree': `./${site.bundle}` };
+  const imports = { 'twgl.js': twgl.module, 'webgl.tree': `./${site.module}` };
   for (const [name, file] of Object.entries(site.deps)) imports[name] = `./${file}`;
-  const cfg = { imports, index: site.index };
+  const cfg = { twgl: twgl.url, lib: `./${site.bundle}`, imports, index: site.index };
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -216,6 +216,24 @@ ${body}
 `;
 }
 
+// ── ES modules section ──────────────────────────────────────────────────────
+
+const DEMO_RE    = /```js\n([\s\S]*?)```\n?/;
+const CAPTION_RE = /<!--\s*caption:\s*([\s\S]*?)\s*-->\n?/;
+
+/**
+ * The index page's ES modules section: the markdown of tools/docs/esm.md, its
+ * one ```js fence lifted out as a live module demo placed where the fence was.
+ */
+function esmSection(text) {
+  const demo = DEMO_RE.exec(text);
+  if (!demo) return `    <section class="esm">${marked.parse(text)}</section>`;
+  const caption = CAPTION_RE.exec(text);
+  const [before, after] = text.replace(CAPTION_RE, '').split(demo[0]);
+  const figure = example({ caption: caption ? caption[1] : null, code: demo[1] }, 'es-modules', 0, true);
+  return `    <section class="esm">${marked.parse(before)}<div class="examples">${figure}</div>${marked.parse(after || '')}</section>`;
+}
+
 // ── Search index ────────────────────────────────────────────────────────────
 
 /** The first sentence of a description, markdown stripped to plain text. */
@@ -239,10 +257,10 @@ function searchIndex(doclets) {
 
 /**
  * @param {{ modules, doclets }} parsed
- * @param {{ pkg: Object, readme: string }} ctx
+ * @param {{ pkg: Object, readme: string, esm: string }} ctx
  * @returns {Map<string, string>} filename → HTML
  */
-export function render(parsed, { pkg, readme }) {
+export function render(parsed, { pkg, readme, esm }) {
   const table = linkTable(parsed);
   table.ambiguous = ambiguousNames(parsed.doclets);
   const pages = new Map();
@@ -259,8 +277,8 @@ export function render(parsed, { pkg, readme }) {
   pages.set(site.index, JSON.stringify(searchIndex(parsed.doclets)));
 
   pages.set('index.html', shell({
-    title: 'README', active: 'index.html', nav, pkg, examples: false,
-    body: `    <article class="readme">${marked.parse(readme)}</article>`,
+    title: 'README', active: 'index.html', nav, pkg, examples: true,
+    body: `    <article class="readme">${marked.parse(readme)}</article>\n${esmSection(esm)}`,
   }));
 
   for (const m of modules) {

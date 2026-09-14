@@ -129,7 +129,8 @@ export function contextOf(gl, opts) {
  *
  * const cam = tree.createCamera({ eye: [0, 200, 400] })
  * const tip = [0, 0, 0]
- * const vp = [0, 300, 400, -300]   // y down, as cross takes it
+ * const W = tree.mat4Viewport(new Float32Array(16), [0, 300, 400, -300], tree.WEBGL)   // y down, as cross takes it
+ * const WPV = new Float32Array(16)
  *
  * function frame(ms) {
  *   cam.eye[0] = 400 * Math.sin(ms / 1000)
@@ -139,7 +140,9 @@ export function contextOf(gl, opts) {
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { size: 100 })
- *   tree.mapLocation(tip, 100, 0, 0, tree.WORLD, tree.SCREEN, viewOf(gl), vp, tree.WEBGL)
+ *   // WORLD → SCREEN
+ *   tree.mat4Mul(WPV, W, viewOf(gl).mat4PV)
+ *   tree.mat4MulPoint(tip, WPV, 100, 0, 0)
  *   cross(gl, { x: tip[0], y: tip[1], size: 30, color: [1, 0.31, 0.85, 1] })
  *   requestAnimationFrame(frame)
  * }

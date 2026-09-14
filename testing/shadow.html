@@ -265,9 +265,9 @@ function render() {
   if (orbit.update()) setCamera(gl, cam)                  // interact()
   tree.mat4Mul(PV_light, P_light, V_light)
   tree.mat4Mul(uWorldLightMatrix, B, PV_light)            // uWorldLightMatrix = B · P_light · V_light
-  const view = viewOf(gl)
-  tree.mapLocation(uLightPosition, lightPosition[0], lightPosition[1], lightPosition[2],
-    tree.WORLD, tree.EYE, view, view.vp, tree.WEBGL)      // uLightPosition = V · lightPosition
+  // WORLD → EYE
+  tree.mat4MulPoint(uLightPosition, viewOf(gl).mat4View,
+    lightPosition[0], lightPosition[1], lightPosition[2]) // uLightPosition = V · lightPosition
   bind(gl, shadowProg, { uWorldLightMatrix, uLightPosition, uDepth, uAmbient })
   scene(shadowProg)
 

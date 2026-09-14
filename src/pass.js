@@ -185,6 +185,7 @@ export function filter(gl, prog, uniforms) {
  * @param {number} vw  The viewport width.
  * @param {number} vh  The viewport height.
  * @returns {Float32Array} out
+ * @ignore
  */
 export function rectMatrix(out, x, y, w, h, vw, vh) {
   const x0 = 2 * x / vw - 1, x1 = 2 * (x + w) / vw - 1;
@@ -261,6 +262,7 @@ export function image(gl, tex, opts) {
  * A pipe pass entry: a program, or { program, uniforms } for per-pass uniforms.
  * @param {object} entry
  * @returns {{ program:object, uniforms:object|null }|null}
+ * @ignore
  */
 export function passOf(entry) {
   if (!entry) return null;
@@ -386,8 +388,8 @@ export function pipe(gl, source, passes, opts) {
  * @param {WebGL2RenderingContext} gl
  * @param {string|boolean} [key]
  * @example
- * <caption>Click to switch the pixelation off and on: switching it off releases its cached pair, and the readout lists the pipes still cached.</caption>
- * const { setCamera, pane, renderTarget, program, pipe, releasePipe, image, contextOf, SCREEN, tree } = webglTree
+ * <caption>Click to switch the pixelation off and on: switching it off releases its cached pair, so every time it comes back on pipe allocates a fresh one — the readout counts them.</caption>
+ * const { setCamera, pane, renderTarget, program, pipe, releasePipe, image, SCREEN, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -408,6 +410,7 @@ export function pipe(gl, source, passes, opts) {
  * }`)
  * const cam = tree.createCamera({ eye: [0, 0, 170] })
  * let effect = true
+ * let last = null, pairs = 0
  *
  * canvas.addEventListener('click', () => {
  *   effect = !effect
@@ -422,9 +425,11 @@ export function pipe(gl, source, passes, opts) {
  *   pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [1, 0.31, 0.85, 1] })
  *   pane(gl, [-30, 70, 1], [110, 70, 1], [110, -70, 1], [-30, -70, 1], { color: [1, 0.82, 0.4, 1] })
  *   twgl.bindFramebufferInfo(gl, SCREEN)
- *   if (effect) pipe(gl, scene, { program: pixelate, uniforms: { uCells: 20 } }, { key: 'fx' })
- *   else image(gl, scene.color)
- *   out.textContent = 'cached pipes: ' + (Object.keys(contextOf(gl).pipes).join(', ') || 'none')
+ *   if (effect) {
+ *     const target = pipe(gl, scene, { program: pixelate, uniforms: { uCells: 20 } }, { key: 'fx' })
+ *     if (target !== last) { last = target; pairs++ }
+ *   } else image(gl, scene.color)
+ *   out.textContent = (effect ? 'pixelated' : 'released') + ' · pairs allocated: ' + pairs
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

@@ -40,6 +40,7 @@ export const TRANSFORMS = ['uModelMatrix', 'uViewMatrix', 'uModelViewMatrix', 'u
  * `TRANSFORMS`.
  * @param {object} setters  programInfo.uniformSetters.
  * @returns {{ model:boolean, view:boolean, mv:boolean, proj:boolean, mvp:boolean, normal:boolean, any:boolean }}
+ * @ignore
  */
 export function declaredTransforms(setters) {
   const s = setters || {};
@@ -70,6 +71,7 @@ const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
  * @param {object} ctx
  * @param {object} prog
  * @param {ArrayLike<number>|null} M
+ * @ignore
  */
 export function uploadTransforms(ctx, prog, M) {
   const d = _declared(ctx, prog);

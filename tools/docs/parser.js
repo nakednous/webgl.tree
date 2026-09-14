@@ -9,7 +9,9 @@
  *   - it carries `@function name` (validated to also carry `@memberof`),
  *     `@constant {T} NAME`, or `@typedef {T} Name`.
  * When src/index.js re-exports names, a block is public only if its name is
- * among them. Every other block is internal and ignored. `@memberof` defaults to the
+ * among them. A block tagged `@ignore` is internal whatever it exports: the
+ * bridge's own seams, exported for ES module users and other bridges, never on
+ * the site. Every other block is internal and ignored. `@memberof` defaults to the
  * module. Dotted `@param` / `@property` names group under their parent.
  *
  * Audience rule. The rendered description is the block's prose before its
@@ -157,7 +159,9 @@ function parseFile(srcDir, file) {
       continue;
     }
 
-    // Public? — explicit name tag wins over the export inference.
+    // Public? — `@ignore` keeps an export off the site; an explicit name tag
+    // wins over the export inference.
+    if (tagOf('ignore')) continue;
     const fnTag = tagOf('function'), constTag = tagOf('constant'), tdTag = tagOf('typedef');
     let via = null, name = null, kind = null;
     if (fnTag)          { via = 'function'; name = fnTag.name;    kind = 'function'; }

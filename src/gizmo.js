@@ -83,6 +83,7 @@ const _arraysOf = (g) => {
  * @param {object} g  A cached gizmo entry.
  * @param {function(object):number} gen  gen(arrays) → vertices needed.
  * @returns {number} Vertices written.
+ * @ignore
  */
 export function fill(gl, g, gen) {
   let n = gen(g.arrays);
@@ -109,6 +110,7 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * @param {WebGL2RenderingContext} gl
  * @param {object} g  A cached gizmo entry.
  * @returns {object} The wide cache: { A, B, T, S, color?, indices, buffer, segments }.
+ * @ignore
  */
 export function expand(gl, g) {
   const segs = (g.arrays.count / 2) | 0;

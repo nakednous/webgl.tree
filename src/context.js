@@ -79,6 +79,7 @@ export function init(gl, opts) {
  * The entry of a context, created on first use.
  * @param {WebGL2RenderingContext} gl
  * @returns {object}
+ * @ignore
  */
 export function contextOf(gl, opts) {
   let ctx = _registry.get(gl);

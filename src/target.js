@@ -56,6 +56,7 @@ export const SCREEN = null;
  *             names:string[], color:boolean, depthTexture:boolean, float:boolean, float32:boolean }}
  *          attachments / kinds describe the sampleable framebuffer; multisample the
  *          renderbuffers drawn into when samples > 1, else null.
+ * @ignore
  */
 export function targetSpecs(gl, opts) {
   const o = opts || {};

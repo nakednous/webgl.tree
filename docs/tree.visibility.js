@@ -3,9 +3,79 @@
  * @module tree.visibility
  * @license AGPL-3.0-only
  *
- * `tree.cameraPlanes` fills a `Float64Array(24)` with a camera state's six
- * frustum planes; each test reads them and answers `tree.VISIBLE`,
+ * `tree.cameraPlanes` fills storage made once with `tree.planes()` with a
+ * camera state's six frustum planes, each the coefficients (a, b, c, d) of
+ * a·x + b·y + c·z = d; each test reads them and answers `tree.VISIBLE`,
  * `tree.SEMIVISIBLE` or `tree.INVISIBLE`.
+ */
+
+/**
+ * New storage for six frustum planes, a `Float64Array(24)`: made at setup, filled by `tree.cameraPlanes`.
+ * @function planes
+ * @memberof tree
+ * @returns {Float64Array}
+ * @example
+ * <caption>Planes made once and refilled every frame as the white frustum turns: the small axes, fixed at (60, 0, 0), are drawn in their colors while inside it and yellow while outside.</caption>
+ * const { setCamera, axes, viewFrustum, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [0, 300, 250] })
+ * const lens = tree.createCamera({ eye: [0, 0, 0], center: [0, 0, -1], fov: Math.PI / 4, near: 10, far: 150 })
+ * const pl = tree.planes(), M = tree.mat4FromTranslation(tree.mat4(), 60, 0, 0)
+ *
+ * function frame(ms) {
+ *   const a = ms / 1500
+ *   lens.center[0] = Math.sin(a); lens.center[2] = -Math.cos(a)
+ *   tree.cameraPlanes(pl, lens, 4 / 3)
+ *   const inside = tree.pointVisibility(pl, 60, 0, 0) === tree.VISIBLE
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, inside ? { M, size: 20 } : { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * Index of the left plane in the planes storage.
+ * @constant {number} PLANE_LEFT
+ * @memberof tree
+ */
+
+/**
+ * Index of the right plane.
+ * @constant {number} PLANE_RIGHT
+ * @memberof tree
+ */
+
+/**
+ * Index of the near plane.
+ * @constant {number} PLANE_NEAR
+ * @memberof tree
+ */
+
+/**
+ * Index of the far plane.
+ * @constant {number} PLANE_FAR
+ * @memberof tree
+ */
+
+/**
+ * Index of the top plane.
+ * @constant {number} PLANE_TOP
+ * @memberof tree
+ */
+
+/**
+ * Index of the bottom plane.
+ * @constant {number} PLANE_BOTTOM
+ * @memberof tree
  */
 
 /**
@@ -36,7 +106,7 @@
  * @param {number} pz
  * @returns {number} `tree.VISIBLE` or `tree.INVISIBLE`.
  * @example
- * <caption>A point sweeps across the white frustum through its axis, 120 from its eye: the readout turns VISIBLE while |x| stays under 66.3, the frustum's half width there.</caption>
+ * <caption>A point sweeps across the white frustum through its axis, 120 from its eye: the small axes on it are drawn in their colors while it tests visible — while |x| stays under 66.3, the frustum's half width there — and yellow otherwise.</caption>
  * const { setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -47,8 +117,8 @@
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
- * const planes = tree.cameraPlanes(new Float64Array(24), lens, 4 / 3)
- * const M = new Float32Array(16)
+ * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
+ * const M = tree.mat4()
  *
  * function frame(ms) {
  *   const x = 120 * Math.sin(ms / 1000)
@@ -59,8 +129,8 @@
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 20 })
- *   out.textContent = 'x ' + x.toFixed(1) + '   ' + (v === tree.VISIBLE ? 'VISIBLE' : 'INVISIBLE')
+ *   axes(gl, v === tree.VISIBLE ? { M, size: 20 } : { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   out.textContent = 'x ' + x.toFixed(1)
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -88,7 +158,7 @@
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
- * const planes = tree.cameraPlanes(new Float64Array(24), lens, 4 / 3)
+ * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
  * const names = { [tree.VISIBLE]: 'VISIBLE', [tree.SEMIVISIBLE]: 'SEMIVISIBLE', [tree.INVISIBLE]: 'INVISIBLE' }
  * const colors = { [tree.VISIBLE]: [1, 1, 1, 1], [tree.SEMIVISIBLE]: [1, 0.82, 0.4, 1], [tree.INVISIBLE]: [1, 0.31, 0.85, 1] }
  *
@@ -143,7 +213,7 @@
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
- * const planes = tree.cameraPlanes(new Float64Array(24), lens, 4 / 3)
+ * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
  * const names = { [tree.VISIBLE]: 'VISIBLE', [tree.SEMIVISIBLE]: 'SEMIVISIBLE', [tree.INVISIBLE]: 'INVISIBLE' }
  * const colors = { [tree.VISIBLE]: [1, 1, 1, 1], [tree.SEMIVISIBLE]: [1, 0.82, 0.4, 1], [tree.INVISIBLE]: [1, 0.31, 0.85, 1] }
  *
@@ -177,13 +247,13 @@
  * @function distanceToPlane
  * @memberof tree
  * @param {Float64Array} planes  From `tree.cameraPlanes`.
- * @param {number} planeIdx  0–5; 2 is the near plane, 3 the far plane.
+ * @param {number} planeIdx  `tree.PLANE_LEFT`, `tree.PLANE_RIGHT`, `tree.PLANE_NEAR`, `tree.PLANE_FAR`, `tree.PLANE_TOP` or `tree.PLANE_BOTTOM`.
  * @param {number} px
  * @param {number} py
  * @param {number} pz
  * @returns {number}
  * @example
- * <caption>A point slides along the white frustum's axis between z = 120 and z = −100: its distance to the near plane turns positive past z = 100, its distance to the far plane past z = −80.</caption>
+ * <caption>A point slides along the white frustum's axis between z = 120 and z = −100: the small axes on it are drawn magenta while its distance to the near plane is positive — past z = 100 — yellow while its distance to the far plane is — past z = −80 — and in their colors in between.</caption>
  * const { setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -194,8 +264,8 @@
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [300, 200, 150], center: [0, 0, 10] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
- * const planes = tree.cameraPlanes(new Float64Array(24), lens, 4 / 3)
- * const M = new Float32Array(16)
+ * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
+ * const M = tree.mat4()
  *
  * function frame(ms) {
  *   const z = 10 + 110 * Math.sin(ms / 1500)
@@ -205,8 +275,11 @@
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 20 })
- *   out.textContent = 'z ' + z.toFixed(0) + '   near ' + tree.distanceToPlane(planes, 2, 0, 0, z).toFixed(1) + '   far ' + tree.distanceToPlane(planes, 3, 0, 0, z).toFixed(1)
+ *   const nearOut = tree.distanceToPlane(planes, tree.PLANE_NEAR, 0, 0, z) > 0
+ *   const farOut = tree.distanceToPlane(planes, tree.PLANE_FAR, 0, 0, z) > 0
+ *   const color = nearOut ? [1, 0.31, 0.85, 1] : farOut ? [1, 0.82, 0.4, 1] : null
+ *   axes(gl, color ? { M, size: 20, semantic: false, color } : { M, size: 20 })
+ *   out.textContent = 'z ' + z.toFixed(0)
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

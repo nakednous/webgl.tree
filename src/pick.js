@@ -119,7 +119,8 @@ export function readPixel(gl, fbo, x, y) {
   const prev = gl.getParameter(gl.FRAMEBUFFER_BINDING);
   const vp = gl.getParameter(gl.VIEWPORT);
   _vp[0] = vp[0]; _vp[1] = vp[1]; _vp[2] = vp[2]; _vp[3] = vp[3];
-  bindFramebufferInfo(gl, fbo);
+  // a multisampled target is read from its resolved textures
+  bindFramebufferInfo(gl, fbo && typeof fbo.resolve === 'function' ? fbo.resolve().resolved : fbo);
   const pbo = rb.pool.pop() || gl.createBuffer();
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
   gl.bufferData(gl.PIXEL_PACK_BUFFER, 4, gl.STREAM_READ);

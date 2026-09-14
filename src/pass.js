@@ -339,6 +339,7 @@ export function pipe(gl, source, passes, opts) {
   const clearFn = typeof o.clearFn === 'function' ? o.clearFn : _clearBlack;
   const clearDisplayFn = typeof o.clearDisplayFn === 'function' ? o.clearDisplayFn : clearFn;
   const drawPass = typeof o.draw === 'function' ? o.draw : (g, tex, pass) => filter(g, pass.program, pass.uniforms ? Object.assign({ tex0: tex }, pass.uniforms) : { tex0: tex });
+  if (source && typeof source.resolve === 'function') source.resolve();   // a multisampled target fills its textures first
   const srcTex = source && source.color ? source.color : source;
   const outer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
   const vp = _viewport(gl);

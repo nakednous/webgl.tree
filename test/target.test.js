@@ -53,3 +53,57 @@ test('targetSpecs: named colour attachments in list order, then the depth', () =
   assert.deepEqual(gd.kinds, ['texture', 'texture', 'texture']);
   assert.equal(gd.attachments[2].attachmentPoint, gl.DEPTH_ATTACHMENT);
 });
+
+test('targetSpecs: format per target and per attachment; float: true is half-float', () => {
+  assert.equal(targetSpecs(gl).attachments[0].internalFormat, gl.RGBA8);
+  const f = targetSpecs(gl, { format: gl.FLOAT });
+  assert.equal(f.attachments[0].internalFormat, gl.RGBA32F);
+  assert.equal(f.attachments[0].type, gl.FLOAT);
+  assert.equal(f.float, true);
+  assert.equal(f.float32, true);
+  const h = targetSpecs(gl, { format: gl.HALF_FLOAT });
+  assert.equal(h.attachments[0].internalFormat, gl.RGBA16F);
+  assert.equal(h.float32, false);
+  const g = targetSpecs(gl, { color: { position: gl.HALF_FLOAT, normal: gl.HALF_FLOAT, albedo: gl.UNSIGNED_BYTE } });
+  assert.deepEqual(g.names, ['position', 'normal', 'albedo']);
+  assert.deepEqual(g.attachments.slice(0, 3).map((a) => a.internalFormat), [gl.RGBA16F, gl.RGBA16F, gl.RGBA8]);
+  assert.equal(g.float, true);
+  const m = targetSpecs(gl, { color: { a: gl.FLOAT, b: 0 }, samples: 4 });
+  assert.deepEqual(m.multisample.slice(0, 2).map((a) => a.format), [gl.RGBA32F, gl.RGBA8]);   // an unset entry takes the target's format
+});
+
+test('targetSpecs: sampling defaults to linear and clamp; minMag reaches the colour textures, wrap every texture', () => {
+  const d = targetSpecs(gl, { depthTexture: true });
+  assert.equal(d.attachments[0].minMag, gl.LINEAR);
+  assert.equal(d.attachments[0].wrap, gl.CLAMP_TO_EDGE);
+  assert.equal(d.attachments[1].minMag, gl.NEAREST);
+  const s = targetSpecs(gl, { depthTexture: true, minMag: gl.NEAREST, wrap: gl.REPEAT });
+  assert.equal(s.attachments[0].minMag, gl.NEAREST);
+  assert.equal(s.attachments[0].wrap, gl.REPEAT);
+  assert.equal(s.attachments[1].minMag, gl.NEAREST);      // a depth texture stays nearest
+  assert.equal(s.attachments[1].wrap, gl.REPEAT);
+});
+
+test('targetSpecs: samples > 1 adds multisampled renderbuffers beside the sampleable textures', () => {
+  assert.equal(targetSpecs(gl).samples, 1);
+  assert.equal(targetSpecs(gl).multisample, null);
+  assert.equal(targetSpecs(gl, { samples: 1 }).multisample, null);
+
+  const m = targetSpecs(gl, { samples: 4 });
+  assert.equal(m.samples, 4);
+  assert.deepEqual(m.kinds, ['texture']);                  // the depth-stencil renderbuffer moves to the multisampled side
+  assert.deepEqual(m.multisample, [
+    { attachmentPoint: gl.COLOR_ATTACHMENT0, format: gl.RGBA8, samples: 4 },
+    { attachmentPoint: gl.DEPTH_STENCIL_ATTACHMENT, format: gl.DEPTH24_STENCIL8, samples: 4 },
+  ]);
+
+  const t = targetSpecs(gl, { samples: 4, depthTexture: true, float: true });
+  assert.deepEqual(t.kinds, ['texture', 'texture']);
+  assert.deepEqual(t.multisample.map((a) => a.format), [gl.RGBA16F, gl.DEPTH_COMPONENT24]);   // depth format matches the texture for the blit
+
+  const g = targetSpecs(gl, { samples: 2, color: ['a', 'b'] });
+  assert.deepEqual(g.multisample.map((a) => a.attachmentPoint), [gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0 + 1, gl.DEPTH_STENCIL_ATTACHMENT]);
+
+  const s = targetSpecs(gl, { samples: 4, depth: true });
+  assert.deepEqual(s.multisample, [{ attachmentPoint: gl.DEPTH_ATTACHMENT, format: gl.DEPTH_COMPONENT24, samples: 4 }]);
+});

@@ -123,9 +123,10 @@
  * @param {object} opts
  * @param {number|object} opts.constraint  `tree.SPHERE`, `tree.PLANE`, `tree.AXIS`, `tree.DIAL` or `host.VIEW`.
  * @param {number[]} [opts.anchor]  The sphere's, plane's, axis's or dial's reference point.
- * @param {number} [opts.radius]  SPHERE: the radius.
- * @param {number[]} [opts.normal]  PLANE, DIAL: the normal.
- * @param {number[]} [opts.axis]  AXIS: the rail's direction.
+ * @param {number} [opts.radius]  SPHERE, DIAL: the radius.
+ * @param {number[]} [opts.normal=[0, 1, 0]]  PLANE: the normal.
+ * @param {number[]} [opts.axis]  AXIS: the rail's direction (default x); DIAL: the normal of the dial's plane (default y).
+ * @param {number[]} [opts.extent]  AXIS: the range along the rail, world units (default [−1, 1]); DIAL: the range of the angle, radians (default unbounded).
  * @param {number} [opts.snap]  A snap step: radians for SPHERE and DIAL, world units otherwise.
  * @param {number} [opts.grabPx=12]  The grab radius in pixels.
  * @param {boolean} [opts.hover]  Track hovering, for `hovered()`.

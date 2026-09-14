@@ -267,7 +267,7 @@
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
- * const h = canvasHost.handle({ constraint: tree.DIAL, anchor: [0, 0, 0], normal: [0, 1, 0], radius: 90 })
+ * const h = canvasHost.handle({ constraint: tree.DIAL, anchor: [0, 0, 0], axis: [0, 1, 0], radius: 90 })
  * const M = tree.mat4(), q = tree.quat()
  *
  * function frame() {
@@ -292,7 +292,7 @@
  * @param {number[]} out2  2-element destination.
  * @returns {number[]} out2
  * @example
- * <caption>Drag the magenta dot around the sphere: the white cross plots the azimuth azEl() reports across the canvas and the elevation up it — circling the sphere sweeps it sideways, climbing raises it.</caption>
+ * <caption>Drag the magenta dot around the sphere: the white cross plots the azimuth azEl() reports across the canvas — measured about y from the sphere's front, so dragging right moves the cross right — and the elevation up it, so climbing raises it.</caption>
  * const { init, setCamera, handleLocus, beginHUD, endHUD, cross, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -314,7 +314,9 @@
  *   h.azEl(ae)
  *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
  *   beginHUD(gl)
- *   cross(gl, { x: 200 + 60 * ae[0], y: 150 - 90 * ae[1], size: 16, color: [1, 1, 1, 1] })
+ *   // azimuth is right-handed about y from +x; the front, facing the camera at +z, is π/2 and rightward lowers it
+ *   const fromFront = Math.atan2(Math.sin(Math.PI / 2 - ae[0]), Math.cos(Math.PI / 2 - ae[0]))
+ *   cross(gl, { x: 200 + 60 * fromFront, y: 150 - 90 * ae[1], size: 16, color: [1, 1, 1, 1] })
  *   endHUD(gl)
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -328,7 +330,7 @@
  * @memberof Handle
  * @returns {boolean}
  * @example
- * <caption>Drag the dot along the x axis: it is drawn yellow while grabbed() is true, magenta otherwise.</caption>
+ * <caption>Drag the dot along the x axis, up to 100 either way of the origin: it is drawn yellow while grabbed() is true, magenta otherwise.</caption>
  * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -338,7 +340,7 @@
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
- * const h = canvasHost.handle({ constraint: tree.AXIS, anchor: [0, 0, 0], axis: [1, 0, 0] })
+ * const h = canvasHost.handle({ constraint: tree.AXIS, anchor: [0, 0, 0], axis: [1, 0, 0], extent: [-100, 100] })
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)

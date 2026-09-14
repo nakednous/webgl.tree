@@ -1,6 +1,6 @@
 /**
  * @file Gizmos — the line pipe over the core generators, HUD mode, panes.
- * @module twgl.tree/gizmo
+ * @module webgl.tree/gizmo
  * @license AGPL-3.0-only
  *
  * Gizmos drawn by name under the installed camera — frames, grids, curves,
@@ -219,7 +219,7 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
  * @param {{ M?:ArrayLike<number>, size?:number, bits?:number, semantic?:boolean, color?:number[], depth?:boolean }} [opts]
  * @example
  * <caption>A frame at the origin, and a second one moved by M to (−150, 0, 0) and turned 45° about Y.</caption>
- * import { setCamera, axes, tree } from 'twgl.tree'
+ * import { setCamera, axes, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -249,7 +249,7 @@ export function axes(gl, opts) {
  * @param {{ M?:ArrayLike<number>, size?:number, subdivisions?:number, color?:number[], depth?:boolean }} [opts]
  * @example
  * <caption>A ground grid: the XY grid laid flat by a rotation about X, under the axes.</caption>
- * import { setCamera, axes, grid, tree } from 'twgl.tree'
+ * import { setCamera, axes, grid, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -283,7 +283,7 @@ export function grid(gl, opts) {
  * @param {{ M?:ArrayLike<number>, samples?:number, color?:number[], depth?:boolean }} [opts]
  * @example
  * <caption>A magenta arch from (−150, 0, 0) to (150, 0, 0): it leaves upward and arrives downward.</caption>
- * import { setCamera, axes, hermite, tree } from 'twgl.tree'
+ * import { setCamera, axes, hermite, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -318,7 +318,7 @@ export function hermite(gl, p0, t0, p1, t1, opts) {
  * @param {{ M?:ArrayLike<number>, texture?:WebGLTexture, uvs?:number[], color?:number[], depth?:boolean }} [opts]
  * @example
  * <caption>A 2D-canvas texture on a quad reads upright: “twgl” on a yellow band at the top.</caption>
- * import { setCamera, texture, pane, tree } from 'twgl.tree'
+ * import { setCamera, texture, pane, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -373,7 +373,7 @@ const _aspect = (gl, o) => (o && typeof o.aspect === 'number') ? o.aspect : (gl.
  *        camera: a camera state, a CameraTrack (its cursor), or the matrix pair.
  * @example
  * <caption>The frustum of a second camera looking at the origin, with small axes at its eye.</caption>
- * import { setCamera, axes, viewFrustum, tree } from 'twgl.tree'
+ * import { setCamera, axes, viewFrustum, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -395,7 +395,7 @@ export function viewFrustum(gl, opts) {
   if (o.mat4Eye && o.mat4Proj) { _matCam.mat4Eye = o.mat4Eye; _matCam.mat4Proj = o.mat4Proj; _matCam.ndcZMin = ctx.ndcZMin; cam = _matCam; }
   else if (_isTrack(o.camera)) cam = o.camera.eval(_cam);
   else if (_isState(o.camera)) cam = o.camera;
-  else { console.error('[twgl.tree] viewFrustum: needs `camera` (a camera state or a CameraTrack) or `mat4Eye` and `mat4Proj`.'); return; }
+  else { console.error('[webgl.tree] viewFrustum: needs `camera` (a camera state or a CameraTrack) or `mat4Eye` and `mat4Proj`.'); return; }
   const aspect = _aspect(gl, o);
   const bits = o.bits ?? (NEAR | FAR | BODY);
   // a textured face is drawn first and keeps its outline, as p5's stroked pane does
@@ -441,7 +441,7 @@ function _cameraMarker(gl, kf, i, track, o) {
  *           marker?:function|null, aspect?:number, color?:number[], depth?:boolean }} [opts]
  * @example
  * <caption>A three-keyframe pose track: its path, its control points, and a small frame at each keyframe.</caption>
- * import { setCamera, trackPath, tree } from 'twgl.tree'
+ * import { setCamera, trackPath, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -495,7 +495,7 @@ let _rigSeq = 0;
  *           x?:number, y?:number, tilt?:number|number[], tint?:number[] }} [opts]
  * @example
  * <caption>A helm fed a translation rate, then a rotation rate, in turn: first an arrow brightens, then a ring.</caption>
- * import { setCamera, helmRig, tree } from 'twgl.tree'
+ * import { setCamera, helmRig, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -612,7 +612,7 @@ const _du = [0, 0, 0], _dv = [0, 0, 0];
  * @param {{ bits?:number, size?:number, color?:number[], dotColor?:number[], depth?:boolean }} [opts]
  * @example
  * <caption>Drag the magenta dot: it slides on the ground plane y = 0.</caption>
- * import { init, setCamera, grid, handleLocus, tree, host } from 'twgl.tree'
+ * import { init, setCamera, grid, handleLocus, tree, host } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -669,7 +669,7 @@ export function handleLocus(gl, h, opts) {
  * @param {WebGL2RenderingContext} gl
  * @example
  * <caption>Between beginHUD and endHUD, coordinates are pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>
- * import { setCamera, axes, beginHUD, endHUD, cross, bullsEye, tree } from 'twgl.tree'
+ * import { setCamera, axes, beginHUD, endHUD, cross, bullsEye, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -700,7 +700,7 @@ export function beginHUD(gl) {
  * @param {WebGL2RenderingContext} gl
  * @example
  * <caption>After endHUD the camera is back: axes drawn after it sit in the scene, over a yellow HUD bulls-eye at the centre.</caption>
- * import { setCamera, axes, beginHUD, endHUD, bullsEye, tree } from 'twgl.tree'
+ * import { setCamera, axes, beginHUD, endHUD, bullsEye, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -738,7 +738,7 @@ function _inHud(gl, ctx, draw) {
  * @param {{ x?:number, y?:number, size?:number, color?:number[] }} [opts]
  * @example
  * <caption>A magenta crosshair at the canvas centre, over the origin the camera looks at.</caption>
- * import { setCamera, axes, cross, tree } from 'twgl.tree'
+ * import { setCamera, axes, cross, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -766,7 +766,7 @@ export function cross(gl, opts) {
  * @param {{ x?:number, y?:number, size?:number, shape?:number, detail?:number, color?:number[] }} [opts]
  * @example
  * <caption>A round bulls-eye on the left, a cornered square one on the right.</caption>
- * import { bullsEye, tree } from 'twgl.tree'
+ * import { bullsEye, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

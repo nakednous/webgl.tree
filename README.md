@@ -1,4 +1,4 @@
-# `twgl.tree`
+# `webgl.tree`
 
 `@nakednous/tree` and `@nakednous/host` on raw WebGL2 through [twgl](https://twgljs.org/): a
 camera install that uploads only the transforms a program declares, render targets in every
@@ -6,7 +6,7 @@ shape, fullscreen filter passes and the ping-pong pipe, a line pipe that draws t
 arrays, HUD mode, asynchronous colour-id scene picking, textures under one orientation. No
 engine, no scene graph — twgl's own verbs stay yours.
 
-`twgl.tree` is an experimental implementation of the visual-computing notebook's pseudo-code
+`webgl.tree` is an experimental implementation of the visual-computing notebook's pseudo-code
 design, expected to rest on its foundations: `@nakednous/tree`'s math, twgl's calls, and only
 what the notebook's archetype columns write by hand and the notation leaves out. A hero that ports line for line confirms a
 piece of the notation; one that cannot is where the notation changes.
@@ -20,12 +20,12 @@ piece of the notation; one that cannot is where the notation changes.
 ## Installation
 
 ```bash
-npm install twgl.tree twgl.js
+npm install webgl.tree twgl.js
 ```
 
 ```js
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe, axes, tree } from 'twgl.tree'
+import { setCamera, bind, draw, renderTarget, program, pipe, axes, tree } from 'webgl.tree'
 
 const gl = canvas.getContext('webgl2')
 const prog = twgl.createProgramInfo(gl, [vert, frag])          // twgl's verb, not re-wrapped
@@ -44,20 +44,20 @@ function frame() {
 `tree` and `host` are `@nakednous/tree` and `@nakednous/host` as namespaces; importing the
 packages directly gives the same modules. The ES build keeps both external, so an import map
 needs entries for `twgl.js`, `@nakednous/tree` and `@nakednous/host`. For a plain script tag,
-load `dist/twgl.tree.umd.cjs` after twgl.js and read the global `twglTree`.
+load `dist/webgl.tree.umd.cjs` after twgl.js and read the global `webglTree`.
 
 ---
 
 ## Architecture
 
-`twgl.tree` is the bridge layer of an engine-free stack — the one place that touches the GPU
+`webgl.tree` is the bridge layer of an engine-free stack — the one place that touches the GPU
 API. Its WebGPU twin, `webgpu.tree`, realizes the same surface.
 
 ```
   application  (imports twgl itself — createProgramInfo, createBufferInfoFromArrays, …)
       │
       ▼
-  twgl.tree                   ← this package: the GPU, thinly
+  webgl.tree                  ← this package: the GPU, thinly
       │
       ├── @nakednous/host     ← pointer, handles, players, streams, media, labels, orbit
       │
@@ -67,7 +67,7 @@ API. Its WebGPU twin, `webgpu.tree`, realizes the same surface.
 ```
 
 `@nakednous/ui` is an optional peer of the application, not a dependency of the bridge.
-Dependency direction is strict: `{ tree, host } ← twgl.tree`; nothing flows back.
+Dependency direction is strict: `{ tree, host } ← webgl.tree`; nothing flows back.
 
 ---
 

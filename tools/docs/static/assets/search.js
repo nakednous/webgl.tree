@@ -3,7 +3,7 @@
  * @license AGPL-3.0-only
  *
  * Classic deferred script on every page. Loads the generator's index
- * (`window.twglTreeDocs.index`, one entry per function and constant: name,
+ * (`window.webglTreeDocs.index`, one entry per function and constant: name,
  * owner, page#anchor, first sentence) once, on the first keystroke, and
  * matches the typed text against name and owner as a plain substring. The
  * results replace the module list while the field is non-empty; Enter opens
@@ -19,7 +19,7 @@
   var index = null, loading = null;
   function load() {
     if (index) return Promise.resolve(index);
-    loading = loading || fetch(window.twglTreeDocs.index).then(function (r) { return r.json(); })
+    loading = loading || fetch(window.webglTreeDocs.index).then(function (r) { return r.json(); })
       .then(function (list) { index = list; return list; });
     return loading;
   }

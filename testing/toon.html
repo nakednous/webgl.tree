@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>twgl.tree · toon</title>
+<title>webgl.tree · toon</title>
 <style>
   :root { color-scheme: dark }
   html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
@@ -20,7 +20,7 @@
 <script type="importmap">
 { "imports": {
   "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
-  "twgl.tree": "../dist/index.js",
+  "webgl.tree": "../dist/index.js",
   "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
   "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
 } }
@@ -31,7 +31,7 @@
 <div id="note">the cursor aims the light · drag orbits, the wheel dollies · the fields are random on each side, so compare the banding, not the layout</div>
 <main>
   <section>
-    <h2><b>twgl.tree</b> · toon.vert / toon.frag over twgl.primitives</h2>
+    <h2><b>webgl.tree</b> · toon.vert / toon.frag over twgl.primitives</h2>
     <canvas id="gl" width="600" height="400"></canvas>
     <div class="panel">
       <label for="shades">shades</label><input id="shades" type="range" min="1" max="10" step="1" value="5"><output id="shadesOut">5</output>
@@ -86,7 +86,7 @@ void main() {
 // uniforms. The shapes are twgl.primitives, unit-sized and scaled per model the
 // way p5's cone(r), sphere(r) and torus(r, r / 4) size them.
 import * as twgl from 'twgl.js'
-import { init, setCamera, bind, draw, axes, grid, tree, host } from 'twgl.tree'
+import { init, setCamera, bind, draw, axes, grid, tree, host } from 'webgl.tree'
 
 const $ = (id) => document.getElementById(id)
 const canvas = $('gl')

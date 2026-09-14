@@ -1,6 +1,6 @@
 /**
  * @file Render targets — every shape over twgl's framebufferInfo, and SCREEN.
- * @module twgl.tree/target
+ * @module webgl.tree/target
  * @license AGPL-3.0-only
  *
  * `renderTarget` makes an offscreen target in one call; draw into it with
@@ -124,7 +124,7 @@ export function targetSpecs(gl, opts) {
  * @example
  * <caption>Axes rendered into a 100 × 75 target and stretched to 400 × 300: the low resolution shows as blocky lines.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'twgl.tree'
+ * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -144,7 +144,7 @@ export function targetSpecs(gl, opts) {
  * @example
  * <caption>The same axes in two 100 × 150 targets shown at twice their size: single-sampled on the left with hard stair-steps, samples: 4 and resolved on the right with softened edges.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'twgl.tree'
+ * import { setCamera, axes, renderTarget, image, SCREEN, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -175,11 +175,11 @@ export function renderTarget(gl, opts) {
   const spec = targetSpecs(gl, o.samples > 1 ? Object.assign({}, o, { samples: Math.min(o.samples, gl.getParameter(gl.MAX_SAMPLES) || 1) }) : o);
   if (spec.float && !ctx.floatExt) {
     ctx.floatExt = gl.getExtension('EXT_color_buffer_float') || false;
-    if (!ctx.floatExt) console.error('[twgl.tree] renderTarget: EXT_color_buffer_float is unavailable; a float target will be incomplete.');
+    if (!ctx.floatExt) console.error('[webgl.tree] renderTarget: EXT_color_buffer_float is unavailable; a float target will be incomplete.');
   }
   if (spec.float32 && (o.minMag || gl.LINEAR) === gl.LINEAR && ctx.floatLinearExt === undefined) {
     ctx.floatLinearExt = gl.getExtension('OES_texture_float_linear') || false;
-    if (!ctx.floatLinearExt) console.error('[twgl.tree] renderTarget: OES_texture_float_linear is unavailable; a gl.FLOAT target sampled linearly reads black — use gl.HALF_FLOAT or minMag: gl.NEAREST.');
+    if (!ctx.floatLinearExt) console.error('[webgl.tree] renderTarget: OES_texture_float_linear is unavailable; a gl.FLOAT target sampled linearly reads black — use gl.HALF_FLOAT or minMag: gl.NEAREST.');
   }
   const prev = gl.getParameter(gl.FRAMEBUFFER_BINDING);
   const width = o.width || gl.drawingBufferWidth, height = o.height || gl.drawingBufferHeight;

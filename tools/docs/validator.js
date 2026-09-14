@@ -19,7 +19,7 @@ const VOCABULARY = new Set([
 ]);
 
 const LINK_RE  = /\{@link\s+([^}\s]+)\s*\}/g;
-const IMPORT_RE = /\bfrom\s+['"]twgl\.tree['"]/;
+const IMPORT_RE = /\bfrom\s+['"]webgl\.tree['"]/;
 
 /** Split markdown into [text, fence, text, fence, …] so links inside fenced code are left alone. */
 export function splitFences(md) {
@@ -125,10 +125,10 @@ export function validate(parsed) {
     }
   }
 
-  // Examples — every one is a complete module script importing twgl.tree.
+  // Examples — every one is a complete module script importing webgl.tree.
   for (const d of doclets) {
     d.examples.forEach((ex, i) => {
-      if (!IMPORT_RE.test(ex.code)) fail(d, `@example #${i + 1} of ${d.name} does not import from 'twgl.tree'`);
+      if (!IMPORT_RE.test(ex.code)) fail(d, `@example #${i + 1} of ${d.name} does not import from 'webgl.tree'`);
     });
     if (d.kind === 'function' && d.examples.length === 0) warn(d, `${d.owner}.${d.name} has no @example`);
   }

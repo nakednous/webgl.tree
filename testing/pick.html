@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>twgl.tree · pick</title>
+<title>webgl.tree · pick</title>
 <style>
   :root { color-scheme: dark }
   html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
@@ -16,7 +16,7 @@
 <script type="importmap">
 { "imports": {
   "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
-  "twgl.tree": "../dist/index.js",
+  "webgl.tree": "../dist/index.js",
   "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
   "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
 } }
@@ -25,7 +25,7 @@
 <body>
 <a class="back" href="index.html">← harness</a>
 <main>
-  <section><h2><b>twgl.tree</b> · pick(gl, x, y, drawFn) — async, a frame-stamp per resolved id</h2><canvas id="gl" width="600" height="400"></canvas><div class="readout" id="out">move over a sphere</div></section>
+  <section><h2><b>webgl.tree</b> · pick(gl, x, y, drawFn) — async, a frame-stamp per resolved id</h2><canvas id="gl" width="600" height="400"></canvas><div class="readout" id="out">move over a sphere</div></section>
   <section><h2><b>p5.tree</b> · mousePick — synchronous readPixels</h2><div id="p5"></div><div class="readout" id="p5out">move over a sphere</div></section>
 </main>
 
@@ -57,7 +57,7 @@ void main() {
 // for the pick (paint(id) on the flat program) and lit for the eye. The pick
 // is asynchronous: the readout shows the id and how many frames late it landed.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, pick, tree } from 'twgl.tree'
+import { setCamera, bind, draw, pick, tree } from 'webgl.tree'
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

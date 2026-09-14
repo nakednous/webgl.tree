@@ -1,6 +1,6 @@
 /**
  * @file Internal programs — the pass-through vertex stage and the flat program.
- * @module twgl.tree/programs
+ * @module webgl.tree/programs
  * @license AGPL-3.0-only
  *
  * Nothing here is exported by the package: a hero binds its own shaders.

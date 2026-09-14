@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>twgl.tree · shadow</title>
+<title>webgl.tree · shadow</title>
 <style>
   :root { color-scheme: dark }
   html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
@@ -20,7 +20,7 @@
 <script type="importmap">
 { "imports": {
   "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
-  "twgl.tree": "../dist/index.js",
+  "webgl.tree": "../dist/index.js",
   "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
   "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
 } }
@@ -31,7 +31,7 @@
 <div id="note">the yellow bulb is the light · drag orbits, the wheel dollies · pillars: p5's noise() is replaced by two slow sines on the left</div>
 <main>
   <section>
-    <h2><b>twgl.tree</b> · depth-only renderTarget, shadow.vert / shadow.frag</h2>
+    <h2><b>webgl.tree</b> · depth-only renderTarget, shadow.vert / shadow.frag</h2>
     <canvas id="gl" width="500" height="500"></canvas>
     <div class="panel">
       <label for="scene">scene</label><select id="scene"><option value="1">ring</option><option value="2">towers</option><option value="3">pillars</option></select><span></span>
@@ -137,7 +137,7 @@ void main() {
 // names bind lists are the hero's own uniforms.
 // The notebook's world is p5's y-down one; every y below is negated.
 import * as twgl from 'twgl.js'
-import { init, setCamera, bind, draw, renderTarget, viewOf, SCREEN, tree, host } from 'twgl.tree'
+import { init, setCamera, bind, draw, renderTarget, viewOf, SCREEN, tree, host } from 'webgl.tree'
 
 const $ = (id) => document.getElementById(id)
 const canvas = $('gl')

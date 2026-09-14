@@ -55,7 +55,7 @@ export const paths = {
 
 /** Site-local URLs the pages hand to the runner. */
 export const site = {
-  bundle: 'twgl.tree.js',
+  bundle: 'webgl.tree.js',
   deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js' },
   style:  'assets/style.css',
   runner: 'assets/runner.js',

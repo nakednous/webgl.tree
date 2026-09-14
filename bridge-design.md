@@ -1,6 +1,6 @@
-# `twgl.tree` — the WebGL2 bridge (design)
+# `webgl.tree` — the WebGL2 bridge (design)
 
-> Target: `twgl.tree` 0.0.1 on `@nakednous/tree` 0.0.28+, `@nakednous/host` 0.0.1, and
+> Target: `webgl.tree` 0.0.1 on `@nakednous/tree` 0.0.28+, `@nakednous/host` 0.0.1, and
 > `twgl.js` ≥ 5.5.4 as a peer. `webgpu.tree` realizes this same surface (`twin-design.md`).
 > The apex is `stack-design.md` in the tree repo; this doc owns the bridge's surface at
 > implementation depth. The reference for every ported behaviour is
@@ -26,7 +26,7 @@ more:
   `drawBufferInfo`, `bindFramebufferInfo`, `gl.clear`, `gl.cullFace`, `gl.enable`. A hero
   imports twgl itself and calls these directly; the bridge calls them too, and hides none.
 
-So a `twgl.tree` hero is the pseudo-host with twgl's verbs still visible, and the only
+So a `webgl.tree` hero is the pseudo-host with twgl's verbs still visible, and the only
 things left to dissolve are the overlay (gizmos, HUD, orbit, panels) and the built-in the
 hero binds.
 
@@ -39,19 +39,19 @@ hero binds.
 @nakednous/host    the view bag a setCamera fills; labels the gizmos anchor into
 twgl.js            the thin layer — programs, buffers, textures, framebuffers, draws
        ↑
-twgl.tree          this package — one registry entry per gl context
+webgl.tree         this package — one registry entry per gl context
        ↑
 application  (+ @nakednous/ui as an optional peer, writing the uniforms bag)
 ```
 
-`{ tree, host } ← twgl.tree`; twgl is a peer; nothing flows back.
+`{ tree, host } ← webgl.tree`; twgl is a peer; nothing flows back.
 
 ---
 
 ## 3 · Call shape — `gl` first, state per context *(provisional)*
 
 Every export is a free function taking `gl` first, mirroring twgl, so a hero's imports stay
-flat (`import { setCamera, draw, filter } from 'twgl.tree'`) and the notation's verbs map
+flat (`import { setCamera, draw, filter } from 'webgl.tree'`) and the notation's verbs map
 one-to-one. Per-context state — the installed camera, the cached fullscreen geometry, the
 supplied programs, the gizmo buffers, the pick resources, the pipe caches, the HUD save —
 lives in a registry keyed by `gl` (a `WeakMap`), created lazily on first use and released
@@ -286,7 +286,7 @@ A hero that wants to pick a custom-shaded object passes its own id program to `p
   restored after.
 - Blend modes are named constants mapped to `blendFunc` pairs; `image` restores the prior
   state.
-- Library code: semicolons, JSDoc, `@module twgl.tree/<file>`; examples without.
+- Library code: semicolons, JSDoc, `@module webgl.tree/<file>`; examples without.
 - Options object last; `gl` first; out-first and zero-alloc in every per-frame path.
 
 ---
@@ -300,7 +300,7 @@ A hero that wants to pick a custom-shaded object passes its own id program to `p
 | label anchors | tree → bridge → host | `out.labels` forwarded to `host.labels.set` under a gizmo-scoped id |
 | uniforms bag | ui → bridge | a panel's `target` writes `u*` names; `bind(gl, prog, bag)` reads them |
 | camera state | tree ↔ host ↔ bridge | plain data; the bridge only reads it |
-| the twin | twgl.tree ↔ webgpu.tree | the same export list and signatures; `gl` becomes the device / context object; the differences table in `twin-design.md` |
+| the twin | webgl.tree ↔ webgpu.tree | the same export list and signatures; `gl` becomes the device / context object; the differences table in `twin-design.md` |
 
 ---
 

@@ -1,6 +1,6 @@
 /**
  * @file The draw — bind a program, draw geometry under the declared transforms.
- * @module twgl.tree/draw
+ * @module webgl.tree/draw
  * @license AGPL-3.0-only
  *
  * `bind` a program, then `draw` twgl geometry: each of these transform
@@ -93,7 +93,7 @@ export function uploadTransforms(ctx, prog, M) {
  * @example
  * <caption>One program bound twice: a magenta cube on the left, a yellow one on the right.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, tree } from 'twgl.tree'
+ * import { setCamera, bind, draw, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -132,7 +132,7 @@ export function uploadTransforms(ctx, prog, M) {
  */
 export function bind(gl, prog, uniforms) {
   const ctx = contextOf(gl);
-  if (!prog || !prog.program) { console.error('[twgl.tree] bind: `prog` must be a twgl programInfo.'); return null; }
+  if (!prog || !prog.program) { console.error('[webgl.tree] bind: `prog` must be a twgl programInfo.'); return null; }
   gl.useProgram(prog.program);
   ctx.prog = prog;
   if (uniforms) setUniforms(prog, uniforms);
@@ -142,8 +142,8 @@ export function bind(gl, prog, uniforms) {
 function _draw(gl, obj, M, opts, instances) {
   const ctx = contextOf(gl);
   const prog = ctx.prog;
-  if (!prog) { console.error('[twgl.tree] draw: no program bound — call bind(gl, prog) first.'); return; }
-  if (!obj) { console.error('[twgl.tree] draw: `obj` must be a twgl bufferInfo.'); return; }
+  if (!prog) { console.error('[webgl.tree] draw: no program bound — call bind(gl, prog) first.'); return; }
+  if (!obj) { console.error('[webgl.tree] draw: `obj` must be a twgl bufferInfo.'); return; }
   setBuffersAndAttributes(gl, prog, obj);
   uploadTransforms(ctx, prog, M);
   const o = opts || {};
@@ -160,7 +160,7 @@ function _draw(gl, obj, M, opts, instances) {
  * @example
  * <caption>A magenta cube turning about the vertical axis through its model matrix.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, tree } from 'twgl.tree'
+ * import { setCamera, bind, draw, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -205,7 +205,7 @@ function _draw(gl, obj, M, opts, instances) {
  * @example
  * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, host, tree } from 'twgl.tree'
+ * import { setCamera, bind, draw, host, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -265,7 +265,7 @@ export function draw(gl, obj, M, opts) {
  * @example
  * <caption>Five yellow cubes in a row from one call; the vertex shader spaces them by gl_InstanceID.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, drawInstanced, tree } from 'twgl.tree'
+ * import { setCamera, bind, drawInstanced, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

@@ -1,6 +1,6 @@
 /**
  * @file Picking — an asynchronous pixel readback and colour-id scene picking.
- * @module twgl.tree/pick
+ * @module webgl.tree/pick
  * @license AGPL-3.0-only
  *
  * `pick` finds the object under a canvas pixel: draw the scene calling
@@ -53,7 +53,7 @@ function _poll(gl, ctx) {
   const step = () => {
     rb.polling = false;
     if (typeof gl.isContextLost === 'function' && gl.isContextLost()) {
-      for (const r of rb.list) r.reject(new Error('[twgl.tree] readPixel: the context was lost.'));
+      for (const r of rb.list) r.reject(new Error('[webgl.tree] readPixel: the context was lost.'));
       rb.list.length = 0;
       return;
     }
@@ -63,7 +63,7 @@ function _poll(gl, ctx) {
       if (status === gl.TIMEOUT_EXPIRED) continue;
       rb.list.splice(i, 1);
       gl.deleteSync(r.sync);
-      if (status === gl.WAIT_FAILED) { rb.pool.push(r.pbo); r.reject(new Error('[twgl.tree] readPixel: the fence failed.')); continue; }
+      if (status === gl.WAIT_FAILED) { rb.pool.push(r.pbo); r.reject(new Error('[webgl.tree] readPixel: the fence failed.')); continue; }
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, r.pbo);
       gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, r.out);
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
@@ -84,7 +84,7 @@ function _poll(gl, ctx) {
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
  * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 19 141 117 otherwise.</caption>
- * import { setCamera, pane, readPixel, SCREEN, tree } from 'twgl.tree'
+ * import { setCamera, pane, readPixel, SCREEN, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -148,7 +148,7 @@ export function readPixel(gl, fbo, x, y) {
  * @example
  * <caption>Hover a cube: the one under the pointer turns magenta.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, pick, tree } from 'twgl.tree'
+ * import { setCamera, bind, draw, pick, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

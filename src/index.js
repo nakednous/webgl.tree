@@ -1,6 +1,6 @@
 /**
- * @file twgl.tree — @nakednous/tree and @nakednous/host on WebGL2 through twgl.
- * @module twgl.tree
+ * @file webgl.tree — @nakednous/tree and @nakednous/host on WebGL2 through twgl.
+ * @module webgl.tree
  * @license AGPL-3.0-only
  *
  * The render host's ceremony, thinly: every export is a free function taking

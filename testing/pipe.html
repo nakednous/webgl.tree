@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>twgl.tree · pipe</title>
+<title>webgl.tree · pipe</title>
 <style>
   :root { color-scheme: dark }
   html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
@@ -16,7 +16,7 @@
 <script type="importmap">
 { "imports": {
   "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
-  "twgl.tree": "../dist/index.js",
+  "webgl.tree": "../dist/index.js",
   "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
   "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
 } }
@@ -26,7 +26,7 @@
 <a class="back" href="index.html">← harness</a>
 <div id="readout">move the mouse over either canvas: x sets the grain</div>
 <main>
-  <section><h2><b>twgl.tree</b> · renderTarget → pipe(scene, [pixelate, vignette])</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>webgl.tree</b> · renderTarget → pipe(scene, [pixelate, vignette])</h2><canvas id="gl" width="600" height="400"></canvas></section>
   <section><h2><b>p5.tree</b> · createFramebuffer → pipe(scene, [pixelate, vignette])</h2><div id="p5"></div></section>
 </main>
 
@@ -84,7 +84,7 @@ void main() {
 // uploads it), then the two-stage chain; the first stage's uCells reads the
 // mouse, the second declares uResolution and gets it filled.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'twgl.tree'
+import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'webgl.tree'
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

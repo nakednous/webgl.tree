@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>twgl.tree · gizmos</title>
+<title>webgl.tree · gizmos</title>
 <style>
   :root { color-scheme: dark }
   html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
@@ -18,7 +18,7 @@
 <script type="importmap">
 { "imports": {
   "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
-  "twgl.tree": "../dist/index.js",
+  "webgl.tree": "../dist/index.js",
   "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
   "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
 } }
@@ -28,7 +28,7 @@
 <a class="back" href="index.html">← harness</a>
 <div id="note">same fixed camera on both sides · drag the two handle dots (sphere, plane) on either side · the rig is fed a synthetic push · bottom-left cross and centre bulls-eye are HUD gizmos</div>
 <main>
-  <section><h2><b>twgl.tree</b> · the line pipe</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>webgl.tree</b> · the line pipe</h2><canvas id="gl" width="600" height="400"></canvas></section>
   <section><h2><b>p5.tree</b> · the same gizmos</h2><div id="p5"></div></section>
 </main>
 
@@ -39,7 +39,7 @@
 // The bridge column: a host on the canvas for the handles and the rig labels,
 // the camera installed once per frame, every gizmo drawn by name.
 import * as twgl from 'twgl.js'
-import { init, setCamera, axes, grid, hermite, viewFrustum, trackPath, helmRig, handleLocus, cross, bullsEye, beginHUD, endHUD, tree, host } from 'twgl.tree'
+import { init, setCamera, axes, grid, hermite, viewFrustum, trackPath, helmRig, handleLocus, cross, bullsEye, beginHUD, endHUD, tree, host } from 'webgl.tree'
 
 const canvas = document.getElementById('gl')
 const gl = canvas.getContext('webgl2')

@@ -1,10 +1,10 @@
 /**
  * @file The per-context registry — one entry per WebGL2 context, keyed by gl.
- * @module twgl.tree/context
+ * @module webgl.tree/context
  * @license AGPL-3.0-only
  *
  * Every call takes `gl` first; nothing needs setting up before it. `init`
- * attaches a host to a context, `dispose` frees what twgl.tree made for it.
+ * attaches a host to a context, `dispose` frees what webgl.tree made for it.
  *
  * ```
  * init(gl, { host })   // optional: attach a host
@@ -41,7 +41,7 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * @returns {object} The entry.
  * @example
  * <caption>With a host attached, drag the magenta dot around a sphere of radius 100.</caption>
- * import { init, setCamera, axes, handleLocus, tree, host } from 'twgl.tree'
+ * import { init, setCamera, axes, handleLocus, tree, host } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -120,7 +120,7 @@ export function contextOf(gl, opts) {
  * @returns {object}
  * @example
  * <caption>A magenta crosshair pinned to the tip of the X axis as the camera circles.</caption>
- * import { setCamera, axes, cross, viewOf, tree } from 'twgl.tree'
+ * import { setCamera, axes, cross, viewOf, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -154,7 +154,7 @@ export function viewOf(gl) {
 }
 
 /**
- * Free every GPU resource twgl.tree made for a context; your own programs
+ * Free every GPU resource webgl.tree made for a context; your own programs
  * and buffers are untouched.
  * @details Targets, the pipe caches, textures, pending readbacks, the
  * internal programs and the fullscreen geometry go, then the entry.
@@ -162,7 +162,7 @@ export function viewOf(gl) {
  * @example
  * <caption>Click to tear down: the loop stops, dispose frees the target and caches, the context is lost and the canvas goes; click again for a fresh canvas.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, axes, renderTarget, image, dispose, SCREEN, tree } from 'twgl.tree'
+ * import { setCamera, axes, renderTarget, image, dispose, SCREEN, tree } from 'webgl.tree'
  *
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
@@ -215,7 +215,7 @@ export function dispose(gl) {
   if (ctx.textures && typeof gl.deleteTexture === 'function') for (const t of ctx.textures) gl.deleteTexture(t);
   ctx.textures = null;
   if (ctx.readbacks) {
-    for (const r of ctx.readbacks.list) { if (typeof gl.deleteSync === 'function') gl.deleteSync(r.sync); r.reject(new Error('[twgl.tree] readPixel: the context was disposed.')); }
+    for (const r of ctx.readbacks.list) { if (typeof gl.deleteSync === 'function') gl.deleteSync(r.sync); r.reject(new Error('[webgl.tree] readPixel: the context was disposed.')); }
     for (const b of ctx.readbacks.pool) if (typeof gl.deleteBuffer === 'function') gl.deleteBuffer(b);
     ctx.readbacks = null;
   }

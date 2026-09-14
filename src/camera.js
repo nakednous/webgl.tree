@@ -1,6 +1,6 @@
 /**
  * @file The camera install — the transforms every draw reads.
- * @module twgl.tree/camera
+ * @module webgl.tree/camera
  * @license AGPL-3.0-only
  *
  * `setCamera` installs the view and projection every later draw and gizmo
@@ -57,7 +57,7 @@ export function installCamera(ctx, V, P) {
  * @returns {object} The context's view bag.
  * @example
  * <caption>A camera state circling the axes, one turn every 6.3 seconds.</caption>
- * import { setCamera, axes, tree } from 'twgl.tree'
+ * import { setCamera, axes, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -79,7 +79,7 @@ export function installCamera(ctx, V, P) {
  * requestAnimationFrame(frame)
  * @example
  * <caption>The matrix form: an orthographic view and projection built by hand.</caption>
- * import { setCamera, axes, tree } from 'twgl.tree'
+ * import { setCamera, axes, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -108,7 +108,7 @@ export function setCamera(gl, V, P, opts) {
   } else if (_isMat4(V) && _isMat4(P)) {
     view = V; proj = P;
   } else {
-    console.error('[twgl.tree] setCamera: pass (gl, V, P) matrices or (gl, cam) a camera state.');
+    console.error('[webgl.tree] setCamera: pass (gl, V, P) matrices or (gl, cam) a camera state.');
     return ctx.host ? ctx.host.view : ctx.view;
   }
   installCamera(ctx, view, proj);

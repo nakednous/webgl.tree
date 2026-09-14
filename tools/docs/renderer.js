@@ -5,7 +5,7 @@
  * @license AGPL-3.0-only
  *
  * Every URL emitted is relative, so the site serves unchanged under the
- * `/twgl.tree/` base path. Types render verbatim — nothing here parses a type
+ * `/webgl.tree/` base path. Types render verbatim — nothing here parses a type
  * expression.
  */
 
@@ -37,7 +37,7 @@ const marked = new Marked({
 
 // ── Addresses ───────────────────────────────────────────────────────────────
 
-/** `twgl.tree/gizmo` → `gizmo.html`; a bare `twgl.tree` → `twgl.tree.html`. */
+/** `webgl.tree/gizmo` → `gizmo.html`; a bare `webgl.tree` → `webgl.tree.html`. */
 export function pageOf(moduleName) {
   const i = moduleName.lastIndexOf('/');
   return (i < 0 ? moduleName : moduleName.slice(i + 1)) + '.html';
@@ -184,7 +184,7 @@ function shell({ title, active, body, nav, pkg, examples }) {
   const cm = examples ? `
   <link rel="stylesheet" href="${codemirror.css}">
   ${codemirror.js.map((u) => `<script src="${u}"></script>`).join('\n  ')}` : '';
-  const imports = { 'twgl.js': twgl.url, 'twgl.tree': `./${site.bundle}` };
+  const imports = { 'twgl.js': twgl.url, 'webgl.tree': `./${site.bundle}` };
   for (const [name, file] of Object.entries(site.deps)) imports[name] = `./${file}`;
   const cfg = { imports, index: site.index };
   return `<!doctype html>
@@ -194,7 +194,7 @@ function shell({ title, active, body, nav, pkg, examples }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${esc(title)} — ${esc(pkg.name)}</title>
   <link rel="stylesheet" href="${site.style}">${cm}
-  <script>window.twglTreeDocs = ${JSON.stringify(cfg)};</script>
+  <script>window.webglTreeDocs = ${JSON.stringify(cfg)};</script>
   <script src="${site.runner}" defer></script>
   <script src="${site.search}" defer></script>
 </head>

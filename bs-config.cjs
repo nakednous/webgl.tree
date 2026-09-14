@@ -1,5 +1,5 @@
 /**
- * browser-sync harness for twgl.tree's testing/ pages.
+ * browser-sync harness for webgl.tree's testing/ pages.
  *
  * The pages import twgl.js and the bridge through an import map that
  * resolves inside this repo (node_modules, dist), and load p5 + p5.tree for

@@ -4,7 +4,7 @@
  * @license AGPL-3.0-only
  *
  * Classic deferred script on every page; no-op where there are no examples.
- * Config arrives in `window.twglTreeDocs` ({ imports, index }); markup is the
+ * Config arrives in `window.webglTreeDocs` ({ imports, index }); markup is the
  * renderer's `figure.example` (`textarea.source`, `[data-stage]`,
  * `[data-run]`, `[data-reset]`).
  *
@@ -13,7 +13,7 @@
  * - Canvas: a same-origin `srcdoc` iframe, unsandboxed (the examples are the
  *   site's own code; the runner reaches into each frame to release its WebGL
  *   context, and the site-local modules load without CORS), whose import map sends `twgl.js` to
- *   the pinned CDN module and `twgl.tree`, `@nakednous/tree` and
+ *   the pinned CDN module and `webgl.tree`, `@nakednous/tree` and
  *   `@nakednous/host` to site-local builds; the box contents run as a module
  *   script and make their own canvas. `srcdoc` inherits the page's base URL,
  *   so the site-local builds resolve relatively.
@@ -29,7 +29,7 @@
 (function () {
   'use strict';
 
-  const cfg     = window.twglTreeDocs;
+  const cfg     = window.webglTreeDocs;
   const figures = document.querySelectorAll('figure.example');
   if (!cfg || !figures.length) return;
 

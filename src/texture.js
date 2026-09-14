@@ -1,6 +1,6 @@
 /**
  * @file Textures — create, refresh, cube maps; one orientation.
- * @module twgl.tree/texture
+ * @module webgl.tree/texture
  * @license AGPL-3.0-only
  *
  * Textures from images, canvases, videos, bitmaps or raw pixels, stored the
@@ -52,7 +52,7 @@ function _opts(gl, o) {
  * @returns {WebGLTexture}
  * @example
  * <caption>Raw pixels start at the bottom row: magenta bottom-left and top-right, yellow in the other corners.</caption>
- * import { setCamera, texture, pane, tree } from 'twgl.tree'
+ * import { setCamera, texture, pane, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -91,7 +91,7 @@ export function texture(gl, source, opts) {
  * @returns {WebGLTexture} tex
  * @example
  * <caption>A 2D canvas redrawn every frame: the magenta bar sweeps left to right under a yellow strip along the top.</caption>
- * import { setCamera, texture, upload, pane, tree } from 'twgl.tree'
+ * import { setCamera, texture, upload, pane, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -138,7 +138,7 @@ export function upload(gl, tex, source) {
  * @example
  * <caption>A cube sampling a cube map by direction: +X magenta on the right, +Y white on top, +Z blue in front.</caption>
  * import * as twgl from 'twgl.js'
- * import { setCamera, bind, draw, cubemap, tree } from 'twgl.tree'
+ * import { setCamera, bind, draw, cubemap, tree } from 'webgl.tree'
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400

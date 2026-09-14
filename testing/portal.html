@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>twgl.tree · portal</title>
+<title>webgl.tree · portal</title>
 <style>
   :root { color-scheme: dark }
   html, body { margin: 0; background: #0a0a0e; color: #e5e7eb; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace }
@@ -16,7 +16,7 @@
 <script type="importmap">
 { "imports": {
   "twgl.js": "../node_modules/twgl.js/dist/7.x/twgl-full.module.js",
-  "twgl.tree": "../dist/index.js",
+  "webgl.tree": "../dist/index.js",
   "@nakednous/tree": "../node_modules/@nakednous/tree/dist/index.js",
   "@nakednous/host": "../node_modules/@nakednous/host/dist/index.js"
 } }
@@ -26,7 +26,7 @@
 <a class="back" href="index.html">← harness</a>
 <div id="note">the inner camera's view, rendered to a target, textured onto its own near plane by viewFrustum's nearTexture with the default uvs — it must read upright, the red sphere left and low, the yellow cone right; the outer view orbits slowly</div>
 <main>
-  <section><h2><b>twgl.tree</b> · renderTarget → viewFrustum({ nearTexture }) — one orientation, no flip</h2><canvas id="gl" width="600" height="420"></canvas></section>
+  <section><h2><b>webgl.tree</b> · renderTarget → viewFrustum({ nearTexture }) — one orientation, no flip</h2><canvas id="gl" width="600" height="420"></canvas></section>
   <section><h2><b>p5.tree</b> · createFramebuffer → viewFrustum({ nearTexture })</h2><div id="p5"></div></section>
 </main>
 
@@ -54,7 +54,7 @@ void main() { float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
 // a small scene rendered into a target; a third-person outer view shows that
 // image textured onto the inner camera's near plane — the orientation gate.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, viewFrustum, grid, tree } from 'twgl.tree'
+import { setCamera, bind, draw, renderTarget, viewFrustum, grid, tree } from 'webgl.tree'
 
 const src = (id) => document.getElementById(id).textContent
 const canvas = document.getElementById('gl')

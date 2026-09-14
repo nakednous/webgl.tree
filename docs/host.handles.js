@@ -292,8 +292,8 @@
  * @param {number[]} out2  2-element destination.
  * @returns {number[]} out2
  * @example
- * <caption>Drag the magenta dot around the sphere: the white cross plots the azimuth azEl() reports across the canvas — measured about y from the sphere's front, so dragging right moves the cross right — and the elevation up it, so climbing raises it.</caption>
- * const { init, setCamera, handleLocus, beginHUD, endHUD, cross, tree, host } = webglTree
+ * <caption>Drag the magenta dot around the sphere: the yellow line runs out from the center along the azimuth azEl() reports, flat on the equator's plane, and the white line rises from its end by the elevation — together they always reach the dot.</caption>
+ * const { init, setCamera, handleLocus, hermite, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
@@ -303,7 +303,7 @@
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const h = canvasHost.handle({ constraint: tree.SPHERE, anchor: [0, 0, 0], radius: 80 })
- * const ae = [0, 0]
+ * const ae = [0, 0], foot = tree.vec3(), rise = tree.vec3()
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
@@ -312,12 +312,13 @@
  *   setCamera(gl, cam)
  *   h.update()
  *   h.azEl(ae)
+ *   // azimuth turns about y from +x; elevation lifts out of the equator's plane
+ *   const reach = 80 * Math.cos(ae[1])
+ *   foot[0] = reach * Math.cos(ae[0]); foot[2] = reach * Math.sin(ae[0])
+ *   rise[1] = 80 * Math.sin(ae[1])
  *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
- *   beginHUD(gl)
- *   // azimuth is right-handed about y from +x; the front, facing the camera at +z, is π/2 and rightward lowers it
- *   const fromFront = Math.atan2(Math.sin(Math.PI / 2 - ae[0]), Math.cos(Math.PI / 2 - ae[0]))
- *   cross(gl, { x: 200 + 60 * fromFront, y: 150 - 90 * ae[1], size: 16, color: [1, 1, 1, 1] })
- *   endHUD(gl)
+ *   hermite(gl, [0, 0, 0], foot, foot, foot, { color: [1, 0.82, 0.4, 1], depth: false })
+ *   hermite(gl, foot, rise, [foot[0], rise[1], foot[2]], rise, { color: [1, 1, 1, 1], depth: false })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }

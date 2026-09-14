@@ -682,7 +682,7 @@
  * @param {number} [t]
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>The frame drawn with mat4Eye() rides the white path of eyes, its blue axis pointing back away from the axes the camera keeps looking at.</caption>
+ * <caption>As the track plays, the frame drawn with mat4Eye() rides the white path of eyes, its blue axis always pointing back, away from the origin every keyframe looks at.</caption>
  * const { init, setCamera, axes, trackPath, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -691,7 +691,7 @@
  * const gl = canvas.getContext('webgl2')
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
- * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const cam = tree.createCamera({ eye: [0, 170, 250] })
  * const track = canvasHost.cameraTrack(tree.createCamera())
  * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 })
  * track.add([key([-120, 30, 60]), key([0, 60, 130]), key([120, 30, 60])])
@@ -704,7 +704,6 @@
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
  *   trackPath(gl, track, { bits: tree.PATH, marker: null, color: [1, 1, 1, 1] })
  *   axes(gl, { M: track.mat4Eye(E), size: 30 })
  *   canvasHost.pointer.flush()
@@ -722,7 +721,7 @@
  * @param {number} [t]
  * @returns {number[]} out
  * @example
- * <caption>Small yellow crosses at sampleEye(out, seg, t) for t = 0, 0.25, 0.5 and 0.75 of each segment bead the white path of eyes.</caption>
+ * <caption>Small yellow crosses at sampleEye(out, seg, t), for t = 0, 0.25, 0.5 and 0.75 of each segment, bead the white path of eyes.</caption>
  * const { init, setCamera, axes, trackPath, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -731,7 +730,7 @@
  * const gl = canvas.getContext('webgl2')
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
- * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const cam = tree.createCamera({ eye: [0, 170, 250] })
  * const track = canvasHost.cameraTrack(tree.createCamera())
  * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 60 })
  * track.add([key([-120, 30, 60]), key([0, 60, 130]), key([120, 30, 60])])
@@ -742,7 +741,6 @@
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 50 })
  *   trackPath(gl, track, { bits: tree.PATH, marker: null, color: [1, 1, 1, 1] })
  *   for (let seg = 0; seg < 2; seg++) for (const t of [0, 0.25, 0.5, 0.75]) {
  *     track.sampleEye(p, seg, t)
@@ -763,7 +761,7 @@
  * @param {number} [t]
  * @returns {number[]} out
  * @example
- * <caption>The camera keyframes look at centers spread along x; small yellow crosses at sampleCenter(out, seg, t) bead the white path of centers that trackPath's CENTER bit draws.</caption>
+ * <caption>The three camera keyframes look at centers spread along x: small yellow crosses at sampleCenter(out, seg, t) bead the white path of centers on the ground — the other path, 80 to 100 above it and nearer the viewer, is the eyes'.</caption>
  * const { init, setCamera, axes, trackPath, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -772,7 +770,7 @@
  * const gl = canvas.getContext('webgl2')
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
- * const cam = tree.createCamera({ eye: [0, 300, 360] })
+ * const cam = tree.createCamera({ eye: [0, 220, 330] })
  * const track = canvasHost.cameraTrack(tree.createCamera())
  * const key = (eye, center) => ({ eye, center, fov: Math.PI / 4, near: 20, far: 60 })
  * track.add([key([-120, 80, 150], [-80, 0, 0]), key([0, 100, 180], [0, 0, -40]), key([120, 80, 150], [80, 0, 0])])

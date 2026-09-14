@@ -233,7 +233,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300, tree.WEBGL)
+ * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300)
  * const V = new Float32Array(16)
  *
  * function frame(ms) {
@@ -296,7 +296,6 @@
  * @param {number} top  Near-plane top extent.
  * @param {number} near  Near distance, positive.
  * @param {number} far  Far distance.
- * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @param {number} [ndcYSign=1]  −1 flips y.
  * @returns {Float32Array|number[]} out
  * @example
@@ -308,7 +307,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const V = tree.mat4View(new Float32Array(16), 0, 0, 300, 0, 0, 0, 0, 1, 0)
- * const P = tree.mat4Persp(new Float32Array(16), -0.3, 0.5, -0.3, 0.3, 1, 1000, tree.WEBGL)
+ * const P = tree.mat4Persp(new Float32Array(16), -0.3, 0.5, -0.3, 0.3, 1, 1000)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -331,7 +330,6 @@
  * @param {number} top
  * @param {number} near
  * @param {number} far
- * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @param {number} [ndcYSign=1]  −1 flips y.
  * @returns {Float32Array|number[]} out
  * @example
@@ -344,7 +342,7 @@
  * const gl = canvas.getContext('webgl2')
  * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const V = tree.mat4View(new Float32Array(16), 0, 200, 300, 0, 0, 0, 0, 1, 0)
- * const P = tree.mat4Ortho(new Float32Array(16), -200, 200, -150, 150, 1, 1000, tree.WEBGL)
+ * const P = tree.mat4Ortho(new Float32Array(16), -200, 200, -150, 150, 1, 1000)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -371,7 +369,7 @@
  * const gl = canvas.getContext('webgl2')
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300, tree.WEBGL)
+ * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300)
  * const V = new Float32Array(16), PV = new Float32Array(16)
  * const tip = [0, 0, 0]
  *
@@ -409,7 +407,7 @@
  * const gl = canvas.getContext('webgl2')
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300, tree.WEBGL)
+ * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300)
  * const V = new Float32Array(16), M = new Float32Array(16), MV = new Float32Array(16)
  * const q = [0, 0, 0, 1], origin = [0, 0, 0]
  * const round = (v) => Math.round(v * 10) / 10 + 0
@@ -776,7 +774,6 @@
  * @function mat4Bias
  * @memberof tree
  * @param {Float32Array|number[]} out
- * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>The bias matrix sends NDC's corners (−1, −1, −1) and (1, 1, 1) to texture space's (0, 0, 0) and (1, 1, 1).</caption>
@@ -784,37 +781,9 @@
  *
  * const out = document.body.appendChild(document.createElement('pre'))
  * out.style.cssText = 'margin:8px;color:white;font:13px monospace'
- * const B = tree.mat4Bias(new Float32Array(16), tree.WEBGL)
+ * const B = tree.mat4Bias(new Float32Array(16))
  * const lo = tree.mat4MulPoint([0, 0, 0], B, -1, -1, -1)
  * const hi = tree.mat4MulPoint([0, 0, 0], B, 1, 1, 1)
  * out.textContent = '(-1, -1, -1) → (' + lo.join(', ') + ')\n(1, 1, 1) → (' + hi.join(', ') + ')'
  */
 
-/**
- * The viewport matrix W: NDC to screen pixels, depth to [0, 1].
- * @function mat4Viewport
- * @memberof tree
- * @param {Float32Array|number[]} out
- * @param {number[]} vp  The viewport `[x, y, w, h]`; a negative h puts y down.
- * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
- * @returns {Float32Array|number[]} out
- * @example
- * <caption>W sends NDC's center to the canvas center, where the bulls-eye is drawn at the readout's (200, 150), depth 0.5.</caption>
- * const { beginHUD, endHUD, bullsEye, tree } = webglTree
- *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const W = tree.mat4Viewport(new Float32Array(16), [0, 300, 400, -300], tree.WEBGL)
- * const c = tree.mat4MulPoint([0, 0, 0], W, 0, 0, 0)
- *
- * gl.clearColor(0.075, 0.553, 0.459, 1)
- * gl.clear(gl.COLOR_BUFFER_BIT)
- * beginHUD(gl)
- * bullsEye(gl, { x: c[0], y: c[1], size: 40, color: [1, 1, 1, 1] })
- * endHUD(gl)
- * out.textContent = 'NDC (0, 0, 0) → (' + c.join(', ') + ')'
- */

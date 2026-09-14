@@ -10,7 +10,8 @@
  * the bridge supplies only what a framework supplies silently — the declared
  * transforms a draw uploads, the camera install, the targets, the passes.
  * @nakednous/tree and @nakednous/host come along as the `tree` and `host`
- * namespaces, so an application imports the stack from one name.
+ * namespaces, so an application imports the stack from one name; `tree` has
+ * WebGL's NDC depth convention bound, so no call names it.
  */
 
 'use strict';
@@ -23,6 +24,7 @@ export { program, fullscreen, filter, image, pipe, releasePipe, rectMatrix, pass
 export { fill, expand, axes, grid, hermite, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';
 export { readPixel, pick } from './pick.js';
 export { texture, upload, cubemap } from './texture.js';
+export { mapLocation, mapDirection, unproject, pixelRatio, mat4Viewport } from './space.js';
 export { WEBGL as ndcZMin } from '@nakednous/tree';
-export * as tree from '@nakednous/tree';
+export * as tree from './tree.js';
 export * as host from '@nakednous/host';

@@ -93,7 +93,7 @@
  * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const V = new Float32Array(16)
- * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300, tree.WEBGL)
+ * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300)
  *
  * function frame() {
  *   tree.cameraOrbit(cam, 0.01, 0)
@@ -150,7 +150,6 @@
  * @param {Float32Array|number[]} out
  * @param {object} cam
  * @param {number} aspect  Width over height.
- * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @param {number} [ndcYSign=1]  −1 flips y.
  * @returns {Float32Array|number[]|null} out, or null when the lens is degenerate.
  * @example
@@ -167,7 +166,7 @@
  *
  * function frame(ms) {
  *   cam.fov = (50 + 30 * Math.sin(ms / 1000)) * Math.PI / 180
- *   tree.cameraProj(P, cam, 400 / 300, tree.WEBGL)
+ *   tree.cameraProj(P, cam, 400 / 300)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -361,7 +360,6 @@
  * @param {object} cam  Destination.
  * @param {ArrayLike<number>} E  The eye matrix (eye → world).
  * @param {ArrayLike<number>} P  The projection.
- * @param {number} ndcZMin  `tree.WEBGL` for WebGL.
  * @returns {object} cam
  * @example
  * <caption>Read back from an eye matrix at (100, 60, 80) and a 60° projection: the readout recovers that eye and fov, and installing the state shows the origin at the canvas center.</caption>
@@ -374,8 +372,8 @@
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const E = tree.mat4Eye(new Float32Array(16), 100, 60, 80, 0, 0, 0, 0, 1, 0)
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera({ fov: Math.PI / 3, near: 1, far: 1000 }), 400 / 300, tree.WEBGL)
- * const cam = tree.cameraFromMat4(tree.createCamera(), E, P, tree.WEBGL)
+ * const P = tree.cameraProj(new Float32Array(16), tree.createCamera({ fov: Math.PI / 3, near: 1, far: 1000 }), 400 / 300)
+ * const cam = tree.cameraFromMat4(tree.createCamera(), E, P)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -428,7 +426,6 @@
  * @param {Float64Array|number[]} out24  24-element destination.
  * @param {object} cam
  * @param {number} [aspect]  Width over height.
- * @param {number} [ndcZMin]  `tree.WEBGL` for WebGL.
  * @returns {Float64Array|number[]|null} out24, or null when the lens is degenerate.
  * @example
  * <caption>The magenta pane fills the circling camera's far face, from corners 7, 6, 5 and 4 — top-left, top-right, bottom-right, bottom-left — inside its white frustum.</caption>
@@ -445,7 +442,7 @@
  *
  * function frame() {
  *   tree.cameraOrbit(other, 0.01, 0)
- *   tree.frustumCorners(c, other, 4 / 3, tree.WEBGL)
+ *   tree.frustumCorners(c, other, 4 / 3)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

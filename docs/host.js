@@ -17,7 +17,6 @@
  * @param {HTMLCanvasElement} canvas
  * @param {object} [opts]
  * @param {function(number, object):void} [opts.onFrame]  Called every frame with dt (seconds) and the host.
- * @param {number} [opts.ndcZMin=tree.WEBGL]
  * @param {function(number, number, number):void} [opts.onSize]  Called with width, height and device pixel ratio when the canvas resizes.
  * @returns {object} The host.
  */

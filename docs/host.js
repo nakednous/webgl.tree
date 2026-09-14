@@ -19,6 +19,29 @@
  * @param {function(number, object):void} [opts.onFrame]  Called every frame with dt (seconds) and the host.
  * @param {function(number, number, number):void} [opts.onSize]  Called with width, height and device pixel ratio when the canvas resizes.
  * @returns {object} The host.
+ * @example
+ * <caption>The host runs the loop: onFrame draws every frame and flushes the pointer after it, so the magenta dot drags around its sphere with no requestAnimationFrame in the sketch.</caption>
+ * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * let h = null
+ * const canvasHost = host.createHost(canvas, {
+ *   onFrame: () => {
+ *     gl.enable(gl.DEPTH_TEST)
+ *     gl.clearColor(0.075, 0.553, 0.459, 1)
+ *     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *     setCamera(gl, cam)
+ *     h.update()
+ *     axes(gl, { size: 50 })
+ *     handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   },
+ * })
+ * init(gl, { host: canvasHost })
+ * h = canvasHost.handle({ constraint: tree.SPHERE, anchor: [0, 0, 0], radius: 80 })
  */
 
 /**
@@ -32,6 +55,30 @@
  * @function clock
  * @memberof Host
  * @returns {number}
+ * @example
+ * <caption>The axes turn by the host's clock: one radian for every second since the host was made.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), q = tree.quat()
+ *
+ * function frame() {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -39,6 +86,34 @@
  * @function tick
  * @memberof Host
  * @param {number} dt  Seconds.
+ * @example
+ * <caption>The track plays only while the host is ticked, and here it is ticked every other second: the frame rides the path for a second, rests for a second, and rides on.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack()
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * track.play({ duration: 60, loop: true, bounce: true })
+ * const M = tree.mat4()
+ *
+ * function frame() {
+ *   if (Math.floor(canvasHost.clock()) % 2 === 0) canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -59,6 +134,32 @@
  * @param {function} [opts.onChange]
  * @param {function} [opts.onRelease]
  * @returns {Handle|null} The handle, or null for an invalid constraint.
+ * @example
+ * <caption>A PLANE handle snapping to a 20-unit grid: drag the magenta dot and it jumps from grid crossing to grid crossing.</caption>
+ * const { init, setCamera, grid, handleLocus, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 250, 250] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const h = canvasHost.handle({ constraint: tree.PLANE, anchor: [0, 0, 0], normal: [0, 1, 0], snap: 20 })
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   h.update()
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -68,6 +169,35 @@
  * @param {object} [opts]
  * @param {boolean|object} [opts.handles]  Draggable keyframe handles.
  * @returns {PoseTrack}
+ * @example
+ * <caption>A pose track with handles: drag a keyframe's dot and the yellow path reshapes through it while the frame keeps riding it.</caption>
+ * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 200, 330] })
+ * const track = canvasHost.poseTrack({ handles: true })
+ * track.add([{ pos: [-100, 0, 0] }, { pos: [0, 60, -60] }, { pos: [100, 0, 0] }])
+ * track.play({ duration: 60, loop: true, bounce: true })
+ * const M = tree.mat4()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   track.handles.update()
+ *   trackPath(gl, track, { bits: tree.PATH | tree.HANDLES, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 30 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -78,6 +208,35 @@
  * @param {object} [opts]
  * @param {boolean|object} [opts.handles]  Draggable keyframe handles.
  * @returns {CameraTrack}
+ * @example
+ * <caption>The canvas looks through the camera state the track writes into as it plays: the view swings between three keyframes around the axes and back.</caption>
+ * const { init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera()
+ * const track = canvasHost.cameraTrack(cam)
+ * const key = (eye) => ({ eye, center: [0, 0, 0], fov: Math.PI / 3, near: 20, far: 1000 })
+ * track.add([key([-250, 120, 150]), key([0, 250, 250]), key([250, 120, 150])])
+ * track.play({ duration: 120, loop: true, bounce: true })
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -89,6 +248,37 @@
  * @param {number} [opts.deadzone]  Rates below it read as zero.
  * @param {object} [opts.bind]  The target, bound at creation.
  * @returns {PoseHelm} The helm, with `bind(target)` and `dispose()`.
+ * @example
+ * <caption>A helm fed a synthetic push — sideways back and forth, and a steady turn — integrates it into the pose it is bound to: the frame drawn from that pose sways and spins, and the corner rig lights the channels being fed.</caption>
+ * const { init, setCamera, axes, helmRig, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const pose = { pos: tree.vec3(), rot: tree.quat() }
+ * const helm = canvasHost.poseHelm({ bind: pose })
+ * const lin = tree.vec3(), ang = tree.vec3(), M = tree.mat4()
+ *
+ * function frame() {
+ *   const t = canvasHost.clock()
+ *   lin[0] = 200 * Math.cos(t); ang[1] = 150
+ *   helm.feed(lin, ang)
+ *   canvasHost.tick(1 / 60)
+ *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 50 })
+ *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -99,6 +289,36 @@
  * @param {object} [opts]
  * @param {number} [opts.deadzone]  Rates below it read as zero.
  * @returns {PoseHelm} The helm, with `dispose()`.
+ * @example
+ * <caption>A camera helm fed a synthetic yaw, alternating left and right, turns the camera state it flies in place: the view pans across the axes and back.</caption>
+ * const { init, setCamera, axes, grid, helmRig, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 100, 300] })
+ * const helm = canvasHost.cameraHelm(cam)
+ * const lin = tree.vec3(), ang = tree.vec3()
+ *
+ * function frame() {
+ *   ang[1] = 300 * Math.sin(canvasHost.clock())
+ *   helm.feed(lin, ang)
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -108,6 +328,38 @@
  * @param {object} [opts]
  * @param {object} [opts.bind]  The helm fed.
  * @returns {object} The stream.
+ * @example
+ * <caption>With a 3Dconnexion SpaceMouse: click connect, pick the device, and push or twist the cap — the camera helm the stream feeds flies the view, and the corner rig lights each channel.</caption>
+ * const { init, setCamera, axes, grid, helmRig, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 100, 300] })
+ * const helm = canvasHost.cameraHelm(cam)
+ * const stream = canvasHost.hid({ bind: helm })
+ * const button = document.body.appendChild(document.createElement('button'))
+ * button.textContent = 'connect'
+ * button.style.cssText = 'position:absolute;left:8px;top:8px'
+ * button.onclick = () => stream.connect()
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -118,6 +370,34 @@
  * @param {number} [opts.index=0]  Which gamepad.
  * @param {object} [opts.bind]  The helm fed.
  * @returns {object} The stream.
+ * @example
+ * <caption>With a gamepad connected — press a button once so the browser exposes it — the sticks and triggers feed the camera helm: the view flies, and the corner rig lights each channel.</caption>
+ * const { init, setCamera, axes, grid, helmRig, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 100, 300] })
+ * const helm = canvasHost.cameraHelm(cam)
+ * canvasHost.gamepad({ bind: helm })
+ *
+ * function frame() {
+ *   canvasHost.tick(1 / 60)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
+ *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -127,6 +407,37 @@
  * @param {string} url
  * @param {object} [opts]
  * @returns {Promise<ImageBitmap>}
+ * @example
+ * <caption>An image fetched from a URL — here a data URL drawn a moment before, a magenta disc on yellow — becomes the texture on the turning pane once it arrives.</caption>
+ * const { init, setCamera, texture, pane, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const drawing = document.createElement('canvas')
+ * drawing.width = drawing.height = 128
+ * const g = drawing.getContext('2d')
+ * g.fillStyle = '#ffd166'; g.fillRect(0, 0, 128, 128)
+ * g.fillStyle = '#ff4fd8'; g.beginPath(); g.arc(64, 64, 44, 0, 2 * Math.PI); g.fill()
+ * let tex = null
+ * canvasHost.image(drawing.toDataURL()).then((bitmap) => { tex = texture(gl, bitmap) })
+ * const M = tree.mat4(), q = tree.quat()
+ *
+ * function frame() {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, 0.6 * Math.sin(canvasHost.clock())), 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (tex) pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { M, texture: tex })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -138,6 +449,33 @@
  * @param {boolean|object} [opts.camera]  The user's camera instead: true, or getUserMedia video constraints.
  * @param {boolean} [opts.loop]
  * @returns {Video}
+ * @example
+ * <caption>Allow the camera: once its video is ready, a texture uploaded from it every frame shows you, live, on the pane.</caption>
+ * const { init, setCamera, texture, upload, pane, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const video = canvasHost.video({ camera: true })
+ * let tex = null
+ * video.ready.then(() => { tex = texture(gl, video.el) })
+ *
+ * function frame() {
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (tex) {
+ *     upload(gl, tex, video.el)
+ *     pane(gl, [-160, 120, 0], [160, 120, 0], [160, -120, 0], [-160, -120, 0], { texture: tex })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -149,6 +487,28 @@
  * @param {number} h
  * @param {object} [opts]
  * @returns {ImageBitmap|HTMLCanvasElement}
+ * @example
+ * <caption>Text drawn with the 2D canvas API — “webgl.tree” in magenta on white — rasterized once and textured onto the pane, upright.</caption>
+ * const { init, setCamera, texture, pane, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const source = canvasHost.raster((g, w, h) => {
+ *   g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h)
+ *   g.fillStyle = '#ff4fd8'; g.font = 'bold 44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'
+ *   g.fillText('webgl.tree', w / 2, h / 2)
+ * }, 320, 96)
+ * const tex = texture(gl, source)
+ *
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, cam)
+ * pane(gl, [-160, 48, 0], [160, 48, 0], [160, -48, 0], [-160, -48, 0], { texture: tex })
  */
 
 /**
@@ -158,6 +518,54 @@
  * @param {string} url
  * @param {object} [opts]
  * @returns {Promise<object>}
+ * @example
+ * <caption>models/torus.obj, fetched into arrays and uploaded with twgl once it arrives: the yellow torus turns, lit by the file's own normals.</caption>
+ * const { init, setCamera, bind, draw, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 160, 192] })
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ * let torus = null
+ * canvasHost.model('models/torus.obj').then((m) => {
+ *   torus = twgl.createBufferInfoFromArrays(gl, { aPosition: m.position, aNormal: m.normal, indices: m.indices })
+ * })
+ * const M = tree.mat4(), q = tree.quat()
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (torus) {
+ *     bind(gl, prog, { uColor: [1, 0.82, 0.4] })
+ *     draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 1, 0, 0, canvasHost.clock()), 1, 1, 1))
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -176,12 +584,71 @@
  * @param {number} [opts.minDistance]
  * @param {number} [opts.maxDistance]
  * @returns {Orbit}
+ * @example
+ * <caption>Drag to orbit the camera state around the axes, scroll to dolly — but grabbing the magenta dot drags the handle instead, the orbit leaving that pointer alone.</caption>
+ * const { init, setCamera, axes, grid, handleLocus, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam, { minDistance: 150, maxDistance: 600 })
+ * const h = canvasHost.handle({ constraint: tree.SPHERE, anchor: [0, 0, 0], radius: 70 })
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (!h.update()) orbit.update()
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
  * Stop the loop, remove every listener and dispose everything the host made.
  * @function dispose
  * @memberof Host
+ * @example
+ * <caption>Drag to orbit, then click the button: the host is disposed with its orbit, and dragging moves nothing any more.</caption>
+ * const { init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam)
+ * let alive = true
+ * const button = document.body.appendChild(document.createElement('button'))
+ * button.textContent = 'dispose'
+ * button.style.cssText = 'position:absolute;left:8px;top:8px'
+ * button.onclick = () => { if (alive) { canvasHost.dispose(); alive = false } }
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (alive) orbit.update()
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: alive ? [1, 1, 1, 1] : [1, 0.31, 0.85, 1] })
+ *   axes(gl, { size: 50 })
+ *   if (alive) canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -189,18 +656,102 @@
  * @function update
  * @memberof Orbit
  * @returns {boolean} Whether the camera moved.
+ * @example
+ * <caption>Drag to orbit: the grid is drawn yellow on every frame update() reports that it moved the camera, white when it did not.</caption>
+ * const { init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam)
+ *
+ * function frame() {
+ *   const moved = orbit.update()
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: moved ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
  * Restore the camera state the orbit started from.
  * @function home
  * @memberof Orbit
+ * @example
+ * <caption>Drag to orbit anywhere you like, then double-click: home() puts the camera back where it started.</caption>
+ * const { init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam)
+ * canvas.addEventListener('dblclick', () => orbit.home())
+ *
+ * function frame() {
+ *   orbit.update()
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
  * Remove the orbit's listeners.
  * @function dispose
  * @memberof Orbit
+ * @example
+ * <caption>Drag to orbit, then click the button: the orbit is disposed, dragging stops turning the view, and the rest of the host keeps running — the axes keep spinning.</caption>
+ * const { init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * let orbit = canvasHost.orbit(cam)
+ * const button = document.body.appendChild(document.createElement('button'))
+ * button.textContent = 'dispose orbit'
+ * button.style.cssText = 'position:absolute;left:8px;top:8px'
+ * button.onclick = () => { if (orbit) { orbit.dispose(); orbit = null } }
+ * const M = tree.mat4(), q = tree.quat()
+ *
+ * function frame() {
+ *   if (orbit) orbit.update()
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1), size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -216,6 +767,36 @@
  * @param {number} [opts.dx]  Pixel offset x.
  * @param {number} [opts.dy]  Pixel offset y.
  * @returns {object}
+ * @example
+ * <caption>Three labels pinned each frame to the tips of the turning axes — x, y and z — follow them around.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), q = tree.quat(), tip = tree.vec3()
+ *
+ * function frame() {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
+ *   ;[[110, 0, 0, 'x'], [0, 110, 0, 'y'], [0, 0, 110, 'z']].forEach(([x, y, z, name]) => {
+ *     tree.mat4MulPoint(tip, M, x, y, z)
+ *     canvasHost.labels.set(name, name, tip[0], tip[1], tip[2])
+ *   })
+ *   canvasHost.labels.tick()
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -228,6 +809,32 @@
  * @param {number} sy
  * @param {object} [opts]
  * @returns {object}
+ * @example
+ * <caption>Move the pointer over the canvas: a label set at the pointer's canvas pixels, 18 above it, names its position and follows it.</caption>
+ * const { init, setCamera, grid, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * canvas.addEventListener('pointermove', (e) => {
+ *   canvasHost.labels.setScreen('at', e.offsetX + ', ' + e.offsetY, e.offsetX, e.offsetY, { dy: -18 })
+ * })
+ *
+ * function frame() {
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   canvasHost.labels.tick()
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -235,12 +842,76 @@
  * @function remove
  * @memberof Labels
  * @param {string} id
+ * @example
+ * <caption>Click the canvas: each click removes one of the labels on the turning axes' tips — z, then y, then x.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), q = tree.quat(), tip = tree.vec3()
+ * const shown = [[110, 0, 0, 'x'], [0, 110, 0, 'y'], [0, 0, 110, 'z']]
+ * canvas.addEventListener('click', () => { const gone = shown.pop(); if (gone) canvasHost.labels.remove(gone[3]) })
+ *
+ * function frame() {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
+ *   shown.forEach(([x, y, z, name]) => {
+ *     tree.mat4MulPoint(tip, M, x, y, z)
+ *     canvasHost.labels.set(name, name, tip[0], tip[1], tip[2])
+ *   })
+ *   canvasHost.labels.tick()
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
  * Remove every label.
  * @function clear
  * @memberof Labels
+ * @example
+ * <caption>Click the canvas: clear() removes all three labels at once; a second click sets them again.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), q = tree.quat(), tip = tree.vec3()
+ * let labelled = true
+ * canvas.addEventListener('click', () => { labelled = !labelled; if (!labelled) canvasHost.labels.clear() })
+ *
+ * function frame() {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
+ *   if (labelled) [[110, 0, 0, 'x'], [0, 110, 0, 'y'], [0, 0, 110, 'z']].forEach(([x, y, z, name]) => {
+ *     tree.mat4MulPoint(tip, M, x, y, z)
+ *     canvasHost.labels.set(name, name, tip[0], tip[1], tip[2])
+ *   })
+ *   canvasHost.labels.tick()
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -248,6 +919,34 @@
  * @function tick
  * @memberof Labels
  * @returns {object}
+ * @example
+ * <caption>A label pinned once, at setup, to (0, 100, 0): while tick() runs it stays on the top of the green axis as the camera orbits; click to stop ticking and the label freezes on screen while the view keeps moving.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * canvasHost.labels.set('top', 'top of y', 0, 100, 0, { dy: -12 })
+ * let ticking = true
+ * canvas.addEventListener('click', () => { ticking = !ticking })
+ *
+ * function frame() {
+ *   tree.cameraOrbit(cam, 0.01, 0)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 100, bits: tree.X | tree.Y | tree.Z })
+ *   if (ticking) canvasHost.labels.tick()
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -255,18 +954,103 @@
  * @function start
  * @memberof Video
  * @returns {Promise<void>}
+ * @example
+ * <caption>Allow the camera, then click the canvas to pause and click again to start(): the pane's live image freezes and resumes.</caption>
+ * const { init, setCamera, texture, upload, pane, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const video = canvasHost.video({ camera: true })
+ * let tex = null
+ * video.ready.then(() => { tex = texture(gl, video.el) })
+ * canvas.addEventListener('click', () => (video.el.paused ? video.start() : video.stop()))
+ *
+ * function frame() {
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (tex) {
+ *     upload(gl, tex, video.el)
+ *     pane(gl, [-160, 120, 0], [160, 120, 0], [160, -120, 0], [-160, -120, 0], { texture: tex })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
  * Pause.
  * @function stop
  * @memberof Video
+ * @example
+ * <caption>Allow the camera: every two seconds stop() and start() alternate, and the pane's live image holds still for two seconds, then moves for two.</caption>
+ * const { init, setCamera, texture, upload, pane, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const video = canvasHost.video({ camera: true })
+ * let tex = null, still = false
+ * video.ready.then(() => { tex = texture(gl, video.el) })
+ *
+ * function frame() {
+ *   const wanted = Math.floor(canvasHost.clock() / 2) % 2 === 1
+ *   if (tex && wanted !== still) { still = wanted; still ? video.stop() : video.start() }
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (tex) {
+ *     upload(gl, tex, video.el)
+ *     pane(gl, [-160, 120, 0], [160, 120, 0], [160, -120, 0], [-160, -120, 0], { texture: tex })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
  * Stop, release the camera and detach the element.
  * @function dispose
  * @memberof Video
+ * @example
+ * <caption>Allow the camera, then click the canvas: dispose() releases it — the browser's camera indicator turns off and the pane keeps the last frame it received.</caption>
+ * const { init, setCamera, texture, upload, pane, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const video = canvasHost.video({ camera: true })
+ * let tex = null, live = true
+ * video.ready.then(() => { tex = texture(gl, video.el) })
+ * canvas.addEventListener('click', () => { if (live) { video.dispose(); live = false } })
+ *
+ * function frame() {
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   if (tex) {
+ *     if (live) upload(gl, tex, video.el)
+ *     pane(gl, [-160, 120, 0], [160, 120, 0], [160, -120, 0], [-160, -120, 0], { texture: tex })
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -275,6 +1059,36 @@
  * @memberof PoseHelm
  * @param {{ pos?: ArrayLike<number>, rot?: ArrayLike<number> }} [pose]  Identity when omitted.
  * @returns {PoseHelm}
+ * @example
+ * <caption>A helm fed a steady synthetic push drifts its frame away along x, turning; click the canvas and home() brings the frame back to the origin, unturned, to drift again.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 150, 330] })
+ * const pose = { pos: tree.vec3(), rot: tree.quat() }
+ * const helm = canvasHost.poseHelm({ bind: pose })
+ * const lin = [60, 0, 0], ang = [0, 60, 0], M = tree.mat4()
+ * canvas.addEventListener('click', () => helm.home())
+ *
+ * function frame() {
+ *   helm.feed(lin, ang)
+ *   canvasHost.tick(1 / 60)
+ *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 40 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -283,6 +1097,39 @@
  * @memberof PoseHelm
  * @param {{ pos: number[], rot: number[] }} [out]
  * @returns {{ pos: number[], rot: number[] }} out
+ * @example
+ * <caption>A helm fed a synthetic sway drives a bound pose; eval() reads the same pose back out, and the yellow copy of the frame drawn from it, 60 above, moves in step with the original.</caption>
+ * const { init, setCamera, axes, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 150, 330] })
+ * const pose = { pos: tree.vec3(), rot: tree.quat() }, read = { pos: tree.vec3(), rot: tree.quat() }
+ * const helm = canvasHost.poseHelm({ bind: pose })
+ * const lin = tree.vec3(), ang = tree.vec3(), M = tree.mat4(), R = tree.mat4()
+ *
+ * function frame() {
+ *   const t = canvasHost.clock()
+ *   lin[0] = 200 * Math.cos(t); ang[1] = 100
+ *   helm.feed(lin, ang)
+ *   canvasHost.tick(1 / 60)
+ *   helm.eval(read)
+ *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
+ *   tree.mat4FromTRS(R, read.pos[0], read.pos[1] + 60, read.pos[2], ...read.rot, 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 40 })
+ *   axes(gl, { M: R, size: 40, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -291,4 +1138,36 @@
  * @memberof PoseHelm
  * @param {number[]} out6  6-element destination.
  * @returns {number[]} out6
+ * @example
+ * <caption>A helm fed a synthetic signal that cycles through its six channels: six white crosses along the bottom rise with the rates activity() reports, one channel at a time.</caption>
+ * const { init, setCamera, beginHUD, endHUD, cross, tree, host } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 0, 300] })
+ * const helm = canvasHost.poseHelm({ bind: { pos: tree.vec3(), rot: tree.quat() } })
+ * const lin = tree.vec3(), ang = tree.vec3(), rates = [0, 0, 0, 0, 0, 0]
+ *
+ * function frame() {
+ *   const t = canvasHost.clock(), channel = Math.floor(t) % 6, push = 200 * Math.sin(Math.PI * (t % 1))
+ *   lin.fill(0); ang.fill(0)
+ *   if (channel < 3) lin[channel] = push; else ang[channel - 3] = push
+ *   helm.feed(lin, ang)
+ *   canvasHost.tick(1 / 60)
+ *   helm.activity(rates)
+ *   const peak = Math.max(1, ...rates.map(Math.abs))
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   beginHUD(gl)
+ *   rates.forEach((r, i) => cross(gl, { x: 75 + 50 * i, y: 250 - 150 * Math.abs(r) / peak, size: 16, color: [1, 1, 1, 1] }))
+ *   endHUD(gl)
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */

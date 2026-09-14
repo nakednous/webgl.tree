@@ -388,7 +388,7 @@ export function pipe(gl, source, passes, opts) {
  * @param {WebGL2RenderingContext} gl
  * @param {string|boolean} [key]
  * @example
- * <caption>Click to switch the pixelation off and on: switching it off releases its cached pair, so every time it comes back on pipe allocates a fresh one — the readout counts them.</caption>
+ * <caption>Two turning squares: click to switch the pixelation off and on — on, their slanted edges step in coarse blocks; off, they are smooth. Switching it off releases the cached pair, so every time it comes back on pipe allocates a fresh one — the readout counts them.</caption>
  * const { setCamera, pane, renderTarget, program, pipe, releasePipe, image, SCREEN, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -411,22 +411,25 @@ export function pipe(gl, source, passes, opts) {
  * const cam = tree.createCamera({ eye: [0, 0, 170] })
  * let effect = true
  * let last = null, pairs = 0
+ * // a square of half-diagonal 70 centred at (cx, 0), turned by a
+ * const square = (cx, a, z) => [0, 1, 2, 3].map((k) => [cx + 70 * Math.cos(a - k * Math.PI / 2), 70 * Math.sin(a - k * Math.PI / 2), z])
  *
  * canvas.addEventListener('click', () => {
  *   effect = !effect
  *   if (!effect) releasePipe(gl, 'fx')
  * })
  *
- * function frame() {
+ * function frame(ms) {
+ *   const a = ms / 2000
  *   twgl.bindFramebufferInfo(gl, scene)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [1, 0.31, 0.85, 1] })
- *   pane(gl, [-30, 70, 1], [110, 70, 1], [110, -70, 1], [-30, -70, 1], { color: [1, 0.82, 0.4, 1] })
+ *   pane(gl, ...square(-40, a, 0), { color: [1, 0.31, 0.85, 1] })
+ *   pane(gl, ...square(40, -a, 1), { color: [1, 0.82, 0.4, 1] })
  *   twgl.bindFramebufferInfo(gl, SCREEN)
  *   if (effect) {
- *     const target = pipe(gl, scene, { program: pixelate, uniforms: { uCells: 20 } }, { key: 'fx' })
+ *     const target = pipe(gl, scene, { program: pixelate, uniforms: { uCells: 16 } }, { key: 'fx' })
  *     if (target !== last) { last = target; pairs++ }
  *   } else image(gl, scene.color)
  *   out.textContent = (effect ? 'pixelated' : 'released') + ' · pairs allocated: ' + pairs

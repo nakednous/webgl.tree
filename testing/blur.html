@@ -55,7 +55,7 @@ void main() { outColor = vColor; }</script>
 <script id="blur-frag" type="x-shader">#version 300 es
 precision highp float;
 in vec2 vTexCoord;
-uniform sampler2D tex0;
+uniform sampler2D uSource;
 uniform vec2 uDir;
 out vec4 outColor;
 const float w0 = 0.2270270270;
@@ -64,15 +64,15 @@ const float w2 = 0.1216216216;
 const float w3 = 0.0540540541;
 const float w4 = 0.0162162162;
 void main() {
-  vec3 c  = texture(tex0, vTexCoord).rgb * w0;
-  c += texture(tex0, vTexCoord + uDir * 1.0).rgb * w1;
-  c += texture(tex0, vTexCoord - uDir * 1.0).rgb * w1;
-  c += texture(tex0, vTexCoord + uDir * 2.0).rgb * w2;
-  c += texture(tex0, vTexCoord - uDir * 2.0).rgb * w2;
-  c += texture(tex0, vTexCoord + uDir * 3.0).rgb * w3;
-  c += texture(tex0, vTexCoord - uDir * 3.0).rgb * w3;
-  c += texture(tex0, vTexCoord + uDir * 4.0).rgb * w4;
-  c += texture(tex0, vTexCoord - uDir * 4.0).rgb * w4;
+  vec3 c  = texture(uSource, vTexCoord).rgb * w0;
+  c += texture(uSource, vTexCoord + uDir * 1.0).rgb * w1;
+  c += texture(uSource, vTexCoord - uDir * 1.0).rgb * w1;
+  c += texture(uSource, vTexCoord + uDir * 2.0).rgb * w2;
+  c += texture(uSource, vTexCoord - uDir * 2.0).rgb * w2;
+  c += texture(uSource, vTexCoord + uDir * 3.0).rgb * w3;
+  c += texture(uSource, vTexCoord - uDir * 3.0).rgb * w3;
+  c += texture(uSource, vTexCoord + uDir * 4.0).rgb * w4;
+  c += texture(uSource, vTexCoord - uDir * 4.0).rgb * w4;
   outColor = vec4(c, 1.0);
 }</script>
 
@@ -133,7 +133,8 @@ new p5((p) => {
     p.createCanvas(600, 400, p.WEBGL)
     p.noStroke()
     triShader = p.createShader(document.getElementById('tri-vert').textContent, document.getElementById('tri-frag').textContent)
-    blurFilter = p.createFilterShader(document.getElementById('blur-frag').textContent)
+    // the p5 door: the shader reads uSource, p5's filter fills tex0
+    blurFilter = p.createFilterShader(document.getElementById('blur-frag').textContent.replace('#version 300 es', '#version 300 es\n#define uSource tex0'))
     layer = p.createFramebuffer()
   }
   p.draw = () => {

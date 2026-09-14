@@ -8,7 +8,7 @@
  * through two cached targets.
  *
  * ```
- * program(gl, frag)                // a pass program; vTexCoord in, tex0 the input
+ * program(gl, frag)                // a pass program; vTexCoord in, uSource the input
  * filter(gl, prog, uniforms)       // run one pass
  * image(gl, tex, opts)             // { x, y, width, height, tint, mask, blend }
  * pipe(gl, source, passes, opts)   // the chain; releasePipe(gl) frees its targets
@@ -17,7 +17,8 @@
  * @details
  * The pass-through vertex stage is fixed in NDC; the covering geometry's
  * aTexCoord is bottom-up. filter fills uResolution (the current viewport) and uTexelSize
- * ([1 / w, 1 / h] of tex0) only when the program declares them. image goes
+ * ([1 / w, 1 / h] of uSource) only when the program declares them. The input
+ * is bound as uSource and, for shaders written to p5's convention, as tex0. image goes
  * through the internal flat program with a rect in target pixels, origin
  * bottom-left, default cover; no flip option anywhere — orientation is
  * settled at upload.
@@ -57,7 +58,7 @@ const _res = [0, 0], _texel = [0, 0];
  * A fullscreen-pass program from a fragment shader alone; for your own
  * vertex stage use `twgl.createProgramInfo`.
  * @param {WebGL2RenderingContext} gl
- * @param {string} frag  GLSL ES 3.00 fragment source; vTexCoord in, tex0 by convention.
+ * @param {string} frag  GLSL ES 3.00 fragment source; vTexCoord in, uSource the input image.
  * @returns {object|null} A twgl programInfo, or null on a compile error (logged by twgl).
  * @example
  * <caption>A fragment shader alone: red grows to the right, green upward.</caption>
@@ -125,7 +126,7 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * @details bind(prog, uniforms) with the depth test off, then draw(fullscreen).
  * @param {WebGL2RenderingContext} gl
  * @param {object} prog  A pass program from program(gl, frag).
- * @param {object} [uniforms]  tex0 is the image filtered.
+ * @param {object} [uniforms]  uSource is the image filtered.
  * @example
  * <caption>Axes drawn into a target, then shown colour-inverted: the green background turns pink.</caption>
  * import * as twgl from 'twgl.js'
@@ -139,11 +140,11 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * const scene = renderTarget(gl)
  * const invert = program(gl, `#version 300 es
  * precision highp float;
- * uniform sampler2D tex0;
+ * uniform sampler2D uSource;
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = vec4(1.0 - texture(tex0, vTexCoord).rgb, 1.0);
+ *   outColor = vec4(1.0 - texture(uSource,vTexCoord).rgb, 1.0);
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
@@ -154,7 +155,7 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
- * filter(gl, invert, { tex0: scene.color })
+ * filter(gl, invert, { uSource: scene.color })
  */
 export function filter(gl, prog, uniforms) {
   const ctx = contextOf(gl);
@@ -165,7 +166,8 @@ export function filter(gl, prog, uniforms) {
   const vp = _viewport(gl);
   if (typeof s.uResolution === 'function') { _res[0] = vp[2]; _res[1] = vp[3]; s.uResolution(_res); }
   if (typeof s.uTexelSize === 'function') {
-    const size = (uniforms && uniforms.tex0 && ctx.sizes.get(uniforms.tex0)) || null;
+    const input = uniforms && (uniforms.uSource || uniforms.tex0);
+    const size = (input && ctx.sizes.get(input)) || null;
     _texel[0] = 1 / (size ? size[0] : vp[2]); _texel[1] = 1 / (size ? size[1] : vp[3]);
     s.uTexelSize(_texel);
   }
@@ -288,7 +290,7 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  *        pong: your own targets, never cached. clear / clearFn(gl): clear a
  *        working target before its pass (default black). clearDisplay /
  *        clearDisplayFn(gl): the same for the display. draw(gl, tex, pass):
- *        how a pass renders its input (default filter with tex0).
+ *        how a pass renders its input (default filter with uSource).
  * @returns {object|null} The target holding the result, or null without passes.
  * @example
  * <caption>Two passes in a chain: the axes pixelated into 40 × 40 cells, then inverted.</caption>
@@ -303,20 +305,20 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  * const scene = renderTarget(gl)
  * const pixelate = program(gl, `#version 300 es
  * precision highp float;
- * uniform sampler2D tex0;
+ * uniform sampler2D uSource;
  * uniform float uCells;
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = texture(tex0, (floor(vTexCoord * uCells) + 0.5) / uCells);
+ *   outColor = texture(uSource,(floor(vTexCoord * uCells) + 0.5) / uCells);
  * }`)
  * const invert = program(gl, `#version 300 es
  * precision highp float;
- * uniform sampler2D tex0;
+ * uniform sampler2D uSource;
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = vec4(1.0 - texture(tex0, vTexCoord).rgb, 1.0);
+ *   outColor = vec4(1.0 - texture(uSource,vTexCoord).rgb, 1.0);
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
@@ -338,7 +340,7 @@ export function pipe(gl, source, passes, opts) {
   const key = o.key ?? 'default';
   const clearFn = typeof o.clearFn === 'function' ? o.clearFn : _clearBlack;
   const clearDisplayFn = typeof o.clearDisplayFn === 'function' ? o.clearDisplayFn : clearFn;
-  const drawPass = typeof o.draw === 'function' ? o.draw : (g, tex, pass) => filter(g, pass.program, pass.uniforms ? Object.assign({ tex0: tex }, pass.uniforms) : { tex0: tex });
+  const drawPass = typeof o.draw === 'function' ? o.draw : (g, tex, pass) => filter(g, pass.program, pass.uniforms ? Object.assign({ uSource: tex, tex0: tex }, pass.uniforms) : { uSource: tex, tex0: tex });
   if (source && typeof source.resolve === 'function') source.resolve();   // a multisampled target fills its textures first
   const srcTex = source && source.color ? source.color : source;
   const outer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
@@ -401,12 +403,12 @@ export function pipe(gl, source, passes, opts) {
  * const scene = renderTarget(gl)
  * const pixelate = program(gl, `#version 300 es
  * precision highp float;
- * uniform sampler2D tex0;
+ * uniform sampler2D uSource;
  * uniform float uCells;
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = texture(tex0, (floor(vTexCoord * uCells) + 0.5) / uCells);
+ *   outColor = texture(uSource,(floor(vTexCoord * uCells) + 0.5) / uCells);
  * }`)
  * const cam = tree.createCamera({ eye: [300, 250, 400] })
  * let effect = true

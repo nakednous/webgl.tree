@@ -6,6 +6,11 @@ shape, fullscreen filter passes and the ping-pong pipe, a line pipe that draws t
 arrays, HUD mode, asynchronous colour-id scene picking, textures under one orientation. No
 engine, no scene graph — twgl's own verbs stay yours.
 
+`twgl.tree` is an experimental implementation of the visual-computing notebook's pseudo-code
+design, expected to rest on its foundations: `@nakednous/tree`'s math, twgl's calls, and only
+what a framework supplies silently in between. A hero that ports line for line confirms a
+piece of the notation; one that cannot is where the notation changes.
+
 > **Status: 0.0.x.** The whole surface below is shipped; the harness under `testing/` runs the
 > notebook's imaging, picking and portal heroes and every gizmo on the bridge with p5.tree
 > beside for parity. The gizmo `width` mode is experimental.
@@ -78,7 +83,7 @@ by `gl`, created on first use and released by `dispose(gl)`. Options object last
 | `bind(gl, prog, uniforms)` | `useProgram` + `setUniforms` |
 | `draw(gl, obj, M)` · `drawInstanced(gl, obj, n, M)` | attributes, then the declared transforms — `uModelMatrix` · `uViewMatrix` · `uModelViewMatrix` · `uProjectionMatrix` · `uModelViewProjectionMatrix` · `uNormalMatrix`, each only if the program declares it — then `drawBufferInfo` |
 | `renderTarget(gl, opts)` · `SCREEN` | canvas-sized or `{ width, height }`; `{ depth: true }` a depth texture only; `{ depthTexture: true }` colour plus a sampleable depth; `{ color: ['a', 'b'] }` named multiple targets; `{ depth: false }` colour only; `{ float: true }` RGBA16F; `.color`, `.depth`, `.a`, `resize`, `dispose`; route passes with twgl's `bindFramebufferInfo(gl, fbo)` |
-| `program(gl, frag)` · `fullscreen(gl)` · `filter(gl, prog, uniforms)` | a fullscreen pass from its fragment stage; the covering quad, `aTexCoord` bottom-up; bind + draw with the depth test off, `tex0` the image, `uResolution` and `uTexelSize` filled iff declared |
+| `program(gl, frag)` · `fullscreen(gl)` · `filter(gl, prog, uniforms)` | a fullscreen pass from its fragment stage; the covering quad, `aTexCoord` bottom-up; bind + draw with the depth test off, `uSource` the image (bound as `tex0` too, for shaders written to p5's convention), `uResolution` and `uTexelSize` filled iff declared |
 | `image(gl, tex, { x, y, width, height, tint, mask, blend })` | a texture onto the current target, rect in target pixels from the bottom-left, default cover; `RED` … masks, `NORMAL` · `ADD` · `MULTIPLY` blends |
 | `pipe(gl, source, passes, opts)` · `releasePipe(gl, key)` | the ping-pong chain over cached colour-only targets; passes are programs or `{ program, uniforms }`; `display`, `key`, `ping` / `pong`, `clear`, `clearFn`, `draw` |
 | `axes` · `grid` · `hermite` · `viewFrustum` · `trackPath` · `helmRig` · `handleLocus` · `pane` | the scene gizmos over the core generators: `(gl, subject?, { M, color, bits, size, depth, width })`; `viewFrustum` takes a camera state, a track or `{ mat4Eye, mat4Proj }` plus `nearTexture` / `farTexture`; `trackPath` draws markers and `HANDLES`; `helmRig` orients to the helm's frame and, with `{ x, y, size, tilt }`, composites a corner readout; `handleLocus` draws a host handle's dot, aim and locus |

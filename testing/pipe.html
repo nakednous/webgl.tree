@@ -35,17 +35,17 @@
 
 <script id="pixelate-frag" type="x-shader">#version 300 es
 precision highp float;
-uniform sampler2D tex0;
+uniform sampler2D uSource;
 uniform float uCells;
 in vec2 vTexCoord;
 out vec4 outColor;
 void main() {
   vec2 cell = (floor(vTexCoord * uCells) + 0.5) / uCells;
-  outColor = texture(tex0, cell);
+  outColor = texture(uSource, cell);
 }</script>
 <script id="vignette-frag" type="x-shader">#version 300 es
 precision highp float;
-uniform sampler2D tex0;
+uniform sampler2D uSource;
 uniform vec2 uResolution;
 in vec2 vTexCoord;
 out vec4 outColor;
@@ -54,7 +54,7 @@ void main() {
   float v = smoothstep(0.75, 0.35, d);
   // uResolution is filled by the bridge iff declared: a hairline at the centre column proves it arrived
   float bar = step(abs(gl_FragCoord.x - uResolution.x * 0.5), 0.5);
-  outColor = vec4(texture(tex0, vTexCoord).rgb * v + bar * 0.15, 1.0);
+  outColor = vec4(texture(uSource, vTexCoord).rgb * v + bar * 0.15, 1.0);
 }</script>
 <script id="lit-vert" type="x-shader">#version 300 es
 in vec4 aPosition;
@@ -135,8 +135,10 @@ new p5((p) => {
   p.setup = () => {
     p.createCanvas(600, 400, p.WEBGL)
     scene = p.createFramebuffer()
-    pixelate = p.createFilterShader(document.getElementById('pixelate-frag').textContent)
-    vignette = p.createFilterShader(document.getElementById('vignette-frag').textContent)
+    // the p5 door: the shaders read uSource, p5's filter fills tex0
+    const door = (id) => document.getElementById(id).textContent.replace('#version 300 es', '#version 300 es\n#define uSource tex0')
+    pixelate = p.createFilterShader(door('pixelate-frag'))
+    vignette = p.createFilterShader(door('vignette-frag'))
   }
   p.draw = () => {
     scene.begin()

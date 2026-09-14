@@ -3,9 +3,10 @@
  * @module tree.matrices
  * @license AGPL-3.0-only
  *
- * Column-major 4×4 matrices as flat 16-element arrays — a `Float32Array(16)`
- * or a plain array — the layout WebGL uploads. Every function writes into
- * `out` and returns it, so a matrix allocated once is reused every frame.
+ * Column-major 4×4 matrices as flat 16-element arrays, the layout WebGL
+ * uploads. Every function writes into its first argument, `out`, and returns
+ * it: storage is made once at setup with `tree.mat4()` (or `tree.mat3()`,
+ * `tree.vec3()`) and reused every frame, so drawing allocates nothing.
  */
 
 /**
@@ -25,9 +26,8 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const T = tree.mat4FromTranslation(new Float32Array(16), 80, 0, 0)
- * const R = new Float32Array(16), TR = new Float32Array(16), RT = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const T = tree.mat4FromTranslation(tree.mat4(), 80, 0, 0)
+ * const R = tree.mat4(), TR = tree.mat4(), RT = tree.mat4(), q = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -53,7 +53,7 @@
  * @param {ArrayLike<number>} src
  * @returns {Float32Array|number[]|null} out, or null when src is singular.
  * @example
- * <caption>Inverting a camera's view matrix gives its frame: the axes sit at the frustum's apex, blue pointing back, away from what it sees.</caption>
+ * <caption>Inverting a camera's view matrix gives its frame: drawn with it, the axes sit at the white frustum's apex, blue pointing back, away from what it sees.</caption>
  * const { setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -62,14 +62,14 @@
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [-260, 160, 60], center: [30, 20, 40] })
  * const other = tree.createCamera({ eye: [60, 40, 80], fov: Math.PI / 4, near: 20, far: 90 })
- * const V = tree.cameraView(new Float32Array(16), other)
- * const E = tree.mat4Invert(new Float32Array(16), V)
+ * const V = tree.cameraView(tree.mat4(), other)
+ * const E = tree.mat4Invert(tree.mat4(), V)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * viewFrustum(gl, { camera: other, color: [1, 1, 1, 1] })
+ * viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
  * axes(gl, { M: E, size: 40 })
  */
 
@@ -98,9 +98,8 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const M = tree.mat4(), q = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -134,7 +133,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = tree.mat4FromTranslation(new Float32Array(16), 80, 40, 0)
+ * const M = tree.mat4FromTranslation(tree.mat4(), 80, 40, 0)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -162,7 +161,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = tree.mat4FromScale(new Float32Array(16), 2, 1, 0.5)
+ * const M = tree.mat4FromScale(tree.mat4(), 2, 1, 0.5)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -199,7 +198,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = tree.mat4FromBasis(new Float32Array(16), 0, 1, 0, -1, 0, 0, 0, 0, 1, 80, 0, 0)
+ * const M = tree.mat4FromBasis(tree.mat4(), 0, 1, 0, -1, 0, 0, 0, 0, 1, 80, 0, 0)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -232,9 +231,10 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300)
- * const V = new Float32Array(16)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const lens = tree.createCamera({ fov: Math.PI / 3, near: 50, far: 1000 })
+ * const P = tree.cameraProj(tree.mat4(), lens, 400 / 300)
+ * const V = tree.mat4()
  *
  * function frame(ms) {
  *   const t = ms / 1000
@@ -274,14 +274,15 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [-200, 150, 250] })
- * const E = tree.mat4Eye(new Float32Array(16), 100, 60, 80, 0, 0, 0, 0, 1, 0)
+ * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
+ * const sight = [-100, -60, -80]
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
  * axes(gl, { size: 40, semantic: false, color: [1, 1, 1, 1] })
- * hermite(gl, [100, 60, 80], [-100, -60, -80], [0, 0, 0], [-100, -60, -80], { color: [1, 0.82, 0.4, 1] })
+ * hermite(gl, [100, 60, 80], sight, [0, 0, 0], sight, { color: [1, 0.82, 0.4, 1] })
  * axes(gl, { M: E, size: 40 })
  */
 
@@ -306,8 +307,8 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const V = tree.mat4View(new Float32Array(16), 0, 0, 300, 0, 0, 0, 0, 1, 0)
- * const P = tree.mat4Persp(new Float32Array(16), -0.3, 0.5, -0.3, 0.3, 1, 1000)
+ * const V = tree.mat4View(tree.mat4(), 0, 0, 300, 0, 0, 0, 0, 1, 0)
+ * const P = tree.mat4Persp(tree.mat4(), -30, 50, -30, 30, 100, 1000)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -340,9 +341,9 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
- * const V = tree.mat4View(new Float32Array(16), 0, 200, 300, 0, 0, 0, 0, 1, 0)
- * const P = tree.mat4Ortho(new Float32Array(16), -200, 200, -150, 150, 1, 1000)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const V = tree.mat4View(tree.mat4(), 0, 200, 300, 0, 0, 0, 0, 1, 0)
+ * const P = tree.mat4Ortho(tree.mat4(), -200, 200, -150, 150, 1, 1000)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -360,30 +361,29 @@
  * @param {ArrayLike<number>} view  V.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>P · V takes the tip of the x axis, (100, 0, 0), to NDC: the readout follows it as the eye circles, x and y always within ±1.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * <caption>P · V takes the tip of the x axis to NDC and the viewport matrix W finishes the trip to pixels: the white cross drawn there stays on the tip as the eye circles.</caption>
+ * const { setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300)
- * const V = new Float32Array(16), PV = new Float32Array(16)
- * const tip = [0, 0, 0]
+ * const cam = tree.createCamera({ eye: [0, 150, 300], near: 50, far: 1000 })
+ * const V = tree.mat4(), P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
+ * const PV = tree.mat4(), W = tree.mat4(), tip = tree.vec3()
  *
- * function frame(ms) {
- *   const t = ms / 1000
- *   tree.mat4View(V, 300 * Math.sin(t), 150, 300 * Math.cos(t), 0, 0, 0, 0, 1, 0)
- *   tree.mat4PV(PV, P, V)
- *   tree.mat4MulPoint(tip, PV, 100, 0, 0)
+ * function frame() {
+ *   tree.cameraOrbit(cam, 0.01, 0)
+ *   tree.mat4PV(PV, P, tree.cameraView(V, cam))
+ *   tree.mat4MulPoint(tip, tree.mat4Mul(PV, mat4Viewport(gl, W), PV), 100, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, V, P)
  *   axes(gl, { size: 100 })
- *   out.textContent = 'x tip in NDC: ' + tip.map((v) => v.toFixed(2)).join(', ')
+ *   beginHUD(gl)
+ *   cross(gl, { x: tip[0], y: tip[1], size: 24, color: [1, 1, 1, 1] })
+ *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -398,33 +398,30 @@
  * @param {ArrayLike<number>} view  V.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>V · M carries the spinning model's origin into eye space: the eye circles 250 away, so the readout stays at (0, 0, −250).</caption>
- * const { setCamera, axes, tree } = webglTree
+ * <caption>An identity view is installed and every model matrix is folded into V · M instead: the circling view of the grid and the spinning axes looks exactly as setCamera(gl, cam) would show it.</caption>
+ * const { setCamera, axes, grid, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera(), 400 / 300)
- * const V = new Float32Array(16), M = new Float32Array(16), MV = new Float32Array(16)
- * const q = [0, 0, 0, 1], origin = [0, 0, 0]
- * const round = (v) => Math.round(v * 10) / 10 + 0
+ * const cam = tree.createCamera({ eye: [0, 150, 300], near: 50, far: 1000 })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const I = tree.mat4(), P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
+ * const V = tree.mat4(), M = tree.mat4(), MV = tree.mat4(), GV = tree.mat4(), q = tree.quat()
  *
  * function frame(ms) {
- *   const t = ms / 1000
- *   tree.mat4View(V, 250 * Math.sin(t / 2), 0, 250 * Math.cos(t / 2), 0, 0, 0, 0, 1, 0)
- *   tree.qFromAxisAngle(q, 1, 0, 0, t)
- *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
- *   tree.mat4MV(MV, M, V)
- *   tree.mat4ToTranslation(origin, MV)
+ *   tree.cameraOrbit(cam, 0.01, 0)
+ *   tree.cameraView(V, cam)
+ *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
+ *   tree.mat4MV(MV, tree.mat4FromTRS(M, 0, 30, 0, q[0], q[1], q[2], q[3], 1, 1, 1), V)
+ *   tree.mat4MV(GV, ground, V)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- *   setCamera(gl, V, P)
- *   axes(gl, { M, size: 60 })
- *   out.textContent = 'model origin in eye space: ' + origin.map(round).join(', ')
+ *   setCamera(gl, I, P)
+ *   grid(gl, { M: GV, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: MV, size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -438,28 +435,36 @@
  * @param {ArrayLike<number>} src  Usually V · M.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>Seen from above, a pane turned 45° and then stretched twice along x: the yellow normal, through the normal matrix, meets it square; the white one, through the model matrix itself, leans.</caption>
- * const { setCamera, pane, hermite, tree } = webglTree
+ * <caption>A magenta pane turned 45° about y, then stretched along x between 0.5 and 2 times: the yellow normal, through the normal matrix, stays square to the pane; the white one, through the model matrix itself, leans whenever the stretch is not 1.</caption>
+ * const { setCamera, grid, pane, hermite, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const cam = tree.createCamera({ eye: [0, 300, 0], up: [0, 0, -1] })
- * const R = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, Math.PI / 4), 1, 1, 1)
- * const M = tree.mat4Mul(new Float32Array(16), tree.mat4FromScale(new Float32Array(16), 2, 1, 1), R)
- * const N = tree.mat3NormalFromMat4(new Float32Array(9), M)
- * const ray = (x, y, z) => { const s = 100 / Math.hypot(x, y, z); return [x * s, y * s, z * s] }
- * const good = ray(N[6], N[7], N[8])    // N · (0, 0, 1)
- * const bad = ray(M[8], M[9], M[10])    // M's 3×3 · (0, 0, 1)
+ * const cam = tree.createCamera({ eye: [60, 260, 260] })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const R = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 4), 1, 1, 1)
+ * const S = tree.mat4(), M = tree.mat4(), N = tree.mat3()
+ * const along = (out, x, y, z) => { const k = 100 / Math.hypot(x, y, z); out[0] = x * k; out[1] = y * k; out[2] = z * k; return out }
+ * const good = tree.vec3(), bad = tree.vec3()
  *
- * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.075, 0.553, 0.459, 1)
- * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * setCamera(gl, cam)
- * pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [1, 0.31, 0.85, 1] })
- * hermite(gl, [0, 0, 0], good, good, good, { color: [1, 0.82, 0.4, 1], depth: false })
- * hermite(gl, [0, 0, 0], bad, bad, bad, { color: [1, 1, 1, 1], depth: false })
+ * function frame(ms) {
+ *   tree.mat4Mul(M, tree.mat4FromScale(S, 1.25 + 0.75 * Math.sin(ms / 1000), 1, 1), R)
+ *   tree.mat3NormalFromMat4(N, M)
+ *   along(good, N[6], N[7], N[8])     // N · (0, 0, 1)
+ *   along(bad, M[8], M[9], M[10])     // M's own 3×3 · (0, 0, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [1, 0.31, 0.85, 1] })
+ *   hermite(gl, [0, 0, 0], good, good, good, { color: [1, 0.82, 0.4, 1] })
+ *   hermite(gl, [0, 0, 0], bad, bad, bad, { color: [1, 1, 1, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 
 /**
@@ -473,7 +478,7 @@
  * @param {number} z
  * @returns {number[]} out
  * @example
- * <caption>mat4MulPoint carries (80, 0, 0) through the turning frame: the small axes ride on the tip of its x axis.</caption>
+ * <caption>mat4MulPoint carries (80, 0, 0) through the turning frame: the small axes placed at the result ride on the tip of its x axis.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -481,8 +486,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16), T = new Float32Array(16)
- * const q = [0, 0, 0, 1], p = [0, 0, 0]
+ * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), p = tree.vec3()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -511,7 +515,7 @@
  * @param {number} dz
  * @returns {number[]} out
  * @example
- * <caption>A direction ignores translation: the yellow line turns with the moved frame's x axis but stays rooted at the origin.</caption>
+ * <caption>A direction ignores translation: the yellow line drawn along the result turns with the moved frame's x axis but stays rooted at the origin.</caption>
  * const { setCamera, axes, hermite, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -519,8 +523,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1], d = [0, 0, 0]
+ * const M = tree.mat4(), q = tree.quat(), d = tree.vec3()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -546,26 +549,24 @@
  * @param {ArrayLike<number>} to  The destination frame's matrix (frame → world).
  * @returns {Float32Array|number[]|null} out, or null when `to` is singular.
  * @example
- * <caption>A point 50 along the spinning left frame's x, read in the right frame — unrotated, at x = 80: its x there runs between −210 and −110 while the small axes circle.</caption>
+ * <caption>The point 50 along the spinning left frame's x, carried into the turned right frame's coordinates and drawn back out through the right frame: the small yellow axes stay on the tip of the left frame's red axis.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 200, 300] })
- * const A = new Float32Array(16), L = new Float32Array(16), T = new Float32Array(16)
- * const B = tree.mat4FromTranslation(new Float32Array(16), 80, 0, 0)
- * const q = [0, 0, 0, 1], inB = [0, 0, 0], world = [0, 0, 0]
+ * const B = tree.mat4FromTRS(tree.mat4(), 80, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2), 1, 1, 1)
+ * const A = tree.mat4(), L = tree.mat4(), T = tree.mat4(), q = tree.quat()
+ * const inB = tree.vec3(), world = tree.vec3()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4Location(L, A, B)
- *   tree.mat4MulPoint(inB, L, 50, 0, 0)
- *   tree.mat4MulPoint(world, A, 50, 0, 0)
+ *   tree.mat4MulPoint(inB, L, 50, 0, 0)                     // the point, in B's coordinates
+ *   tree.mat4MulPoint(world, B, inB[0], inB[1], inB[2])      // drawn through B
  *   tree.mat4FromTranslation(T, world[0], world[1], world[2])
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -574,7 +575,6 @@
  *   axes(gl, { M: A, size: 50 })
  *   axes(gl, { M: B, size: 50 })
  *   axes(gl, { M: T, size: 15, semantic: false, color: [1, 0.82, 0.4, 1] })
- *   out.textContent = 'in the right frame: ' + inB.map((v) => v.toFixed(0)).join(', ')
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -589,32 +589,29 @@
  * @param {ArrayLike<number>} to  The destination frame's matrix (frame → world).
  * @returns {Float32Array|number[]|null} out, or null when `to` is singular.
  * @example
- * <caption>The spinning left frame's x direction, read in the right frame: as it spins, the readout's first and third components trace a unit circle and the second stays 0.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * <caption>The spinning left frame's x direction, re-expressed in the turned right frame and drawn from there as the yellow line: it stays parallel to the left frame's red axis.</caption>
+ * const { setCamera, axes, hermite, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 200, 300] })
- * const A = new Float32Array(16), D = new Float32Array(9)
- * const B = tree.mat4FromTRS(new Float32Array(16), 80, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, Math.PI / 2), 1, 1, 1)
- * const q = [0, 0, 0, 1]
- * const round = (v) => Math.round(v * 100) / 100 + 0
+ * const B = tree.mat4FromTRS(tree.mat4(), 80, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2), 1, 1, 1)
+ * const A = tree.mat4(), D = tree.mat3(), q = tree.quat(), line = tree.vec3()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat3Direction(D, A, B)
+ *   tree.mat4MulDir(line, B, 70 * D[0], 70 * D[1], 70 * D[2])   // D · (1, 0, 0), drawn through B
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M: A, size: 50 })
  *   axes(gl, { M: B, size: 50 })
- *   out.textContent = 'left x in the right frame: ' + [D[0], D[1], D[2]].map(round).join(', ')
+ *   hermite(gl, [80, 0, 0], line, [80 + line[0], line[1], line[2]], line, { color: [1, 0.82, 0.4, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -628,30 +625,28 @@
  * @param {ArrayLike<number>} m
  * @returns {Float32Array|number[]} out3
  * @example
- * <caption>The translation read back from the moving frame's matrix: its x and z trace a circle of radius 80, y stays 0.</caption>
+ * <caption>The translation read out of a circling, spinning, stretched frame places the white axes: they ride along with it, never turning or stretching.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1], t3 = [0, 0, 0]
+ * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), t3 = tree.vec3()
  *
  * function frame(ms) {
  *   const t = ms / 1000
- *   tree.qFromAxisAngle(q, 0, 1, 0, t)
- *   tree.mat4FromTRS(M, 80 * Math.cos(t), 0, 80 * Math.sin(t), q[0], q[1], q[2], q[3], 1, 1, 1)
+ *   tree.qFromAxisAngle(q, 0, 1, 0, 3 * t)
+ *   tree.mat4FromTRS(M, 80 * Math.cos(t), 20, 80 * Math.sin(t), q[0], q[1], q[2], q[3], 1.5, 1, 1)
  *   tree.mat4ToTranslation(t3, M)
+ *   tree.mat4FromTranslation(T, t3[0], t3[1], t3[2])
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 40 })
- *   out.textContent = 'translation: ' + Array.from(t3, (v) => v.toFixed(0)).join(', ')
+ *   axes(gl, { M: T, size: 25, semantic: false, color: [1, 1, 1, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -665,30 +660,28 @@
  * @param {ArrayLike<number>} m
  * @returns {Float32Array|number[]} out3
  * @example
- * <caption>The scale read back from a turning, pulsing matrix: all three components swing together between 0.5 and 1.5 as the axes grow and shrink.</caption>
+ * <caption>The scale read out of the tumbling left frame's matrix sizes the unrotated white axes on the right: their arms stretch and shrink exactly as the left frame's do.</caption>
  * const { setCamera, axes, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1], s3 = [0, 0, 0]
+ * const cam = tree.createCamera({ eye: [0, 150, 320] })
+ * const M = tree.mat4(), S = tree.mat4(), q = tree.quat(), s3 = tree.vec3()
  *
  * function frame(ms) {
  *   const t = ms / 1000, s = 1 + 0.5 * Math.sin(2 * t)
- *   tree.qFromAxisAngle(q, 0, 1, 0, t)
- *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], s, s, s)
+ *   tree.qFromAxisAngle(q, Math.SQRT1_2, Math.SQRT1_2, 0, t)
+ *   tree.mat4FromTRS(M, -80, 0, 0, q[0], q[1], q[2], q[3], s, 1, 2 - s)
  *   tree.mat4ToScale(s3, M)
+ *   tree.mat4FromTRS(S, 80, 0, 0, 0, 0, 0, 1, s3[0], s3[1], s3[2])
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 60 })
- *   out.textContent = 'scale: ' + Array.from(s3, (v) => v.toFixed(2)).join(', ')
+ *   axes(gl, { M, size: 50 })
+ *   axes(gl, { M: S, size: 50, semantic: false, color: [1, 1, 1, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -710,8 +703,7 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
- * const A = new Float32Array(16), B = new Float32Array(16)
- * const q = [0, 0, 0, 1], r = [0, 0, 0, 1]
+ * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), r = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, Math.SQRT1_2, Math.SQRT1_2, 0, ms / 1000)
@@ -730,7 +722,7 @@
  */
 
 /**
- * The reflection across the plane `nx·x + ny·y + nz·z = d` — a mirror's view.
+ * The reflection across the plane `nx·x + ny·y + nz·z = d`: a unit normal and the plane's offset along it.
  * @function mat4Reflect
  * @memberof tree
  * @param {Float32Array|number[]} out
@@ -740,7 +732,7 @@
  * @param {number} d  The plane's offset along the normal.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>Reflected across the white grid, the plane x = 0: the frame spinning on the left spins the opposite way on the right.</caption>
+ * <caption>(1, 0, 0) and d = 0 name the plane 1·x + 0·y + 0·z = 0, that is x = 0 — the white grid: reflected across it, the frame spinning on the left spins the opposite way on the right.</caption>
  * const { setCamera, axes, grid, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -748,10 +740,9 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
- * const mirror = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, Math.PI / 2), 1, 1, 1)
- * const R = tree.mat4Reflect(new Float32Array(16), 1, 0, 0, 0)
- * const A = new Float32Array(16), RA = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const mirror = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2), 1, 1, 1)
+ * const R = tree.mat4Reflect(tree.mat4(), 1, 0, 0, 0)
+ * const A = tree.mat4(), RA = tree.mat4(), q = tree.quat()
  *
  * function frame(ms) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -770,20 +761,51 @@
  */
 
 /**
- * The bias matrix: NDC to texture space [0, 1], for sampling a shadow map.
+ * The bias matrix: NDC's [−1, 1] to texture space's [0, 1], so `Bias · P · V · p` is the uv at which a camera's image shows the world point p.
  * @function mat4Bias
  * @memberof tree
  * @param {Float32Array|number[]} out
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>The bias matrix sends NDC's corners (−1, −1, −1) and (1, 1, 1) to texture space's (0, 0, 0) and (1, 1, 1).</caption>
- * const { tree } = webglTree
+ * <caption>A camera straight above renders the spinning axes and the grid into a texture; laid back on the ground with each corner's uv = Bias · P · V · corner, the image lands exactly on the real grid lines and under the real axes.</caption>
+ * const { setCamera, axes, grid, pane, viewFrustum, renderTarget, SCREEN, tree } = webglTree
  *
- * const out = document.body.appendChild(document.createElement('pre'))
- * out.style.cssText = 'margin:8px;color:white;font:13px monospace'
- * const B = tree.mat4Bias(new Float32Array(16))
- * const lo = tree.mat4MulPoint([0, 0, 0], B, -1, -1, -1)
- * const hi = tree.mat4MulPoint([0, 0, 0], B, 1, 1, 1)
- * out.textContent = '(-1, -1, -1) → (' + lo.join(', ') + ')\n(1, 1, 1) → (' + hi.join(', ') + ')'
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [200, 230, 300] })
+ * const above = tree.createCamera({ eye: [0, 200, 0], up: [0, 0, -1], fov: Math.PI / 3, near: 50, far: 400 })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const image = renderTarget(gl, { width: 256, height: 256 })
+ * const BPV = tree.mat4Mul(tree.mat4(), tree.mat4Bias(tree.mat4()),
+ *   tree.mat4PV(tree.mat4(), tree.cameraProj(tree.mat4(), above, 1), tree.cameraView(tree.mat4(), above)))
+ * const corners = [[-100, 1, -100], [100, 1, -100], [100, 1, 100], [-100, 1, 100]]
+ * const uvs = corners.flatMap((c) => tree.mat4MulPoint(tree.vec3(), BPV, c[0], 0, c[2]).slice(0, 2))
+ * const M = tree.mat4(), q = tree.quat()
+ *
+ * function scene() {
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 80 })
+ * }
+ *
+ * function frame(ms) {
+ *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
+ *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *   twgl.bindFramebufferInfo(gl, image)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.2, 0.2, 0.3, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, above, { aspect: 1 })
+ *   scene()
+ *   twgl.bindFramebufferInfo(gl, SCREEN)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   pane(gl, ...corners, { texture: image.color, uvs })
+ *   scene()
+ *   viewFrustum(gl, { camera: above, aspect: 1, color: [1, 0.82, 0.4, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
-

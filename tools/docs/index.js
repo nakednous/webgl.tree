@@ -33,9 +33,14 @@ function main() {
     process.exit(1);
   }
 
+  // The IIFE build, evaluated once: the validator checks the documented
+  // tree / host surface against what it actually exports.
+  const api = new Function('twgl', 'window', 'document',
+    `${readFileSync(at(paths.bundle), 'utf8')}\n;return webglTree;`)({}, globalThis, undefined);
+
   // Parse + validate.
-  const parsed = parseSources(at(paths.src));
-  const { errors, warnings } = validate(parsed);
+  const parsed = parseSources(at(paths.src), at(paths.docs));
+  const { errors, warnings } = validate(parsed, { api });
   for (const w of warnings) console.warn(`[docs] warn  ${w}`);
   for (const e of errors)   console.error(`[docs] error ${e}`);
   if (errors.length) {

@@ -217,28 +217,36 @@ function surfaceOf(srcDir) {
   return names;
 }
 
+const jsFiles = (dir) => readdirSync(dir).filter((f) => f.endsWith('.js')).sort();
+
 /**
- * Parse every `*.js` under `srcDir`.
+ * Parse every `*.js` under `srcDir`, then every doc-only file under
+ * `docsDir`: the re-exported `tree` / `host` surface, documented by name
+ * (`@function` / `@constant` with `@memberof`) and marked `reexport` so the
+ * validator checks it against the build.
  * @param {string} srcDir
+ * @param {string} [docsDir]
  * @returns {{ modules: Object[], doclets: Object[], blocks: Object[] }}
  */
-export function parseSources(srcDir) {
-  const files   = readdirSync(srcDir).filter((f) => f.endsWith('.js')).sort();
+export function parseSources(srcDir, docsDir) {
   const modules = [], doclets = [], blocks = [];
   const surface = surfaceOf(srcDir);
-
-  for (const file of files) {
-    const r = parseFile(srcDir, file);
+  const collect = (dir, file, reexport) => {
+    const r = parseFile(dir, file);
     if (r.module) modules.push(r.module);
     for (const b of r.blocks) {
       blocks.push(b);
-      if (b.doclet && surface && !surface.has(b.doclet.name)) { b.public = false; b.doclet = null; }
+      if (!reexport && b.doclet && surface && !surface.has(b.doclet.name)) { b.public = false; b.doclet = null; }
       if (!b.doclet) continue;
       b.doclet.module = r.module?.name ?? null;
       b.doclet.owner ??= b.doclet.module;
+      b.doclet.reexport = reexport;
       doclets.push(b.doclet);
     }
-  }
+  };
+
+  for (const file of jsFiles(srcDir)) collect(srcDir, file, false);
+  if (docsDir) for (const file of jsFiles(docsDir)) collect(docsDir, file, true);
 
   return { modules, doclets, blocks };
 }

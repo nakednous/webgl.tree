@@ -35,6 +35,24 @@ export const twglRefText = (name) => name;
 /** Class names in prose link to the factory that makes them. */
 export const aliases = {};
 
+/** Owners written as a prefix in signatures and constant names: `tree.mat4Mul`. */
+export const namespaces = ['tree', 'host'];
+
+/**
+ * Where each owner of the re-exported surface lives in the build: a path
+ * from the `webglTree` global, or `path()` for the object literal a factory
+ * returns (its methods are read off the factory's source).
+ */
+export const owners = {
+  tree:        'tree',
+  host:        'host',
+  Host:        'host.createHost()',
+  Handle:      'host.Handle.prototype',
+  PoseTrack:   'tree.PoseTrack.prototype',
+  CameraTrack: 'tree.CameraTrack.prototype',
+  PoseHelm:    'tree.PoseHelm.prototype',
+};
+
 /** CodeMirror 5 UMD — the example editor. */
 export const codemirror = { version: '5.65.21' };
 codemirror.css = `${CDN}/codemirror@${codemirror.version}/lib/codemirror.min.css`;
@@ -49,6 +67,7 @@ export const paths = {
   pkg:    'package.json',
   readme: 'README.md',
   esm:    'tools/docs/esm.md',  // the index page's ES modules section and its live demo
+  docs:   'docs',               // doc-only files: the re-exported tree / host surface
   bundle: 'dist/webgl.tree.js', // IIFE build of the same commit, twgl.js read from the global
   module: 'dist/index.js',      // ES build of the same commit, for the ES modules demo
   deps: {                       // the builds the ES build was made against

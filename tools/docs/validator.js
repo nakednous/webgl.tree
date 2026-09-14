@@ -6,7 +6,7 @@
  * Errors fail the build; warnings print and continue.
  */
 
-import { twglRefUrl, aliases } from './config.js';
+import { twglRefUrl, aliases, owners } from './config.js';
 
 const VOCABULARY = new Set([
   'file', 'module', 'license',
@@ -67,10 +67,71 @@ export function linkTable({ modules, doclets }) {
 }
 
 /**
+ * The parameter names a function's source declares, in order: defaults
+ * dropped, a rest parameter by its name, a destructured one as null (not
+ * compared). Reads a declaration, a method or an arrow.
+ * @param {string} src
+ * @returns {Array<string|null>}
+ */
+export function paramNames(src) {
+  const s = String(src).trimStart();
+  const bare = /^(?:async\s+)?([\w$]+)\s*=>/.exec(s);
+  if (bare) return [bare[1]];
+  const out = [];
+  let depth = 0, cur = '';
+  for (let k = s.indexOf('(') + 1; k > 0 && k < s.length; k++) {
+    const c = s[k];
+    if (c === ')' && depth === 0) break;
+    if ('([{'.includes(c)) depth++;
+    if (')]}'.includes(c)) depth--;
+    if (c === ',' && depth === 0) { out.push(cur); cur = ''; } else cur += c;
+  }
+  if (cur.trim()) out.push(cur);
+  return out.map((p) => {
+    const name = p.trim().replace(/^\.\.\./, '');
+    return /^[{[]/.test(name) ? null : name.split('=')[0].trim();
+  });
+}
+
+/** A property descriptor anywhere up the prototype chain. */
+function descriptorOf(obj, name) {
+  for (let o = obj; o; o = Object.getPrototypeOf(o)) {
+    const d = Object.getOwnPropertyDescriptor(o, name);
+    if (d) return d;
+  }
+  return null;
+}
+
+/**
+ * An owner's members in the build, per `owners` in config: `has(name)` and
+ * `params(name)`. Null when the owner is not configured or not in the build.
+ */
+function ownerScope(api, owner) {
+  const path = owners[owner];
+  if (!path) return null;
+  const factory = path.endsWith('()');
+  const target = (factory ? path.slice(0, -2) : path).split('.').reduce((o, k) => (o == null ? o : o[k]), api);
+  if (target == null) return null;
+  if (factory) {
+    const src = String(target);
+    const at = (name) => src.search(new RegExp(`[\\s,{](?:get\\s+)?${name}\\s*\\(`));
+    return { has: (name) => at(name) >= 0, params: (name) => paramNames(src.slice(at(name) + 1).replace(/^get\s+/, '')) };
+  }
+  return {
+    has:    (name) => descriptorOf(target, name) !== null,
+    params: (name) => {
+      const d = descriptorOf(target, name);
+      return d && typeof d.value === 'function' ? paramNames(String(d.value)) : [];
+    },
+  };
+}
+
+/**
  * @param {{ modules, doclets, blocks }} parsed
+ * @param {{ api?: object }} [ctx]  api: the evaluated IIFE build, for the re-exported surface.
  * @returns {{ errors: string[], warnings: string[] }}
  */
-export function validate(parsed) {
+export function validate(parsed, { api } = {}) {
   const { modules, doclets, blocks } = parsed;
   const errors = [], warnings = [];
   const at   = (x) => `${x.file}:${x.line}`;
@@ -133,6 +194,21 @@ export function validate(parsed) {
       else if (!GLOBAL_RE.test(ex.code)) fail(d, `@example #${i + 1} of ${d.name} does not read the webglTree global`);
     });
     if (d.kind === 'function' && d.examples.length === 0) warn(d, `${d.owner}.${d.name} has no @example`);
+  }
+
+  // The re-exported surface — every documented name is in the build, and a
+  // function's parameters are the ones its source declares.
+  for (const d of doclets) {
+    if (!d.reexport) continue;
+    const scope = api ? ownerScope(api, d.owner) : null;
+    if (!scope) { fail(d, `owner ${d.owner} of ${d.name} is not in the build`); continue; }
+    if (!scope.has(d.name)) { fail(d, `${d.owner}.${d.name} is not in the build`); continue; }
+    if (d.kind !== 'function') continue;
+    const built = scope.params(d.name);
+    const documented = d.params.map((p) => p.name);
+    if (built.length !== documented.length || built.some((n, i) => n !== null && n !== documented[i])) {
+      fail(d, `${d.owner}.${d.name}(${documented.join(', ')}) does not match the build's (${built.map((n) => n ?? '{…}').join(', ')})`);
+    }
   }
 
   return { errors, warnings };

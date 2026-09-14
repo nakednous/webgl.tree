@@ -11,7 +11,7 @@
 
 import { Marked } from 'marked';
 import { splitFences, linkTable } from './validator.js';
-import { twgl, codemirror, site, twglRefUrl, twglRefText } from './config.js';
+import { twgl, codemirror, site, namespaces, twglRefUrl, twglRefText } from './config.js';
 
 const LINK_RE = /\{@link\s+([^}\s]+)\s*\}/g;
 // A backticked identifier in prose — `setCamera`, `update()`,
@@ -91,9 +91,12 @@ const mdInline = (text, table) => text ? marked.parseInline(resolveLinks(text, t
 
 const type = (t) => t ? `<code class="type">${esc(t)}</code>` : '';
 
+/** A name as the reader writes it: `tree.mat4Mul` for a namespace owner, else bare. */
+const qualified = (d) => (namespaces.includes(d.owner) ? `${d.owner}.${d.name}` : d.name);
+
 function signature(d) {
   const list = d.params.map((p) => (p.optional ? `[${p.name}]` : p.name)).join(', ');
-  return `${esc(d.name)}(${esc(list)})`;
+  return `${esc(qualified(d))}(${esc(list)})`;
 }
 
 function fieldRows(rows, table, depth = 0) {
@@ -158,7 +161,7 @@ function constantsTable(list, table) {
     <thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead>
     <tbody>${list.map((d) => `
       <tr id="${esc(anchorOf(d))}">
-        <td><a class="anchor" href="#${esc(anchorOf(d))}"><code>${esc(d.name)}</code></a></td>
+        <td><a class="anchor" href="#${esc(anchorOf(d))}"><code>${esc(qualified(d))}</code></a></td>
         <td>${type(d.type)}</td>
         <td>${mdInline(d.description || d.tagDescription, table)}</td>
       </tr>`).join('')}
@@ -172,7 +175,7 @@ function ownerSection(owner, list, table, module) {
   const rest   = list.filter((d) => d.kind !== 'constant');
   return `
   <section class="owner" id="${esc(owner)}">
-    ${owner === module ? '' : `<h2>${esc(owner)}</h2>`}
+    ${owner === module || namespaces.includes(owner) ? '' : `<h2>${esc(owner)}</h2>`}
     ${consts.length ? constantsTable(consts, table) : ''}
     ${rest.map((d) => (d.kind === 'typedef' ? typedefDoclet(d, table) : functionDoclet(d, table))).join('')}
   </section>`;

@@ -39,12 +39,12 @@ import {
   X, Y, _Z, _X, _Y, Z, NEAR, FAR, BODY, APEX, PATH, HANDLES, HANDLE, AIM, LOCUS, RING, POINT, WEBGL,
 } from '@nakednous/tree';
 import { helmBasis } from '@nakednous/host';
-import { createBufferInfoFromArrays, setAttribInfoBufferFromArray, setBuffersAndAttributes, drawBufferInfo, bindFramebufferInfo } from 'twgl.js';
+import { createBufferInfoFromArrays, setAttribInfoBufferFromArray, drawBufferInfo, bindFramebufferInfo } from 'twgl.js';
 import { contextOf, viewOf } from './context.js';
 import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
 import { image } from './pass.js';
-import { lineProgram, wideLineProgram, flatProgram } from './programs.js';
+import { lineProgram, wideLineProgram, flatProgram, bindGeometry } from './programs.js';
 
 const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const WHITE = [1, 1, 1, 1];
@@ -173,16 +173,15 @@ function _drawLines(gl, ctx, g, M, color, depth, width) {
   s.uPV(ctx.PV); s.uModel(M || IDENTITY); s.uColor(color || WHITE);
   const useColor = !!g.arrays.color;
   s.uUseColor(useColor);
-  if (!useColor && prog.attribSetters.aColor) gl.disableVertexAttribArray(prog.attribSetters.aColor.location);
   if (wide) {
     const w = expand(gl, g);
     const vp = _viewport(gl);
     _res2[0] = vp[2]; _res2[1] = vp[3];
     s.uViewport(_res2); s.uWidth(width);
-    setBuffersAndAttributes(gl, prog, w.buffer);
+    bindGeometry(gl, prog, w.buffer);
     drawBufferInfo(gl, w.buffer, gl.TRIANGLES, 6 * w.segments);
   } else {
-    setBuffersAndAttributes(gl, prog, g.buffer);
+    bindGeometry(gl, prog, g.buffer);
     drawBufferInfo(gl, g.buffer, gl.LINES, g.arrays.count);
   }
   if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
@@ -199,7 +198,7 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
   if (depth === false && wasDepth) gl.disable(gl.DEPTH_TEST);
   gl.useProgram(prog.program);
-  setBuffersAndAttributes(gl, prog, g.buffer);
+  bindGeometry(gl, prog, g.buffer);
   const s = prog.uniformSetters;
   s.uModelViewProjectionMatrix(M ? mat4Mul(_M, ctx.PV, M) : ctx.PV);
   s.uColor(color || WHITE);

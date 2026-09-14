@@ -26,11 +26,11 @@
 
 'use strict';
 
-import { createProgramInfo, createBufferInfoFromArrays, bindFramebufferInfo, setBuffersAndAttributes, drawBufferInfo } from 'twgl.js';
+import { createProgramInfo, createBufferInfoFromArrays, bindFramebufferInfo, drawBufferInfo } from 'twgl.js';
 import { contextOf } from './context.js';
 import { bind, draw } from './draw.js';
 import { renderTarget } from './target.js';
-import { PASS_VERT, flatProgram } from './programs.js';
+import { PASS_VERT, flatProgram, bindGeometry } from './programs.js';
 
 /** Colour write masks for image's `mask`. */
 export const RED = [true, false, false, false];
@@ -250,7 +250,7 @@ export function image(gl, tex, opts) {
   // the flat program declares uModelViewProjectionMatrix, which draw() would refill from the camera: the rect goes in directly
   flat.uniformSetters.uModelViewProjectionMatrix(rectMatrix(_rect, x, y, w, h, vp[2], vp[3]));
   const quad = fullscreen(gl);
-  setBuffersAndAttributes(gl, flat, quad);
+  bindGeometry(gl, flat, quad);
   drawBufferInfo(gl, quad);
   if (blend) { if (!blend[0]) gl.disable(gl.BLEND); gl.blendFuncSeparate(blend[1], blend[2], blend[3], blend[4]); }
   if (mask) gl.colorMask(mask[0], mask[1], mask[2], mask[3]);

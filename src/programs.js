@@ -12,7 +12,7 @@
 
 'use strict';
 
-import { createProgramInfo } from 'twgl.js';
+import { createProgramInfo, setBuffersAndAttributes } from 'twgl.js';
 import { contextOf } from './context.js';
 
 /** The fullscreen pass's vertex stage: aPosition through in NDC, aTexCoord as vTexCoord. */
@@ -73,6 +73,22 @@ void main() {
  * @param {WebGL2RenderingContext} gl
  * @returns {object} A twgl programInfo.
  */
+/**
+ * Bind a geometry's buffers to a supplied program, and disable every
+ * attribute the program declares that the geometry does not supply: an
+ * array another draw left enabled at that location would outrun this
+ * geometry's buffers and void the draw.
+ * @param {WebGL2RenderingContext} gl
+ * @param {object} prog  A twgl programInfo.
+ * @param {object} buffer  A twgl bufferInfo.
+ */
+export function bindGeometry(gl, prog, buffer) {
+  setBuffersAndAttributes(gl, prog, buffer);
+  for (const name in prog.attribSetters) {
+    if (!buffer.attribs[name]) gl.disableVertexAttribArray(prog.attribSetters[name].location);
+  }
+}
+
 export function flatProgram(gl) {
   const ctx = contextOf(gl);
   if (!ctx.programs.flat) ctx.programs.flat = createProgramInfo(gl, [FLAT_VERT, FLAT_FRAG]);

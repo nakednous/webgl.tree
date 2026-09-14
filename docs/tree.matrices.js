@@ -10,6 +10,98 @@
  */
 
 /**
+ * A new identity mat4, a `Float32Array(16)`: storage for the functions below, made at setup.
+ * @function mat4
+ * @memberof tree
+ * @returns {Float32Array}
+ * @example
+ * <caption>One matrix made at setup and rewritten every frame: the axes drawn with it turn without allocating.</caption>
+ * const { setCamera, axes, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), q = tree.quat()
+ *
+ * function frame(ms) {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000), 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * A new identity mat3, a `Float32Array(9)`: storage for the 3×3 functions, made at setup.
+ * @function mat3
+ * @memberof tree
+ * @returns {Float32Array}
+ * @example
+ * <caption>A mat3 made at setup holds the normal matrix of a pane stretching along x: the yellow normal drawn from it stays square to the magenta pane.</caption>
+ * const { setCamera, pane, hermite, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [60, 260, 260] })
+ * const R = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 4), 1, 1, 1)
+ * const S = tree.mat4(), M = tree.mat4(), N = tree.mat3(), n = tree.vec3()
+ *
+ * function frame(ms) {
+ *   tree.mat4Mul(M, tree.mat4FromScale(S, 1.25 + 0.75 * Math.sin(ms / 1000), 1, 1), R)
+ *   tree.mat3NormalFromMat4(N, M)
+ *   const k = 100 / Math.hypot(N[6], N[7], N[8])
+ *   n[0] = N[6] * k; n[1] = N[7] * k; n[2] = N[8] * k
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [1, 0.31, 0.85, 1] })
+ *   hermite(gl, [0, 0, 0], n, n, n, { color: [1, 0.82, 0.4, 1] })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * A new zero vec3, `[0, 0, 0]`: storage for the functions writing points and directions, made at setup.
+ * @function vec3
+ * @memberof tree
+ * @returns {number[]}
+ * @example
+ * <caption>A vec3 made at setup receives the tip of the turning x axis every frame; the small axes placed there ride on it.</caption>
+ * const { setCamera, axes, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), tip = tree.vec3()
+ *
+ * function frame(ms) {
+ *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000), 1, 1, 1)
+ *   tree.mat4MulPoint(tip, M, 80, 0, 0)
+ *   tree.mat4FromTranslation(T, tip[0], tip[1], tip[2])
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 80 })
+ *   axes(gl, { M: T, size: 20 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
  * `out = A · B`: B applies first, then A.
  * @function mat4Mul
  * @memberof tree

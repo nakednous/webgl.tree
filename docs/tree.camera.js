@@ -30,7 +30,7 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 200, 300], halfHeight: 150 })
  *
  * gl.enable(gl.DEPTH_TEST)
@@ -56,7 +56,7 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const home = tree.cameraCopy(tree.createCamera(), cam)
  * let last = 0
@@ -90,10 +90,10 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
- * const V = new Float32Array(16)
- * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300)
+ * const V = tree.mat4()
+ * const P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
  *
  * function frame() {
  *   tree.cameraOrbit(cam, 0.01, 0)
@@ -126,7 +126,7 @@
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 250, 330] })
  * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 80 })
- * const E = new Float32Array(16)
+ * const E = tree.mat4()
  *
  * function frame() {
  *   tree.cameraOrbit(other, 0.01, 0)
@@ -161,8 +161,8 @@
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
- * const V = tree.cameraView(new Float32Array(16), cam)
- * const P = new Float32Array(16)
+ * const V = tree.cameraView(tree.mat4(), cam)
+ * const P = tree.mat4()
  *
  * function frame(ms) {
  *   cam.fov = (50 + 30 * Math.sin(ms / 1000)) * Math.PI / 180
@@ -195,7 +195,7 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 0, 330] })
  *
  * function frame() {
@@ -227,7 +227,7 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * let x = 0
  *
@@ -266,7 +266,7 @@
  * const gl = canvas.getContext('webgl2')
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  *
  * function frame(ms) {
@@ -298,9 +298,9 @@
  * canvas.width = 400
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, ...tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera()
- * const pose = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }
+ * const pose = { pos: tree.vec3(), rot: tree.quat() }
  *
  * function frame(ms) {
  *   const t = ms / 2000
@@ -335,8 +335,8 @@
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 250, 330] })
  * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 80 })
- * const pose = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }
- * const M = new Float32Array(16)
+ * const pose = { pos: tree.vec3(), rot: tree.quat() }
+ * const M = tree.mat4()
  *
  * function frame() {
  *   tree.cameraOrbit(other, 0.01, 0)
@@ -371,8 +371,8 @@
  * const gl = canvas.getContext('webgl2')
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
- * const E = tree.mat4Eye(new Float32Array(16), 100, 60, 80, 0, 0, 0, 0, 1, 0)
- * const P = tree.cameraProj(new Float32Array(16), tree.createCamera({ fov: Math.PI / 3, near: 1, far: 1000 }), 400 / 300)
+ * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
+ * const P = tree.cameraProj(tree.mat4(), tree.createCamera({ fov: Math.PI / 3, near: 1, far: 1000 }), 400 / 300)
  * const cam = tree.cameraFromMat4(tree.createCamera(), E, P)
  *
  * gl.enable(gl.DEPTH_TEST)
@@ -401,8 +401,8 @@
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
- * const planes = tree.cameraPlanes(new Float64Array(24), lens, 4 / 3)
- * const M = new Float32Array(16)
+ * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
+ * const M = tree.mat4()
  *
  * function frame(ms) {
  *   const x = 120 * Math.sin(ms / 1000)

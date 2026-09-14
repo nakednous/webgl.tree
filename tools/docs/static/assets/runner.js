@@ -102,7 +102,7 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
     const f = document.createElement('iframe');
     f.className = 'sketch';
     f.title     = r.title;
-    f.setAttribute('allow', 'hid');
+    f.setAttribute('allow', 'hid; camera');
     f.srcdoc = srcdoc(code(r), r.module);
     r.stage.replaceChildren(f);
     r.frame = f;

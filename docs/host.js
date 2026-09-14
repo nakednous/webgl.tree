@@ -53,6 +53,7 @@
  * @param {number[]} [opts.axis]  AXIS: the rail's direction.
  * @param {number} [opts.snap]  A snap step: radians for SPHERE and DIAL, world units otherwise.
  * @param {number} [opts.grabPx=12]  The grab radius in pixels.
+ * @param {boolean} [opts.hover]  Track hovering, for `hovered()`.
  * @param {number[]|object} [opts.bind]  The target dragged: a vec3 mutated in place, or `{ get, set }`.
  * @param {function} [opts.onGrab]
  * @param {function} [opts.onChange]

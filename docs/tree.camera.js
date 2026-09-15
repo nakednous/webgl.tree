@@ -437,7 +437,7 @@
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [0, 250, 330] })
  * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 100 })
- * const c = new Float64Array(24)
+ * const c = []   // the 24 corner coordinates, written in place every frame
  * const corner = (i) => [c[3 * i], c[3 * i + 1], c[3 * i + 2]]
  *
  * function frame() {

@@ -35,9 +35,8 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * camera `setCamera` installs.
  * @param {WebGL2RenderingContext} gl
  * @param {{ host?:object, raf?:function }} [opts]
- *        host: the @nakednous/host context of the canvas.
- *        (−1, the default and the only value a WebGL2 context needs). raf:
- *        the readback poll's requestAnimationFrame (default the window's).
+ *        host: the @nakednous/host context of the canvas. raf: the readback
+ *        poll's requestAnimationFrame (default the window's).
  * @returns {object} The entry.
  * @example
  * <caption>With a host attached, drag the magenta dot around a sphere of radius 100.</caption>
@@ -129,9 +128,9 @@ export function contextOf(gl, opts) {
  * const gl = canvas.getContext('webgl2')
  *
  * const cam = tree.createCamera({ eye: [0, 107, 215] })
- * const tip = [0, 0, 0]
- * const W = tree.mat4Viewport(new Float32Array(16), [0, 300, 400, -300])   // y down, as cross takes it
- * const WPV = new Float32Array(16)
+ * const tip = tree.vec3()
+ * const W = tree.mat4Viewport(tree.mat4(), [0, 300, 400, -300])   // y down, as cross takes it
+ * const WPV = tree.mat4()
  *
  * function frame(ms) {
  *   cam.eye[0] = 215 * Math.sin(ms / 1000)

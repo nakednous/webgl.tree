@@ -64,8 +64,8 @@ export function installCamera(ctx, V, P) {
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 115 })
- * const V = tree.cameraView(new Float32Array(16), cam)
- * const P = tree.cameraProj(new Float32Array(16), cam, 400 / 300)
+ * const V = tree.cameraView(tree.mat4(), cam)
+ * const P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)

@@ -127,9 +127,9 @@ export function uploadTransforms(ctx, prog, M) {
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [76, 102, 204] }))
  * bind(gl, prog, { uColor: [1, 0.31, 0.85] })
- * draw(gl, box, tree.mat4FromTRS(new Float32Array(16), -80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
+ * draw(gl, box, tree.mat4FromTRS(tree.mat4(), -80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
  * bind(gl, prog, { uColor: [1, 0.82, 0.4] })
- * draw(gl, box, tree.mat4FromTRS(new Float32Array(16), 80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
+ * draw(gl, box, tree.mat4FromTRS(tree.mat4(), 80, 0, 0, 0, 0, 0, 1, 1, 1, 1))
  */
 export function bind(gl, prog, uniforms) {
   const ctx = contextOf(gl);
@@ -188,8 +188,8 @@ function _draw(gl, obj, M, opts, instances) {
  * const cube = twgl.primitives.createCubeVertices(120)
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
  * const cam = tree.createCamera({ eye: [76, 102, 204] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const M = tree.mat4()
+ * const q = tree.quat()
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
@@ -237,8 +237,8 @@ function _draw(gl, obj, M, opts, instances) {
  *   requestAnimationFrame(frame)
  * })
  * const cam = tree.createCamera({ eye: [0, 160, 192] })
- * const M = new Float32Array(16)
- * const q = [0, 0, 0, 1]
+ * const M = tree.mat4()
+ * const q = tree.quat()
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)

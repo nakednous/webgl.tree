@@ -174,7 +174,7 @@ export function readPixel(gl, fbo, x, y) {
  * }`])
  * const verts = twgl.primitives.createCubeVertices(80)
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: verts.position, aNormal: verts.normal, indices: verts.indices })
- * const cubes = [-120, 0, 120].map((x, i) => ({ id: i + 1, M: tree.mat4FromTRS(new Float32Array(16), x, 0, 0, 0, 0, 0, 1, 1, 1, 1) }))
+ * const cubes = [-120, 0, 120].map((x, i) => ({ id: i + 1, M: tree.mat4FromTRS(tree.mat4(), x, 0, 0, 0, 0, 0, 1, 1, 1, 1) }))
  * const cam = tree.createCamera({ eye: [99, 131, 263] })
  *
  * let mx = -1, my = -1, picked = 0, pending = false

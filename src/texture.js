@@ -184,8 +184,15 @@ export function cubemap(gl, faces, opts) {
   const ctx = contextOf(gl);
   const o = opts || {};
   const spec = _opts(gl, o);
-  spec.target = gl.TEXTURE_CUBE_MAP; spec.src = faces; spec.flipY = 0; spec.wrap = gl.CLAMP_TO_EDGE;
-  const tex = createTexture(gl, spec);
+  // the faces go up now, in GL's order and unflipped — twgl would load element faces
+  // asynchronously behind a one-pixel placeholder, so a first frame would sample that
+  const tex = createTexture(gl, { target: gl.TEXTURE_CUBE_MAP, min: spec.min, mag: spec.mag, wrap: gl.CLAMP_TO_EDGE, auto: false });
+  const flip = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  for (let i = 0; i < 6; i++) gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, faces[i]);
+  if (spec.auto) gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip);
   if (!ctx.textures) ctx.textures = new Set();
   ctx.textures.add(tex);
   return tex;

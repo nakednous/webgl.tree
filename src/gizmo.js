@@ -227,8 +227,8 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  *
- * const q = tree.qFromAxisAngle([0, 0, 0, 1], 0, 1, 0, Math.PI / 4)
- * const M = tree.mat4FromTRS(new Float32Array(16), -150, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ * const q = tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 4)
+ * const M = tree.mat4FromTRS(tree.mat4(), -150, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -257,8 +257,8 @@ export function axes(gl, opts) {
  * canvas.height = 300
  * const gl = canvas.getContext('webgl2')
  *
- * const q = tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2)
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ * const q = tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
@@ -505,9 +505,9 @@ let _rigSeq = 0;
  *
  * const cam = tree.createCamera({ eye: [123, 103, 165] })
  * const helm = new tree.PoseHelm()
- * const pose = { pos: [0, 0, 0], rot: [0, 0, 0, 1] }
- * const lin = [0, 0, 0]
- * const ang = [0, 0, 0]
+ * const pose = { pos: tree.vec3(), rot: tree.quat() }
+ * const lin = tree.vec3()
+ * const ang = tree.vec3()
  * let last = 0
  *
  * function frame(ms) {
@@ -624,8 +624,8 @@ const _du = [0, 0, 0], _dv = [0, 0, 0];
  *
  * const cam = tree.createCamera({ eye: [164, 136, 218] })
  * const h = canvasHost.handle({ constraint: tree.PLANE, anchor: [0, 0, 0], normal: [0, 1, 0] })
- * const q = tree.qFromAxisAngle([0, 0, 0, 1], 1, 0, 0, -Math.PI / 2)
- * const ground = tree.mat4FromTRS(new Float32Array(16), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ * const q = tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2)
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)

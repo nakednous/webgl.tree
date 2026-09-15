@@ -330,7 +330,7 @@
  * @param {object} [opts.bind]  The helm fed.
  * @returns {object} The stream.
  * @example
- * <caption>With a 3Dconnexion SpaceMouse: click connect, pick the device, and push or twist the cap — the camera helm the stream feeds flies the view, and the corner rig lights each channel.</caption>
+ * <caption>In a Chromium-based browser (WebHID) with a 3Dconnexion SpaceMouse: click connect, pick the device, and push or twist the cap — the camera helm the stream feeds flies the view and the corner rig lights each channel; home puts the camera back where it started.</caption>
  * const { init, setCamera, axes, grid, helmRig, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -343,10 +343,15 @@
  * const cam = tree.createCamera({ eye: [0, 100, 300] })
  * const helm = canvasHost.cameraHelm(cam)
  * const stream = canvasHost.hid({ bind: helm })
- * const button = document.body.appendChild(document.createElement('button'))
- * button.textContent = 'connect'
- * button.style.cssText = 'position:absolute;left:8px;top:8px'
- * button.onclick = () => stream.connect()
+ * const start = tree.cameraCopy(tree.createCamera(), cam), pose = { pos: tree.vec3(), rot: tree.quat() }
+ * const button = (text, left, onclick) => {
+ *   const b = document.body.appendChild(document.createElement('button'))
+ *   b.textContent = text; b.style.cssText = 'position:absolute;top:8px;left:' + left + 'px'; b.onclick = onclick
+ *   return b
+ * }
+ * const connect = button('connect', 8, () => stream.connect())
+ * if (!stream.available) { connect.textContent = 'WebHID unavailable'; connect.disabled = true }
+ * button('home', 170, () => { tree.cameraCopy(cam, start); helm.home(tree.cameraToPose(pose, cam)) })
  *
  * function frame() {
  *   canvasHost.tick(1 / 60)
@@ -823,7 +828,8 @@
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 0, 300] })
  * canvas.addEventListener('pointermove', (e) => {
- *   canvasHost.labels.setScreen('at', e.offsetX + ', ' + e.offsetY, e.offsetX, e.offsetY, { dy: -18 })
+ *   const x = Math.round(e.offsetX), y = Math.round(e.offsetY)
+ *   canvasHost.labels.setScreen('at', x + ', ' + y, x, y, { dy: -18 })
  * })
  *
  * function frame() {
@@ -990,7 +996,7 @@
  * @function stop
  * @memberof Video
  * @example
- * <caption>Allow the camera: every two seconds stop() and start() alternate, and the pane's live image holds still for two seconds, then moves for two.</caption>
+ * <caption>Allow the camera: from the moment its video is ready, stop() and start() alternate every two seconds, and the pane's live image moves for two seconds, then holds still for two.</caption>
  * const { init, setCamera, texture, upload, pane, tree, host } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -1001,18 +1007,18 @@
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 0, 300] })
  * const video = canvasHost.video({ camera: true })
- * let tex = null, still = false
- * video.ready.then(() => { tex = texture(gl, video.el) })
+ * let tex = null, readyAt = 0, still = false, shown = false
+ * video.ready.then(() => { tex = texture(gl, video.el); readyAt = canvasHost.clock() })
  *
  * function frame() {
- *   const wanted = Math.floor(canvasHost.clock() / 2) % 2 === 1
- *   if (tex && wanted !== still) { still = wanted; still ? video.stop() : video.start() }
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
- *     upload(gl, tex, video.el)
- *     pane(gl, [-160, 120, 0], [160, 120, 0], [160, -120, 0], [-160, -120, 0], { texture: tex })
+ *     const wanted = Math.floor((canvasHost.clock() - readyAt) / 2) % 2 === 1
+ *     if (wanted !== still) { still = wanted; still ? video.stop() : video.start() }
+ *     if (!still && video.el.readyState >= 2) { upload(gl, tex, video.el); shown = true }   // a decoded frame, fresh while playing
+ *     if (shown) pane(gl, [-160, 120, 0], [160, 120, 0], [160, -120, 0], [-160, -120, 0], { texture: tex })
  *   }
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)

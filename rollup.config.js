@@ -13,7 +13,8 @@ export default [
     }
   },
   // IIFE: for script tags; tree and host bundled in as webglTree.tree and
-  // webglTree.host, twgl.js read from the global `twgl`.
+  // webglTree.host, twgl.js read from the global `twgl`. One copy of tree,
+  // wherever host resolves its own.
   {
     input: 'src/index.js',
     external: ['twgl.js'],
@@ -24,6 +25,6 @@ export default [
       globals: { 'twgl.js': 'twgl' },
       sourcemap: true
     },
-    plugins: [resolve()]
+    plugins: [resolve({ dedupe: ['@nakednous/tree'] })]
   }
 ];

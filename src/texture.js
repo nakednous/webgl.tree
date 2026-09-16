@@ -17,7 +17,10 @@
  * space. Decoded images and elements arrive top-down and are uploaded with
  * flipY on; a render target's texture is already bottom-up and never passes
  * through upload. So image, pane, filter and the pick pass carry no flip
- * switch, and a pane's default uvs read a texture upright.
+ * switch, and a pane's default uvs read a texture upright. GL ignores the
+ * flip flag for an ImageBitmap, whose orientation is fixed at its creation,
+ * so a bitmap is drawn through a scratch 2D canvas first, whose upload the
+ * flag does flip.
  */
 
 'use strict';
@@ -31,6 +34,20 @@ const _sizeOf = (s) => {
   return w && h ? [w, h] : null;
 };
 const _isPixels = (s) => !!(s && s.data && typeof s.width === 'number' && typeof s.height === 'number' && !s.getContext);
+const _isBitmap = (s) => typeof ImageBitmap !== 'undefined' && s instanceof ImageBitmap;
+
+// UNPACK_FLIP_Y_WEBGL has no effect on an ImageBitmap; a canvas holding the same
+// pixels is flipped like any element. One scratch canvas, resized to the bitmap.
+let _scratch = null;
+function _viaCanvas(bitmap) {
+  const w = bitmap.width, h = bitmap.height;
+  if (!_scratch) _scratch = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : document.createElement('canvas');
+  if (_scratch.width !== w || _scratch.height !== h) { _scratch.width = w; _scratch.height = h; }
+  const g = _scratch.getContext('2d');
+  g.clearRect(0, 0, w, h);
+  g.drawImage(bitmap, 0, 0);
+  return _scratch;
+}
 
 function _opts(gl, o) {
   const mip = o.mipmaps === true;
@@ -71,7 +88,7 @@ export function texture(gl, source, opts) {
   const o = opts || {};
   const spec = _opts(gl, o);
   if (_isPixels(source)) { spec.src = source.data; spec.width = source.width; spec.height = source.height; spec.flipY = 0; }
-  else { spec.src = source; spec.flipY = 1; }
+  else { spec.src = _isBitmap(source) ? _viaCanvas(source) : source; spec.flipY = 1; }
   const tex = createTexture(gl, spec);
   const size = _isPixels(source) ? [source.width, source.height] : _sizeOf(source);
   if (size) ctx.sizes.set(tex, size);
@@ -117,7 +134,7 @@ export function texture(gl, source, opts) {
  */
 export function upload(gl, tex, source) {
   const ctx = contextOf(gl);
-  setTextureFromElement(gl, tex, source, { flipY: 1, auto: false });
+  setTextureFromElement(gl, tex, _isBitmap(source) ? _viaCanvas(source) : source, { flipY: 1, auto: false });
   const size = _sizeOf(source);
   if (size) ctx.sizes.set(tex, size);
   return tex;

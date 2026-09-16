@@ -138,7 +138,8 @@
  * @param {Float32Array|number[]} out
  * @param {object} cam
  * @param {number} aspect  Width over height.
- * @param {number} [ndcYSign=1]  −1 flips y.
+ * @param {number} [ndcYSign=1]  −1 flips y. The depth range is WebGL's, bound by this
+ *        namespace: passing `WEBGL` here flips the projection instead.
  * @returns {Float32Array|number[]|null} out, or null when the lens is degenerate.
  * @example
  * <caption>The lens zooms between 20° and 80° while the eye stays put: the axes swell and shrink on screen.</caption>

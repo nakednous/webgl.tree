@@ -6,7 +6,7 @@
  * Column-major 4×4 matrices as flat 16-element arrays, the layout WebGL
  * uploads. Every function writes into its first argument, `out`, and returns
  * it: storage is made once at setup with `tree.mat4()` (or `tree.mat3()`,
- * `tree.vec3()`) and reused every frame, so drawing allocates nothing.
+ * `tree.vec3()`, `tree.vec2()`) and reused every frame, so drawing allocates nothing.
  */
 
 /**

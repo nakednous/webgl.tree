@@ -559,12 +559,13 @@
  * @param {object} cam  The camera state moved.
  * @param {object} [opts]
  * @param {number} [opts.rotate=0.005]  Radians per pixel.
- * @param {number} [opts.damping=0]  The lag's time constant in seconds: the camera trails the gesture by about that much and, after a release, completes what the finger did, a flick easing out; 0 keeps the orbit exact.
+ * @param {number} [opts.damping=0]  The lag's time constant in seconds: the camera trails the gesture by about that much and, after a release, completes what the finger did; 0 keeps the drag exact.
+ * @param {number} [opts.inertia=0]  The flick's time constant in seconds: at release the fastest step of the last 200 ms coasts on, its travel that peak speed times the constant; 0 means no flick.
  * @param {number} [opts.minDistance]
  * @param {number} [opts.maxDistance]
  * @returns {Orbit}
  * @example
- * <caption>Drag to orbit: with damping 0.3 the axes trail the pointer and complete the drag after the release, a flick easing out; a fresh touch stops them where they are, and a scroll's dolly eases the same way.</caption>
+ * <caption>Drag to orbit: with damping 0.1 the axes trail the pointer a touch and complete the drag after the release; with inertia 0.3 a flick keeps them turning for a moment; a fresh touch stops them where they are, and a scroll's dolly eases the same way.</caption>
  * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -573,7 +574,7 @@
  * init(gl, { host: canvasHost })
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
- * const orbit = canvasHost.orbit(cam, { damping: 0.3, minDistance: 150, maxDistance: 600 })
+ * const orbit = canvasHost.orbit(cam, { damping: 0.1, inertia: 0.3, minDistance: 150, maxDistance: 600 })
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)

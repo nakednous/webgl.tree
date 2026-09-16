@@ -84,12 +84,9 @@ function _poll(gl, ctx) {
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
  * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 19 141 117 otherwise.</caption>
- * const { setCamera, pane, readPixel, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, pane, readPixel, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  *
@@ -147,12 +144,10 @@ export function readPixel(gl, fbo, x, y) {
  * @returns {Promise<number>} The id under the pixel, 0 for a miss.
  * @example
  * <caption>Hover a cube: the one under the pointer turns magenta.</caption>
- * const { setCamera, bind, draw, pick, tree } = webglTree
+ * const { createCanvas, setCamera, bind, draw, pick, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  *
  * const prog = twgl.createProgramInfo(gl, [`#version 300 es
  * in vec4 aPosition;

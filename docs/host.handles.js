@@ -70,12 +70,10 @@
  * @returns {boolean} Whether the handle is grabbed.
  * @example
  * <caption>Drag the magenta dot around the sphere: while update() reports the handle grabbed, the ground grid is drawn yellow.</caption>
- * const { init, setCamera, grid, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 300] })
@@ -103,12 +101,10 @@
  * @returns {Handle}
  * @example
  * <caption>Drag the magenta dot across the ground: once it goes past the yellow grid's edge, 100 from the center, cancel() snaps it back to where the drag began.</caption>
- * const { init, setCamera, grid, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -140,12 +136,10 @@
  * @returns {number[]} out
  * @example
  * <caption>Drag the magenta dot on the ground: the small axes are placed at value(out), in world space, and the white cross at value(out, { to: tree.SCREEN }), in screen pixels — both follow it.</caption>
- * const { init, setCamera, axes, grid, handleLocus, beginHUD, endHUD, cross, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, grid, handleLocus, beginHUD, endHUD, cross, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -181,12 +175,10 @@
  * @returns {Handle}
  * @example
  * <caption>The handle is bound to a vec3 starting at (50, 0, 30): dragging the magenta dot writes into it, and the yellow axes placed from that vec3 follow the dot.</caption>
- * const { init, setCamera, axes, grid, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, grid, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -216,12 +208,10 @@
  * @returns {Handle}
  * @example
  * <caption>The bound point circles the ground by itself and sync() re-seeds the handle from it every frame, so the magenta dot follows — until you grab it and drag it somewhere else, where the circle resumes.</caption>
- * const { init, setCamera, grid, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -258,12 +248,10 @@
  * @returns {number}
  * @example
  * <caption>Turn the dial: drag the magenta dot around its ring, and the axes above turn about y by the angle scalar() accumulates — past a full turn too.</caption>
- * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -293,12 +281,10 @@
  * @returns {number[]} out2
  * @example
  * <caption>Drag the magenta dot around the sphere: the yellow line runs out from the center along the azimuth azEl() reports, flat on the equator's plane, and the white line rises from its end by the elevation — together they always reach the dot.</caption>
- * const { init, setCamera, handleLocus, hermite, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, handleLocus, hermite, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
@@ -332,12 +318,10 @@
  * @returns {boolean}
  * @example
  * <caption>Drag the dot along the x axis, up to 100 either way of the origin: it is drawn yellow while grabbed() is true, magenta otherwise.</caption>
- * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
@@ -364,12 +348,10 @@
  * @returns {boolean}
  * @example
  * <caption>Move the pointer onto the magenta dot: it grows while hovered() is true.</caption>
- * const { init, setCamera, grid, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -398,12 +380,10 @@
  * @returns {Handle}
  * @example
  * <caption>The sphere's anchor, set every frame from the circling small axes, carries the sphere and the magenta dot around with it — drag the dot and it keeps its place on the moving sphere.</caption>
- * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -433,12 +413,10 @@
  * @memberof Handle
  * @example
  * <caption>Click the button to dispose of the handle: from then on the magenta dot is neither drawn nor draggable.</caption>
- * const { init, setCamera, grid, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })

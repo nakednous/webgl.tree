@@ -28,9 +28,9 @@ Two script tags, twgl.js first; webgl.tree reads the global `twgl` and exposes t
 ```
 
 ```js
-const { setCamera, bind, draw, axes, tree } = webglTree
+const { createCanvas, setCamera, bind, draw, axes, tree } = webglTree
 
-const gl = canvas.getContext('webgl2')
+const gl = createCanvas(400, 300)                              // buffer at the display's pixel density
 const prog = twgl.createProgramInfo(gl, [vert, frag])          // twgl's verb, not re-wrapped
 const mesh = twgl.createBufferInfoFromArrays(gl, arrays)
 const cam = tree.createCamera({ eye: [0, 0, 800] })

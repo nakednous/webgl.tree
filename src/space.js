@@ -66,12 +66,9 @@ const _viewport = canvasViewport;
  * @returns {number[]} out
  * @example
  * <caption>The tip of the spinning x axis, mapped from world space to canvas pixels: the white cross drawn there stays on it.</caption>
- * const { setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
+ * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), q = tree.quat(), tip = tree.vec3(), screen = tree.vec3()
  *
@@ -108,12 +105,9 @@ export function mapLocation(gl, out, x, y, z, from, to) {
  * @returns {number[]} out
  * @example
  * <caption>The spinning x axis's direction, mapped from world space to the screen: the white cross, placed 80 pixels from the center along it, rides over the red axis.</caption>
- * const { setCamera, axes, beginHUD, endHUD, cross, mapDirection, tree } = webglTree
+ * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapDirection, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const M = tree.mat4(), q = tree.quat(), d = tree.vec3(), onScreen = tree.vec3()
  *
@@ -149,12 +143,10 @@ export function mapDirection(gl, out, dx, dy, dz, from, to) {
  * @returns {number[]|null} outD, or null when the view cannot be inverted.
  * @example
  * <caption>Move the pointer over the canvas: the ray under its offset, cut where it meets the ground (y = 0), puts the small axes on the grid right under the pointer.</caption>
- * const { setCamera, axes, grid, unproject, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, unproject, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const origin = tree.vec3(), dir = tree.vec3(), M = tree.mat4()
@@ -191,12 +183,10 @@ export function unproject(gl, outO, outD, sx, sy) {
  * @returns {number[]} out
  * @example
  * <caption>Move the pointer over the canvas: an amber disc 40 device pixels in radius follows it — the fragment shader compares its own gl_FragCoord with uMouse, the pointer's.</caption>
- * const { program, filter, fragCoord, tree } = webglTree
+ * const { createCanvas, program, filter, fragCoord, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const spot = program(gl, `#version 300 es
  * precision highp float;
  * uniform vec2 uMouse;
@@ -229,12 +219,9 @@ export function fragCoord(gl, out, x, y) {
  * @returns {number}
  * @example
  * <caption>The eye dollies between 200 and 600 from the grid, whose cells are 20 units: a white cross sized 20 ÷ pixelRatio pixels spans exactly one cell at every distance.</caption>
- * const { setCamera, grid, beginHUD, endHUD, cross, pixelRatio, tree } = webglTree
+ * const { createCanvas, setCamera, grid, beginHUD, endHUD, cross, pixelRatio, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 0, 400] })
  *
  * function frame(ms) {
@@ -264,12 +251,9 @@ export function pixelRatio(gl, eyeZ) {
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>W · P · V takes the spinning x axis's tip straight to canvas pixels, where the white cross is drawn over it.</caption>
- * const { setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, viewOf, tree } = webglTree
+ * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, viewOf, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), W = tree.mat4(), WPV = tree.mat4(), q = tree.quat(), tip = tree.vec3()
  *

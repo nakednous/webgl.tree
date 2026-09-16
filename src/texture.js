@@ -52,12 +52,9 @@ function _opts(gl, o) {
  * @returns {WebGLTexture}
  * @example
  * <caption>Raw pixels start at the bottom row: magenta bottom-left and top-right, yellow in the other corners.</caption>
- * const { setCamera, texture, pane, tree } = webglTree
+ * const { createCanvas, setCamera, texture, pane, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const magenta = [255, 79, 216, 255]
  * const yellow = [255, 209, 102, 255]
@@ -91,12 +88,9 @@ export function texture(gl, source, opts) {
  * @returns {WebGLTexture} tex
  * @example
  * <caption>A 2D canvas redrawn every frame: the magenta bar sweeps left to right under a yellow strip along the top.</caption>
- * const { setCamera, texture, upload, pane, tree } = webglTree
+ * const { createCanvas, setCamera, texture, upload, pane, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const board = document.createElement('canvas')
  * board.width = 256
@@ -137,12 +131,9 @@ export function upload(gl, tex, source) {
  * @returns {WebGLTexture}
  * @example
  * <caption>A cube sampling a cube map by direction: +X magenta on the right, +Y white on top, +Z blue in front.</caption>
- * const { setCamera, bind, draw, cubemap, tree } = webglTree
+ * const { createCanvas, setCamera, bind, draw, cubemap, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const solid = (color) => {
  *   const c = document.createElement('canvas')

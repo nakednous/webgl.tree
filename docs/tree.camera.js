@@ -24,12 +24,9 @@
  * @returns {object} The camera state.
  * @example
  * <caption>An orthographic camera state, halfHeight 150, above and in front of the grid: the grid's far and near edges are the same length.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 200, 300], halfHeight: 150 })
  *
@@ -50,12 +47,9 @@
  * @returns {object} out
  * @example
  * <caption>The eye orbits; every three seconds cameraCopy restores the state saved at the start, snapping the view back.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const home = tree.cameraCopy(tree.createCamera(), cam)
@@ -84,12 +78,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>cameraView and cameraProj make the matrices setCamera(gl, cam) would install: installed as V and P, the view circles the axes.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const V = tree.mat4()
@@ -118,12 +109,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>The frame of a second camera circling the origin sits at the apex of its white frustum, blue pointing back, away from what it sees.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 250, 330] })
  * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 80 })
  * const E = tree.mat4()
@@ -154,12 +142,9 @@
  * @returns {Float32Array|number[]|null} out, or null when the lens is degenerate.
  * @example
  * <caption>The lens zooms between 20° and 80° while the eye stays put: the axes swell and shrink on screen.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const V = tree.cameraView(tree.mat4(), cam)
  * const P = tree.mat4()
@@ -189,12 +174,9 @@
  * @returns {object} cam
  * @example
  * <caption>Each frame the eye steps around the origin and rises; at the 60° elevation limit it stops climbing and keeps circling above the grid.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 0, 330] })
  *
@@ -221,12 +203,9 @@
  * @returns {object} cam
  * @example
  * <caption>The camera pans right and left, 100 each way: the grid and axes slide across the view without turning.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * let x = 0
@@ -258,12 +237,9 @@
  * @returns {object} cam
  * @example
  * <caption>The eye dollies in and out along its line of sight, held between 150 and 500 from the center: the readout's distance stops at both limits.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
@@ -292,12 +268,9 @@
  * @returns {object} cam
  * @example
  * <caption>A pose circling at radius 300, 150 up, its −z aimed at the origin, drives the camera state: the view circles the axes.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera()
  * const pose = { pos: tree.vec3(), rot: tree.quat() }
@@ -327,12 +300,9 @@
  * @returns {{ pos: number[], rot: number[] }} pose
  * @example
  * <caption>The pose of a second, circling camera, drawn as a frame: at the apex of its white frustum, blue pointing back.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 250, 330] })
  * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 80 })
  * const pose = { pos: tree.vec3(), rot: tree.quat() }
@@ -363,12 +333,9 @@
  * @returns {object} cam
  * @example
  * <caption>Read back from an eye matrix at (100, 60, 80) and a 60° projection: the readout recovers that eye and fov, and installing the state shows the origin at the canvas center.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
@@ -393,12 +360,9 @@
  * @returns {Float64Array|null} planes, or null when the lens is degenerate.
  * @example
  * <caption>The small axes sweep through the white frustum: drawn in their colors while tree.pointVisibility against its planes says visible, yellow while it says not.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
  * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
@@ -429,12 +393,9 @@
  * @returns {Float64Array|number[]|null} out24, or null when the lens is degenerate.
  * @example
  * <caption>The magenta pane fills the circling camera's far face, from corners 7, 6, 5 and 4 — top-left, top-right, bottom-right, bottom-left — inside its white frustum.</caption>
- * const { setCamera, pane, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, pane, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 250, 330] })
  * const other = tree.createCamera({ eye: [120, 30, 0], fov: Math.PI / 4, near: 20, far: 100 })
  * const c = []   // the 24 corner coordinates, written in place every frame

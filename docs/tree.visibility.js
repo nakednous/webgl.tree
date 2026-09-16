@@ -16,12 +16,9 @@
  * @returns {Float64Array}
  * @example
  * <caption>Planes made once and refilled every frame as the white frustum turns: the small axes, fixed at (60, 0, 0), are drawn in their colors while inside it and yellow while outside.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 0], center: [0, 0, -1], fov: Math.PI / 4, near: 10, far: 150 })
  * const pl = tree.planes(), M = tree.mat4FromTranslation(tree.mat4(), 60, 0, 0)
@@ -107,12 +104,9 @@
  * @returns {number} `tree.VISIBLE` or `tree.INVISIBLE`.
  * @example
  * <caption>A point sweeps across the white frustum through its axis, 120 from its eye: the small axes on it are drawn in their colors while it tests visible — while |x| stays under 66.3, the frustum's half width there — and yellow otherwise.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
@@ -148,12 +142,9 @@
  * @returns {number} `tree.VISIBLE`, `tree.SEMIVISIBLE` or `tree.INVISIBLE`.
  * @example
  * <caption>A sphere of radius 30 sweeps across the frustum: white while wholly inside, yellow while it crosses a side plane, magenta once wholly outside — the readout names the state.</caption>
- * const { setCamera, hermite, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
@@ -203,12 +194,9 @@
  * @returns {number} `tree.VISIBLE`, `tree.SEMIVISIBLE` or `tree.INVISIBLE`.
  * @example
  * <caption>A 50-unit box sweeps across the frustum: white while wholly inside, yellow while it crosses a side plane, magenta once wholly outside — the readout names the state.</caption>
- * const { setCamera, hermite, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
@@ -254,12 +242,9 @@
  * @returns {number}
  * @example
  * <caption>A point slides along the white frustum's axis between z = 120 and z = −100: the small axes on it are drawn magenta while its distance to the near plane is positive — past z = 100 — yellow while its distance to the far plane is — past z = −80 — and in their colors in between.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [300, 200, 150], center: [0, 0, 10] })

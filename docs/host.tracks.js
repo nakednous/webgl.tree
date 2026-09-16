@@ -51,12 +51,10 @@
  * @param {boolean} [opts.deduplicate]  Skip a keyframe equal to the last.
  * @example
  * <caption>Click the canvas: each click adds a keyframe at a random spot, and the yellow path, with a small frame at every keyframe, grows through it.</caption>
- * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -88,12 +86,10 @@
  * @returns {boolean}
  * @example
  * <caption>The middle keyframe is set to a new height every frame, rising and falling: the yellow path reshapes through it.</caption>
- * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 150, 330] })
@@ -123,12 +119,10 @@
  * @returns {boolean}
  * @example
  * <caption>Click the button: each click removes the last keyframe and the yellow path loses its last stretch.</caption>
- * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -160,12 +154,10 @@
  * @returns {PoseTrack}
  * @example
  * <caption>Every three seconds the track resets and refills, one keyframe every half second around a circle: the yellow path vanishes and grows again.</caption>
- * const { init, setCamera, grid, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, grid, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 250, 250] })
@@ -204,12 +196,10 @@
  * @returns {PoseTrack}
  * @example
  * <caption>Played back and forth, 60 frames per segment, as the host ticks: the frame drawn from eval() rides the yellow path, turning as the keyframes do.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -246,12 +236,10 @@
  * @returns {PoseTrack}
  * @example
  * <caption>Click the canvas to stop the frame riding the path where it is; click again to play on from there.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -284,12 +272,10 @@
  * @returns {PoseTrack}
  * @example
  * <caption>Move the pointer across the canvas: its x seeks the playhead from the start of the path at the left edge to its end at the right, and the frame follows.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -318,12 +304,10 @@
  * @returns {number}
  * @example
  * <caption>As the frame plays along the path, the white bulls-eye slides along the bottom of the canvas to match: left at the path's start, right at its end.</caption>
- * const { init, setCamera, axes, trackPath, beginHUD, endHUD, bullsEye, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, beginHUD, endHUD, bullsEye, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -356,12 +340,10 @@
  * @returns {object}
  * @example
  * <caption>Click the canvas to pause and resume: the path is drawn yellow while info() reports playing, white while paused.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -394,12 +376,10 @@
  * @returns {{ pos: number[], rot: number[], scl: number[] }} out
  * @example
  * <caption>The pose evaluated at the playhead, position, rotation and scale, builds the frame's model matrix: the frame grows to twice its size on the way to the last keyframe and turns a half turn.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -437,12 +417,10 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>The playing frame is drawn with mat4Model() at the playhead; the white frames with mat4Model(out, seg, 0.5), fixed halfway along each segment.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -480,12 +458,10 @@
  * @returns {number[]} out
  * @example
  * <caption>Small white crosses at samplePos(out, seg, t) for t = 0, 0.25, 0.5 and 0.75 of each segment bead the yellow path.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -519,12 +495,10 @@
  * @returns {PoseTrack}
  * @example
  * <caption>At each keyframe, the white line runs along the incoming tangent into it and the magenta line along the outgoing tangent out of it — both lying along the yellow path.</caption>
- * const { init, setCamera, hermite, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, hermite, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 200, 330] })
@@ -559,12 +533,10 @@
  * @param {boolean} [opts.deduplicate]  Skip a keyframe equal to the last.
  * @example
  * <caption>Three camera keyframes around the axes, each drawn by trackPath as a small camera on the white path of eyes; the played camera's white frustum travels between them.</caption>
- * const { init, setCamera, axes, trackPath, viewFrustum, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, viewFrustum, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 300, 360] })
@@ -601,12 +573,10 @@
  * @returns {boolean}
  * @example
  * <caption>The middle camera keyframe is set every frame to an eye rising and falling above the axes: the white path of eyes and its small camera move with it.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 300, 360] })
@@ -636,12 +606,10 @@
  * @returns {object} out
  * @example
  * <caption>Click the canvas to switch views: the canvas either shows the scene from outside, with the played camera's frustum, or looks through the camera state eval() writes as it travels.</caption>
- * const { init, setCamera, axes, grid, trackPath, viewFrustum, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, grid, trackPath, viewFrustum, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const outside = tree.createCamera({ eye: [0, 300, 360] })
@@ -683,12 +651,10 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>As the track plays, the frame drawn with mat4Eye() rides the white path of eyes, its blue axis always pointing back, away from the origin every keyframe looks at.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 170, 250] })
@@ -722,12 +688,10 @@
  * @returns {number[]} out
  * @example
  * <caption>Small yellow crosses at sampleEye(out, seg, t), for t = 0, 0.25, 0.5 and 0.75 of each segment, bead the white path of eyes.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 170, 250] })
@@ -762,12 +726,10 @@
  * @returns {number[]} out
  * @example
  * <caption>The three camera keyframes look at centers spread along x: small yellow crosses at sampleCenter(out, seg, t) bead the white path of centers on the ground — the other path, 80 to 100 above it and nearer the viewer, is the eyes'.</caption>
- * const { init, setCamera, axes, trackPath, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 220, 330] })

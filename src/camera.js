@@ -57,12 +57,10 @@ export function installCamera(ctx, V, P) {
  * @returns {object} The context's view bag.
  * @example
  * <caption>The matrix form: an orthographic view and projection built by hand.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const cam = tree.createCamera({ eye: [300, 250, 400], halfHeight: 115 })
  * const V = tree.cameraView(tree.mat4(), cam)
  * const P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
@@ -74,12 +72,9 @@ export function installCamera(ctx, V, P) {
  * axes(gl, { size: 100 })
  * @example
  * <caption>A camera state circling the axes, one turn every 6.3 seconds.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 107, 215] })
  *
  * function frame(ms) {

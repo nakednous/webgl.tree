@@ -94,12 +94,9 @@ export function uploadTransforms(ctx, prog, M) {
  * @returns {object} prog
  * @example
  * <caption>One program bound twice: a magenta cube on the left, a yellow one on the right.</caption>
- * const { setCamera, bind, draw, tree } = webglTree
+ * const { createCanvas, setCamera, bind, draw, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const prog = twgl.createProgramInfo(gl, [`#version 300 es
  * in vec4 aPosition;
@@ -160,12 +157,10 @@ function _draw(gl, obj, M, opts, instances) {
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]  Forwarded to drawBufferInfo.
  * @example
  * <caption>A magenta cube turning about the vertical axis through its model matrix.</caption>
- * const { setCamera, bind, draw, tree } = webglTree
+ * const { createCanvas, setCamera, bind, draw, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  *
  * const prog = twgl.createProgramInfo(gl, [`#version 300 es
  * in vec4 aPosition;
@@ -204,12 +199,9 @@ function _draw(gl, obj, M, opts, instances) {
  * requestAnimationFrame(frame)
  * @example
  * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
- * const { setCamera, bind, draw, host, tree } = webglTree
+ * const { createCanvas, setCamera, bind, draw, host, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const prog = twgl.createProgramInfo(gl, [`#version 300 es
  * in vec4 aPosition;
@@ -265,12 +257,9 @@ export function draw(gl, obj, M, opts) {
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]
  * @example
  * <caption>Five yellow cubes in a row from one call; the vertex shader spaces them by gl_InstanceID.</caption>
- * const { setCamera, bind, drawInstanced, tree } = webglTree
+ * const { createCanvas, setCamera, bind, drawInstanced, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const prog = twgl.createProgramInfo(gl, [`#version 300 es
  * in vec4 aPosition;

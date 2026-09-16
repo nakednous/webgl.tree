@@ -16,12 +16,9 @@
  * @returns {number[]}
  * @example
  * <caption>One quaternion made at setup, rewritten every frame: the axes spin about y without allocating.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const q = tree.quat(), M = tree.mat4()
  *
@@ -50,12 +47,9 @@
  * @returns {number[]} out
  * @example
  * <caption>qSet writes (0, sin θ/2, 0, cos θ/2) every frame: the axes drawn with it spin about y.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const q = tree.quat(), M = tree.mat4()
  *
@@ -82,12 +76,9 @@
  * @returns {number[]} out
  * @example
  * <caption>The left frame spins; the right one is drawn with a copy of its rotation taken once a second, so it jumps to catch up.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), copy = tree.quat()
  * let last = -1
@@ -117,12 +108,9 @@
  * @returns {number}
  * @example
  * <caption>A spin's dot with the identity is cos(θ / 2), and its sign tells the hemisphere: the axes turn yellow while it is negative — from half a turn to one and a half turns — though every orientation repeats, from the other side.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const q = tree.quat(), identity = tree.quat(), M = tree.mat4()
  *
@@ -149,12 +137,9 @@
  * @returns {number[]} out
  * @example
  * <caption>a · b, with a a fixed 45° tilt about x and b a spin about y: the frame's green axis stays on the yellow tilted line while the frame spins around it.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [250, 100, 250] })
  * const tilt = tree.qFromAxisAngle(tree.quat(), 1, 0, 0, Math.PI / 4)
  * const spin = tree.quat(), q = tree.quat(), M = tree.mat4()
@@ -184,12 +169,9 @@
  * @returns {number[]} out
  * @example
  * <caption>The left frame turns by q, the right by its conjugate: the same speed, the opposite way.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), c = tree.quat()
  *
@@ -217,12 +199,9 @@
  * @returns {number[]} out
  * @example
  * <caption>(0, 2, 0, 2) normalized is a quarter turn about y: against the white axes, the frame drawn with it has its red x along −z.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const q = tree.qNormalize(tree.qSet(tree.quat(), 0, 2, 0, 2))
  * const M = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
@@ -244,12 +223,9 @@
  * @returns {number[]} out
  * @example
  * <caption>−q is the same rotation as q: the left frame turns by q, the right by its negation, in step.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), n = tree.quat()
  *
@@ -279,12 +255,9 @@
  * @returns {number[]} out
  * @example
  * <caption>(100, 0, 0) rotated by a quaternion turning about the white (1, 1, 0) axis: the yellow line drawn to the result sweeps a cone around it.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [-150, 150, 300] })
  * const q = tree.quat(), v = tree.vec3()
  * const axis = [100, 100, 0]
@@ -315,12 +288,9 @@
  * @returns {number[]} out
  * @example
  * <caption>The middle frame slerps from the left frame's orientation to the right one's and back, turning at a steady speed.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 360] })
  * const a = tree.quat()
  * const b = tree.qFromAxisAngle(tree.quat(), 0, 0, 1, Math.PI * 0.9)
@@ -354,12 +324,9 @@
  * @returns {number[]} out
  * @example
  * <caption>Between the same two orientations, 170° apart: the yellow nlerp frame lags the white slerp frame in the first half, leads it in the second, and meets it at both ends and halfway.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 200, 250] })
  * const a = tree.quat()
  * const b = tree.qFromAxisAngle(tree.quat(), 0, 1, 0, 170 * Math.PI / 180)
@@ -394,12 +361,9 @@
  * @returns {number[]} out
  * @example
  * <caption>A quarter turn per second about the white (1, 1, 1) axis: the frame spins around the line.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [-150, 150, 300] })
  * const M = tree.mat4(), q = tree.quat()
  * const k = 1 / Math.sqrt(3), axis = [100 * k, 100 * k, 100 * k]
@@ -428,12 +392,9 @@
  * @returns {number[]} out
  * @example
  * <caption>Built from the direction to the circling yellow point: the frame's −z aims at it, so its blue axis points directly away.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 200, 300] })
  * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), target = tree.vec3()
  *
@@ -465,12 +426,9 @@
  * @returns {number[]} out
  * @example
  * <caption>The shortest rotation from +y onto the circling yellow direction: the frame's green axis follows the yellow line.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), q = tree.quat(), d = tree.vec3(), line = tree.vec3()
  *
@@ -500,12 +458,9 @@
  * @returns {number[]} out
  * @example
  * <caption>The rotation of an eye matrix at (100, 60, 80), re-applied at the origin: the small frame there matches the eye's frame, blue pointing away from the origin.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [-200, 150, 250] })
  * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
  * const q = tree.qFromMat4(tree.quat(), E)
@@ -528,12 +483,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>qToMat4 writes a whole rotation matrix: the axes drawn with it tumble about the origin.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), q = tree.quat()
  *
@@ -559,12 +511,9 @@
  * @returns {{ axis: number[], angle: number }} out
  * @example
  * <caption>The axis and angle read out of the tumbling left frame's quaternion rebuild the right frame and draw its axis in yellow: the right frame tumbles in step, turning about that line.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), r = tree.quat()
  * const aa = { axis: tree.vec3(), angle: 0 }, a0 = tree.vec3(), a1 = tree.vec3(), d = tree.vec3()

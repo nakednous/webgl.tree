@@ -41,12 +41,9 @@
  * @returns {boolean}
  * @example
  * <caption>Every two seconds the lens switches between perspective and orthographic; the grid is drawn yellow whenever the installed projection reads orthographic.</caption>
- * const { setCamera, grid, viewOf, tree } = webglTree
+ * const { createCanvas, setCamera, grid, viewOf, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const persp = tree.createCamera({ eye: [0, 200, 300] })
  * const ortho = tree.createCamera({ eye: [0, 200, 300], halfHeight: 150 })
@@ -71,12 +68,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum's near plane slides between 20 and 100: small yellow axes placed that far down the lens's line of sight, a distance read from its projection matrix, sit at the center of the near face and follow it.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], fov: Math.PI / 3, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), T = tree.mat4(), M = tree.mat4()
@@ -104,12 +98,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum's far plane slides between 120 and 220: small yellow axes placed that far down the lens's line of sight, a distance read from its projection matrix, sit at the center of the far face and follow it.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], fov: Math.PI / 3, near: 40 })
  * const P = tree.mat4(), E = tree.mat4(), T = tree.mat4(), M = tree.mat4()
@@ -137,12 +128,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum widens and narrows: small yellow axes placed at the left extent read from its projection, on the near plane, ride the middle of the near face's left edge.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], near: 50, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), T = tree.mat4(), M = tree.mat4()
@@ -170,12 +158,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum widens and narrows: small yellow axes placed at the right extent read from its projection, on the near plane, ride the middle of the near face's right edge.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], near: 50, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), T = tree.mat4(), M = tree.mat4()
@@ -203,12 +188,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum widens and narrows: small yellow axes placed at the top extent read from its projection, on the near plane, ride the middle of the near face's top edge.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], near: 50, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), T = tree.mat4(), M = tree.mat4()
@@ -236,12 +218,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum widens and narrows: small yellow axes placed at the bottom extent read from its projection, on the near plane, ride the middle of the near face's bottom edge.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], near: 50, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), T = tree.mat4(), M = tree.mat4()
@@ -269,12 +248,9 @@
  * @returns {number}
  * @example
  * <caption>The white frustum widens and narrows: two yellow lines leaving its apex at ± half the vertical field of view read from its projection run down the middle of its top and bottom faces.</caption>
- * const { setCamera, hermite, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], near: 50, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), up = tree.vec3(), down = tree.vec3()
@@ -306,12 +282,9 @@
  * @returns {number}
  * @example
  * <caption>The white 4:3 frustum widens and narrows: two yellow lines leaving its apex at ± half the horizontal field of view read from its projection run down the middle of its left and right faces.</caption>
- * const { setCamera, hermite, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [300, 200, 250], center: [0, 0, -60] })
  * const lens = tree.createCamera({ eye: [0, 0, 100], near: 50, far: 200 })
  * const P = tree.mat4(), E = tree.mat4(), left = tree.vec3(), right = tree.vec3()

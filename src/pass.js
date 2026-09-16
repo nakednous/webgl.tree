@@ -62,12 +62,9 @@ const _res = [0, 0], _texel = [0, 0];
  * @returns {object|null} A twgl programInfo, or null on a compile error (logged by twgl).
  * @example
  * <caption>A fragment shader alone: red grows to the right, green upward.</caption>
- * const { program, filter } = webglTree
+ * const { createCanvas, program, filter } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const gradient = program(gl, `#version 300 es
  * precision highp float;
@@ -88,12 +85,9 @@ export function program(gl, frag) {
  * @returns {object} A twgl bufferInfo, cached per context.
  * @example
  * <caption>The covering quad drawn with bind and draw: an 8 × 6 checker of 50 px squares.</caption>
- * const { program, fullscreen, bind, draw } = webglTree
+ * const { createCanvas, program, fullscreen, bind, draw } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const checker = program(gl, `#version 300 es
  * precision highp float;
@@ -129,12 +123,9 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * @param {object} [uniforms]  uSource is the image filtered.
  * @example
  * <caption>Axes drawn into a target, then shown colour-inverted: the green background turns pink.</caption>
- * const { setCamera, axes, renderTarget, program, filter, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, axes, renderTarget, program, filter, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const scene = renderTarget(gl)
  * const invert = program(gl, `#version 300 es
@@ -208,12 +199,9 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  *        program, depth test, mask and blend are restored after.
  * @example
  * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of a yellow canvas.</caption>
- * const { setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const scene = renderTarget(gl)
  * twgl.bindFramebufferInfo(gl, scene)
@@ -294,12 +282,9 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  * @returns {object|null} The target holding the result, or null without passes.
  * @example
  * <caption>Pixelate into 20 × 20 cells, then invert: magenta turns green, yellow blue, the ground pink.</caption>
- * const { setCamera, pane, renderTarget, program, pipe, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, pane, renderTarget, program, pipe, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const scene = renderTarget(gl)
  * const pixelate = program(gl, `#version 300 es
@@ -389,12 +374,10 @@ export function pipe(gl, source, passes, opts) {
  * @param {string|boolean} [key]
  * @example
  * <caption>Two turning squares: click to switch the pixelation off and on — on, their slanted edges step in coarse blocks; off, they are smooth. Switching it off releases the cached pair, so every time it comes back on pipe allocates a fresh one — the readout counts them.</caption>
- * const { setCamera, pane, renderTarget, program, pipe, releasePipe, image, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, pane, renderTarget, program, pipe, releasePipe, image, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  *

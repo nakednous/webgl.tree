@@ -124,12 +124,10 @@ export function targetSpecs(gl, opts) {
  * @returns {object} The framebufferInfo, extended.
  * @example
  * <caption>Axes rendered into a 100 × 75 target and stretched to 400 × 300: the low resolution shows as blocky lines.</caption>
- * const { setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  *
  * const small = renderTarget(gl, { width: 100, height: 75 })
  * twgl.bindFramebufferInfo(gl, small)
@@ -143,12 +141,9 @@ export function targetSpecs(gl, opts) {
  * image(gl, small.color)
  * @example
  * <caption>The same axes in two 100 × 150 targets shown at twice their size: single-sampled on the left with hard stair-steps, samples: 4 and resolved on the right with softened edges.</caption>
- * const { setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2', { antialias: false })
+ * const gl = createCanvas(400, 300, { attributes: { antialias: false } })
  *
  * // small targets, magnified with nearest sampling, make each pixel visible
  * const cam = tree.createCamera({ eye: [169, 141, 225] })

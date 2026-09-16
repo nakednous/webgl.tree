@@ -16,12 +16,9 @@
  * @returns {Float32Array}
  * @example
  * <caption>One matrix made at setup and rewritten every frame: the axes drawn with it turn without allocating.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), q = tree.quat()
  *
@@ -44,12 +41,9 @@
  * @returns {Float32Array}
  * @example
  * <caption>A mat3 made at setup holds the normal matrix of a pane stretching along x: the yellow normal drawn from it stays square to the magenta pane.</caption>
- * const { setCamera, pane, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, pane, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [60, 260, 260] })
  * const R = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 4), 1, 1, 1)
  * const S = tree.mat4(), M = tree.mat4(), N = tree.mat3(), n = tree.vec3()
@@ -77,12 +71,9 @@
  * @returns {number[]}
  * @example
  * <caption>A vec3 made at setup receives the tip of the turning x axis every frame; the small axes placed there ride on it.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), tip = tree.vec3()
  *
@@ -108,12 +99,10 @@
  * @returns {number[]}
  * @example
  * <caption>A vec2 made at setup holds the pointer's gl_FragCoord, refreshed on every move; the pass reads it as uMouse and paints an amber disc there.</caption>
- * const { program, filter, fragCoord, tree } = webglTree
+ * const { createCanvas, program, filter, fragCoord, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const spot = program(gl, `#version 300 es
  * precision highp float;
  * uniform vec2 uMouse;
@@ -143,12 +132,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>T · R (colored) spins in place 80 units along x; R · T (yellow) is carried around the origin.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const T = tree.mat4FromTranslation(tree.mat4(), 80, 0, 0)
  * const R = tree.mat4(), TR = tree.mat4(), RT = tree.mat4(), q = tree.quat()
@@ -178,12 +164,9 @@
  * @returns {Float32Array|number[]|null} out, or null when src is singular.
  * @example
  * <caption>Inverting a camera's view matrix gives its frame: drawn with it, the axes sit at the white frustum's apex, blue pointing back, away from what it sees.</caption>
- * const { setCamera, axes, viewFrustum, tree } = webglTree
+ * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [-260, 160, 60], center: [30, 20, 40] })
  * const other = tree.createCamera({ eye: [60, 40, 80], fov: Math.PI / 4, near: 20, far: 90 })
  * const V = tree.cameraView(tree.mat4(), other)
@@ -215,12 +198,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>Raised 60 above the ground grid, spinning about y, its x axis stretched to twice the others.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const M = tree.mat4(), q = tree.quat()
@@ -250,12 +230,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>The small axes moved 80 along x and 40 along y from the white ones at the origin.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4FromTranslation(tree.mat4(), 80, 40, 0)
  *
@@ -278,12 +255,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>Scaled by (2, 1, 0.5): against the white unscaled axes, x doubles, y matches and z halves.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4FromScale(tree.mat4(), 2, 1, 0.5)
  *
@@ -315,12 +289,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>A frame from three axes, 80 along x from the white origin axes: its red axis points up, its green axis points to −x.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4FromBasis(tree.mat4(), 0, 1, 0, -1, 0, 0, 0, 0, 1, 80, 0, 0)
  *
@@ -349,12 +320,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>A view matrix rebuilt every frame for an eye circling at radius 300, 150 up, always looking at the origin.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const lens = tree.createCamera({ fov: Math.PI / 3, near: 50, far: 1000 })
  * const P = tree.cameraProj(tree.mat4(), lens, 400 / 300)
@@ -391,12 +359,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>The frame of an eye at (100, 60, 80) looking at the origin: its blue axis points away from the origin, back along the yellow line of sight.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [-200, 150, 250] })
  * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
  * const sight = [-100, -60, -80]
@@ -425,12 +390,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>An off-center frustum, its near plane reaching further right than left: the axes at the origin sit left of the white bulls-eye marking the canvas center.</caption>
- * const { setCamera, axes, beginHUD, endHUD, bullsEye, tree } = webglTree
+ * const { createCanvas, setCamera, axes, beginHUD, endHUD, bullsEye, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const V = tree.mat4View(tree.mat4(), 0, 0, 300, 0, 0, 0, 0, 1, 0)
  * const P = tree.mat4Persp(tree.mat4(), -30, 50, -30, 30, 100, 1000)
  *
@@ -459,12 +421,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>Orthographic: the ground grid's far edge is as long as its near edge — no vanishing point.</caption>
- * const { setCamera, grid, tree } = webglTree
+ * const { createCanvas, setCamera, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const V = tree.mat4View(tree.mat4(), 0, 200, 300, 0, 0, 0, 0, 1, 0)
  * const P = tree.mat4Ortho(tree.mat4(), -200, 200, -150, 150, 1, 1000)
@@ -486,12 +445,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>P · V takes the tip of the x axis to NDC and the viewport matrix W finishes the trip to pixels: the white cross drawn there stays on the tip as the eye circles.</caption>
- * const { setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, tree } = webglTree
+ * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 300], near: 50, far: 1000 })
  * const V = tree.mat4(), P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
  * const PV = tree.mat4(), W = tree.mat4(), tip = tree.vec3()
@@ -523,12 +479,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>An identity view is installed and every model matrix is folded into V · M instead: the circling view of the grid and the spinning axes looks exactly as setCamera(gl, cam) would show it.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 300], near: 50, far: 1000 })
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const I = tree.mat4(), P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
@@ -560,12 +513,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>A magenta pane turned 45° about y, then stretched along x between 0.5 and 2 times: the yellow normal, through the normal matrix, stays square to the pane; the white one, through the model matrix itself, leans whenever the stretch is not 1.</caption>
- * const { setCamera, grid, pane, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, grid, pane, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [60, 260, 260] })
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const R = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 4), 1, 1, 1)
@@ -603,12 +553,9 @@
  * @returns {number[]} out
  * @example
  * <caption>mat4MulPoint carries (80, 0, 0) through the turning frame: the small axes placed at the result ride on the tip of its x axis.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), p = tree.vec3()
  *
@@ -640,12 +587,9 @@
  * @returns {number[]} out
  * @example
  * <caption>A direction ignores translation: the yellow line drawn along the result turns with the moved frame's x axis but stays rooted at the origin.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), q = tree.quat(), d = tree.vec3()
  *
@@ -674,12 +618,9 @@
  * @returns {Float32Array|number[]|null} out, or null when `to` is singular.
  * @example
  * <caption>The point 50 along the spinning left frame's x, carried into the turned right frame's coordinates and drawn back out through the right frame: the small yellow axes stay on the tip of the left frame's red axis.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 200, 300] })
  * const B = tree.mat4FromTRS(tree.mat4(), 80, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2), 1, 1, 1)
  * const A = tree.mat4(), L = tree.mat4(), T = tree.mat4(), q = tree.quat()
@@ -714,12 +655,9 @@
  * @returns {Float32Array|number[]|null} out, or null when `to` is singular.
  * @example
  * <caption>The spinning left frame's x direction, re-expressed in the turned right frame and drawn from there as the yellow line: it stays parallel to the left frame's red axis.</caption>
- * const { setCamera, axes, hermite, tree } = webglTree
+ * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 200, 300] })
  * const B = tree.mat4FromTRS(tree.mat4(), 80, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2), 1, 1, 1)
  * const A = tree.mat4(), D = tree.mat3(), q = tree.quat(), line = tree.vec3()
@@ -750,12 +688,9 @@
  * @returns {Float32Array|number[]} out3
  * @example
  * <caption>The translation read out of a circling, spinning, stretched frame places the white axes: they ride along with it, never turning or stretching.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
  * const M = tree.mat4(), T = tree.mat4(), q = tree.quat(), t3 = tree.vec3()
  *
@@ -785,12 +720,9 @@
  * @returns {Float32Array|number[]} out3
  * @example
  * <caption>The scale read out of the tumbling left frame's matrix sizes the unrotated white axes on the right: their arms stretch and shrink exactly as the left frame's do.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const M = tree.mat4(), S = tree.mat4(), q = tree.quat(), s3 = tree.vec3()
  *
@@ -820,12 +752,9 @@
  * @returns {number[]} out4
  * @example
  * <caption>The rotation read out of the left frame's matrix drives the right frame: both tumble in step.</caption>
- * const { setCamera, axes, tree } = webglTree
+ * const { createCanvas, setCamera, axes, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const A = tree.mat4(), B = tree.mat4(), q = tree.quat(), r = tree.quat()
  *
@@ -857,12 +786,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>(1, 0, 0) and d = 0 name the plane 1·x + 0·y + 0·z = 0, that is x = 0 — the white grid: reflected across it, the frame spinning on the left spins the opposite way on the right.</caption>
- * const { setCamera, axes, grid, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [0, 150, 320] })
  * const mirror = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 0, 1, 0, Math.PI / 2), 1, 1, 1)
  * const R = tree.mat4Reflect(tree.mat4(), 1, 0, 0, 0)
@@ -892,12 +818,9 @@
  * @returns {Float32Array|number[]} out
  * @example
  * <caption>A camera straight above renders the spinning axes and the grid into a texture; laid back on the ground with each corner's uv = Bias · P · V · corner, the image lands exactly on the real grid lines and under the real axes.</caption>
- * const { setCamera, axes, grid, pane, viewFrustum, renderTarget, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, axes, grid, pane, viewFrustum, renderTarget, SCREEN, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  * const cam = tree.createCamera({ eye: [200, 230, 300] })
  * const above = tree.createCamera({ eye: [0, 200, 0], up: [0, 0, -1], fov: Math.PI / 3, near: 50, far: 400 })
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)

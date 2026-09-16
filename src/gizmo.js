@@ -45,6 +45,7 @@ import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
 import { image } from './pass.js';
 import { lineProgram, wideLineProgram, flatProgram, bindGeometry } from './programs.js';
+import { canvasViewport } from './space.js';
 
 const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const WHITE = [1, 1, 1, 1];
@@ -649,9 +650,9 @@ export function handleLocus(gl, h, opts) {
   fill(gl, g, (a) => locusLines(a, h._constraint, { bits: bits & (AIM | LOCUS | RING), mat4View: ctx.V, point: _p, color: o.color }));
   _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (bits & HANDLE) {
-    const V = ctx.V, vp = _viewport(gl);
+    const V = ctx.V, height = -canvasViewport(gl)[3] || 1;   // the grab radius counts canvas pixels
     const eyeZ = V[2]*_p[0] + V[6]*_p[1] + V[10]*_p[2] + V[14];
-    const r = (o.size ?? h._grabPx ?? 12) * pixelRatio(ctx.P, vp[3] || 1, eyeZ, ctx.ndcZMin);
+    const r = (o.size ?? h._grabPx ?? 12) * pixelRatio(ctx.P, height, eyeZ, ctx.ndcZMin);
     _du[0] = V[0]; _du[1] = V[4]; _du[2] = V[8];      // the camera's right
     _dv[0] = V[1]; _dv[1] = V[5]; _dv[2] = V[9];      // the camera's up
     const d = _keyed(ctx, 'dot');
@@ -664,12 +665,12 @@ export function handleLocus(gl, h, opts) {
 
 /**
  * Start drawing in screen space: the installed camera is saved, an
- * orthographic projection over the current viewport in y-down target
- * pixels with an identity view goes in, and the depth test goes off. Pair
+ * orthographic projection over the current viewport in canvas pixels, y
+ * down, with an identity view goes in, and the depth test goes off. Pair
  * with endHUD. The screen-space gizmos and image are the usual contents.
  * @param {WebGL2RenderingContext} gl
  * @example
- * <caption>Between beginHUD and endHUD, coordinates are pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>
+ * <caption>Between beginHUD and endHUD, coordinates are canvas pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>
  * const { setCamera, axes, beginHUD, endHUD, cross, bullsEye, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -690,10 +691,10 @@ export function handleLocus(gl, h, opts) {
 export function beginHUD(gl) {
   const ctx = contextOf(gl);
   if (ctx.hud) return;
-  const vp = _viewport(gl);
+  const vp = canvasViewport(gl);
   ctx.hud = { V: new Float32Array(ctx.V), P: new Float32Array(ctx.P), depth: gl.isEnabled(gl.DEPTH_TEST) };
   if (ctx.hud.depth) gl.disable(gl.DEPTH_TEST);
-  installCamera(ctx, IDENTITY, mat4Ortho(_P, 0, vp[2], vp[3], 0, -1, 1, ctx.ndcZMin));
+  installCamera(ctx, IDENTITY, mat4Ortho(_P, vp[0], vp[0] + vp[2], vp[1], vp[1] + vp[3], -1, 1, ctx.ndcZMin));
 }
 
 /**

@@ -102,6 +102,38 @@
  */
 
 /**
+ * A new zero vec2, `[0, 0]`: storage for the functions writing pixel pairs, made at setup — a pointer uniform's value.
+ * @function vec2
+ * @memberof tree
+ * @returns {number[]}
+ * @example
+ * <caption>A vec2 made at setup holds the pointer's gl_FragCoord, refreshed on every move; the pass reads it as uMouse and paints an amber disc there.</caption>
+ * const { program, filter, fragCoord, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const spot = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform vec2 uMouse;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = distance(gl_FragCoord.xy, uMouse);
+ *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.075, 0.553, 0.459), smoothstep(38.0, 42.0, d)), 1.0);
+ * }`)
+ * const uniforms = { uMouse: tree.vec2() }
+ * fragCoord(gl, uniforms.uMouse, 200, 150)
+ * canvas.addEventListener('pointermove', (e) => fragCoord(gl, uniforms.uMouse, e.offsetX, e.offsetY))
+ *
+ * function frame() {
+ *   filter(gl, spot, uniforms)
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
  * `out = A · B`: B applies first, then A.
  * @function mat4Mul
  * @memberof tree

@@ -34,13 +34,13 @@ import { contextOf } from './context.js';
 import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
 import { flatProgram } from './programs.js';
+import { canvasViewport } from './space.js';
 
 const _rgba = [0, 0, 0, 1];
 const _Ppick = new Float32Array(16);
 const _V = new Float32Array(16);
 const _P = new Float32Array(16);
 const _vp = [0, 0, 0, 0];
-const _pickVp = [0, 0, 0, 0];
 
 function _pending(ctx) {
   if (!ctx.readbacks) ctx.readbacks = { list: [], pool: [], polling: false };
@@ -79,7 +79,7 @@ function _poll(gl, ctx) {
  * Read one pixel of a target back asynchronously.
  * @param {WebGL2RenderingContext} gl
  * @param {object|null} fbo  A render target, or `SCREEN`.
- * @param {number} x  Pixel column in the target, from the left.
+ * @param {number} x  Pixel column in the target, from the left — window space, device pixels; `fragCoord` converts a canvas pixel.
  * @param {number} y  Pixel row in the target, from the bottom.
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
@@ -140,7 +140,7 @@ export function readPixel(gl, fbo, x, y) {
  * The id of the object under a canvas pixel, 0 for a miss.
  * @details Colour-id picking into a cached 1×1 target; ids run 1 … 2²⁴ − 1.
  * @param {WebGL2RenderingContext} gl
- * @param {number} x  The query pixel's column: CSS px with a host attached, else drawing-buffer px.
+ * @param {number} x  The query pixel's column, canvas pixels — a pointer event's offset as is.
  * @param {number} y  Its row, from the top.
  * @param {function(function(number):void):void} drawFn  Draws the scene; call paint(id) before each object's draw.
  * @param {{ program?:object, vp?:number[], sync?:boolean }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed. sync: read the pixel back at once, stalling the GPU; the promise resolves in the same tick.
@@ -214,11 +214,7 @@ export function pick(gl, x, y, drawFn, opts) {
   const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
   const vp = gl.getParameter(gl.VIEWPORT);
   _vp[0] = vp[0]; _vp[1] = vp[1]; _vp[2] = vp[2]; _vp[3] = vp[3];
-  let pvp = o.vp;
-  if (!pvp) {
-    if (ctx.host && ctx.host.view) pvp = ctx.host.view.vp;
-    else { _pickVp[0] = 0; _pickVp[1] = vp[3]; _pickVp[2] = vp[2]; _pickVp[3] = -vp[3]; pvp = _pickVp; }
-  }
+  const pvp = o.vp || canvasViewport(gl);
   _V.set(ctx.V); _P.set(ctx.P);
   _Ppick.set(ctx.P);
   mat4Pick(_Ppick, x, y, pvp);

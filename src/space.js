@@ -4,12 +4,19 @@
  * @license AGPL-3.0-only
  *
  * Every call reads the camera `setCamera` installed and the current viewport.
- * Screen space is the viewport's pixels, y down: the space `beginHUD` draws in.
+ * Screen space is canvas space: the canvas's logical pixels, top-left, y down —
+ * what the pointer, `pick`, labels and `beginHUD` count, so a pointer event's
+ * offset feeds these calls as is. `fragCoord` crosses to window space: the
+ * drawing buffer's device pixels, bottom-left, y up — what `gl_FragCoord`,
+ * `readPixel` and `image` count.
  *
  * @details
  * tree's mapLocation, mapDirection, unproject, pixelRatio and mat4Viewport
  * with the view bag, the viewport and WEBGL supplied. The viewport is read
- * from gl.VIEWPORT into module scratch as [0, h, w, −h].
+ * from gl.VIEWPORT and written into module scratch in canvas space as
+ * [x, y + h, w, −h], so a sub-viewport composes through W's origin. The
+ * device-pixel scale is the drawing buffer's width over the host's logical
+ * width, or over the canvas's client width without a host.
  */
 
 'use strict';
@@ -18,14 +25,34 @@ import {
   mapLocation as _mapLocation, mapDirection as _mapDirection, unproject as _unproject,
   pixelRatio as _pixelRatio, mat4Viewport as _mat4Viewport, WEBGL,
 } from '@nakednous/tree';
-import { viewOf } from './context.js';
+import { contextOf, viewOf } from './context.js';
 
 const _vp = [0, 0, 0, 0];
-const _viewport = (gl) => {
-  const v = gl.getParameter(gl.VIEWPORT);
-  _vp[0] = 0; _vp[1] = v[3]; _vp[2] = v[2]; _vp[3] = -v[3];
+
+/**
+ * Device pixels per canvas pixel.
+ * @param {WebGL2RenderingContext} gl
+ * @returns {number}
+ * @ignore
+ */
+export function canvasScale(gl) {
+  const host = contextOf(gl).host;
+  const w = host && host.view ? host.view.vp[2] : (gl.canvas && gl.canvas.clientWidth) || 0;
+  return w > 0 ? gl.drawingBufferWidth / w : 1;
+}
+
+/**
+ * The current viewport in canvas space, [x, y + h, w, −h], in module scratch.
+ * @param {WebGL2RenderingContext} gl
+ * @returns {number[]}
+ * @ignore
+ */
+export function canvasViewport(gl) {
+  const v = gl.getParameter(gl.VIEWPORT), s = canvasScale(gl);
+  _vp[0] = v[0] / s; _vp[1] = (gl.drawingBufferHeight - v[1]) / s; _vp[2] = v[2] / s; _vp[3] = -v[3] / s;
   return _vp;
-};
+}
+const _viewport = canvasViewport;
 
 /**
  * Map a point from one space to another through the installed camera.
@@ -38,7 +65,7 @@ const _viewport = (gl) => {
  * @param {string} to  One of the same.
  * @returns {number[]} out
  * @example
- * <caption>The tip of the spinning x axis, mapped from world space to screen pixels: the white cross drawn there stays on it.</caption>
+ * <caption>The tip of the spinning x axis, mapped from world space to canvas pixels: the white cross drawn there stays on it.</caption>
  * const { setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -113,15 +140,15 @@ export function mapDirection(gl, out, dx, dy, dz, from, to) {
 }
 
 /**
- * The world ray under a screen point: its origin on the near plane and its unit direction.
+ * The world ray under a canvas pixel: its origin on the near plane and its unit direction.
  * @param {WebGL2RenderingContext} gl
  * @param {number[]} outO  3-element origin.
  * @param {number[]} outD  3-element unit direction.
- * @param {number} sx  Screen x, viewport pixels.
- * @param {number} sy  Screen y, viewport pixels, down.
+ * @param {number} sx  Canvas x, canvas pixels.
+ * @param {number} sy  Canvas y, canvas pixels, down.
  * @returns {number[]|null} outD, or null when the view cannot be inverted.
  * @example
- * <caption>Move the pointer over the canvas: the ray under it, cut where it meets the ground (y = 0), puts the small axes on the grid right under the pointer.</caption>
+ * <caption>Move the pointer over the canvas: the ray under its offset, cut where it meets the ground (y = 0), puts the small axes on the grid right under the pointer.</caption>
  * const { setCamera, axes, grid, unproject, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))
@@ -132,10 +159,7 @@ export function mapDirection(gl, out, dx, dy, dz, from, to) {
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  * const origin = tree.vec3(), dir = tree.vec3(), M = tree.mat4()
  * let px = 200, py = 150
- * canvas.addEventListener('pointermove', (e) => {
- *   px = e.offsetX * canvas.width / canvas.clientWidth
- *   py = e.offsetY * canvas.height / canvas.clientHeight
- * })
+ * canvas.addEventListener('pointermove', (e) => { px = e.offsetX; py = e.offsetY })
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
@@ -157,7 +181,49 @@ export function unproject(gl, outO, outD, sx, sy) {
 }
 
 /**
- * World units per screen pixel at an eye-space depth, for the installed camera.
+ * The `gl_FragCoord` of a canvas pixel: canvas space to window space, the
+ * drawing buffer's device pixels, y up. The value of a pointer uniform,
+ * beside the `uResolution` `filter` fills; the coordinates `readPixel` takes.
+ * @param {WebGL2RenderingContext} gl
+ * @param {number[]} out  2-element destination.
+ * @param {number} x  Canvas x, canvas pixels.
+ * @param {number} y  Canvas y, canvas pixels, down.
+ * @returns {number[]} out
+ * @example
+ * <caption>Move the pointer over the canvas: an amber disc 40 device pixels in radius follows it — the fragment shader compares its own gl_FragCoord with uMouse, the pointer's.</caption>
+ * const { program, filter, fragCoord, tree } = webglTree
+ *
+ * const canvas = document.body.appendChild(document.createElement('canvas'))
+ * canvas.width = 400
+ * canvas.height = 300
+ * const gl = canvas.getContext('webgl2')
+ * const spot = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform vec2 uMouse;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = distance(gl_FragCoord.xy, uMouse);
+ *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.075, 0.553, 0.459), smoothstep(38.0, 42.0, d)), 1.0);
+ * }`)
+ * const uniforms = { uMouse: tree.vec2() }
+ * fragCoord(gl, uniforms.uMouse, 200, 150)
+ * canvas.addEventListener('pointermove', (e) => fragCoord(gl, uniforms.uMouse, e.offsetX, e.offsetY))
+ *
+ * function frame() {
+ *   filter(gl, spot, uniforms)
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+export function fragCoord(gl, out, x, y) {
+  const s = canvasScale(gl);
+  out[0] = x * s;
+  out[1] = gl.drawingBufferHeight - y * s;
+  return out;
+}
+
+/**
+ * World units per canvas pixel at an eye-space depth, for the installed camera.
  * @param {WebGL2RenderingContext} gl
  * @param {number} eyeZ  The eye-space z of the depth measured.
  * @returns {number}
@@ -192,12 +258,12 @@ export function pixelRatio(gl, eyeZ) {
 }
 
 /**
- * The viewport matrix W: NDC to screen pixels (y down), depth to [0, 1].
+ * The viewport matrix W: NDC to canvas pixels (y down), depth to [0, 1].
  * @param {WebGL2RenderingContext} gl
  * @param {Float32Array|number[]} out
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>W · P · V takes the spinning x axis's tip straight to screen pixels, where the white cross is drawn over it.</caption>
+ * <caption>W · P · V takes the spinning x axis's tip straight to canvas pixels, where the white cross is drawn over it.</caption>
  * const { setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, viewOf, tree } = webglTree
  *
  * const canvas = document.body.appendChild(document.createElement('canvas'))

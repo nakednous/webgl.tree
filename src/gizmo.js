@@ -21,9 +21,10 @@
  * bufferInfo per context, allocated from the generator's returned count and
  * grown when it exceeds capacity; per frame the generator writes into the
  * cached arrays and the buffer is re-uploaded — zero allocation once warm.
- * Depth test on by default; { depth: false } for overlays. One-pixel GL
- * lines by default; { width } in pixels (experimental) expands each segment
- * into a screen-space quad through a second internal program, the
+ * Depth test on by default; { depth: false } for overlays. { width } counts
+ * canvas pixels, default 1, scaled by the pixel density: at or below one
+ * device pixel the native GL line draws, above it each segment expands into
+ * a screen-space quad of that width through a second internal program, the
  * generators untouched. Colour is semantic where the generator writes a
  * palette (axes, the helm rig), else opts.color (default white). A gizmo
  * binds its own program and restores the one bound before it.
@@ -45,7 +46,7 @@ import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
 import { image } from './pass.js';
 import { lineProgram, wideLineProgram, flatProgram, bindGeometry } from './programs.js';
-import { canvasViewport } from './space.js';
+import { canvasViewport, canvasScale } from './space.js';
 
 const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 const WHITE = [1, 1, 1, 1];
@@ -160,10 +161,11 @@ export function expand(gl, g) {
   return w;
 }
 
-/** Draw a filled gizmo's lines under M: raw gl.LINES, or the expanded quads when width > 1; uColor unless the arrays carry colour. */
+/** Draw a filled gizmo's lines under M: raw gl.LINES, or the expanded quads once the width in device pixels exceeds 1; uColor unless the arrays carry colour. */
 function _drawLines(gl, ctx, g, M, color, depth, width) {
   if (!g.arrays.count) return;
-  const wide = typeof width === 'number' && width > 1;
+  const px = (typeof width === 'number' ? width : 1) * canvasScale(gl);   // canvas pixels → device pixels
+  const wide = px > 1;
   const prog = wide ? wideLineProgram(gl) : lineProgram(gl);
   if (!prog) return;
   const prev = ctx.prog;
@@ -178,7 +180,7 @@ function _drawLines(gl, ctx, g, M, color, depth, width) {
     const w = expand(gl, g);
     const vp = _viewport(gl);
     _res2[0] = vp[2]; _res2[1] = vp[3];
-    s.uViewport(_res2); s.uWidth(width);
+    s.uViewport(_res2); s.uWidth(px);
     bindGeometry(gl, prog, w.buffer);
     drawBufferInfo(gl, w.buffer, gl.TRIANGLES, 6 * w.segments);
   } else {

@@ -559,8 +559,7 @@
  * @param {object} cam  The camera state moved.
  * @param {object} [opts]
  * @param {number} [opts.rotate=0.005]  Radians per pixel.
- * @param {number} [opts.damping=0]  The lag's time constant in seconds: the camera trails the gesture by about that much and, after a release, completes what the finger did; 0 keeps the drag exact.
- * @param {number} [opts.inertia=0]  The flick's time constant in seconds: at release the fastest step of the last 200 ms coasts on, its travel that peak speed times the constant; 0 means no flick.
+ * @param {number} [opts.damping=0]  The lag's time constant in seconds: the camera trails the gesture by about that much and, after a release, completes what the finger did, a flick easing out; 0 keeps the orbit exact.
  * @param {number} [opts.minDistance]
  * @param {number} [opts.maxDistance]
  * @returns {Orbit}

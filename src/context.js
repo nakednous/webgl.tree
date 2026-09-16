@@ -7,6 +7,7 @@
  * attaches a host to a context, `dispose` frees what webgl.tree made for it.
  *
  * ```
+ * const gl = createCanvas(400, 300)   // a canvas whose buffer matches the display
  * init(gl, { host })   // optional: attach a host
  * dispose(gl)          // free every GPU resource made here
  * ```
@@ -31,6 +32,42 @@ const _registry = new WeakMap();
 const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m; };
 
 /**
+ * A canvas sized for the display: `width × height` canvas pixels on the page,
+ * its drawing buffer scaled by the pixel density, its WebGL2 context returned.
+ * What a framework's canvas call supplies silently.
+ * @param {number} width  Canvas pixels.
+ * @param {number} height  Canvas pixels.
+ * @param {{ density?:number, parent?:Element|null, attributes?:object }} [opts]
+ *        density: device pixels per canvas pixel, default `devicePixelRatio`.
+ *        parent: the element the canvas is appended to, default `document.body`;
+ *        null leaves it detached. attributes: WebGL context attributes.
+ * @returns {WebGL2RenderingContext} gl — the element is `gl.canvas`.
+ * @example
+ * <caption>A 400 × 300 canvas whose drawing buffer matches the display: the bulls-eye, placed in canvas pixels, sits centred with a sharp edge at any pixel density.</caption>
+ * const { createCanvas, beginHUD, endHUD, bullsEye } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT)
+ * beginHUD(gl)
+ * bullsEye(gl, { x: 200, y: 150, size: 120, color: [1, 0.82, 0.4, 1] })
+ * endHUD(gl)
+ */
+export function createCanvas(width, height, opts) {
+  const o = opts || {};
+  const density = o.density || (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(width * density);
+  canvas.height = Math.round(height * density);
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  if (o.parent !== null) (o.parent || document.body).appendChild(canvas);
+  const gl = canvas.getContext('webgl2', o.attributes);
+  if (!gl) throw new Error('[webgl.tree] createCanvas: WebGL2 is unavailable.');
+  return gl;
+}
+
+/**
  * Attach a host to a context, so handles, labels and the orbit see the
  * camera `setCamera` installs.
  * @param {WebGL2RenderingContext} gl
@@ -40,12 +77,10 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * @returns {object} The entry.
  * @example
  * <caption>With a host attached, drag the magenta dot around a sphere of radius 100.</caption>
- * const { init, setCamera, axes, handleLocus, tree, host } = webglTree
+ * const { createCanvas, init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  *
@@ -120,12 +155,9 @@ export function contextOf(gl, opts) {
  * @returns {object}
  * @example
  * <caption>A magenta crosshair pinned to the tip of the X axis as the camera circles.</caption>
- * const { setCamera, axes, cross, viewOf, tree } = webglTree
+ * const { createCanvas, setCamera, axes, cross, viewOf, tree } = webglTree
  *
- * const canvas = document.body.appendChild(document.createElement('canvas'))
- * canvas.width = 400
- * canvas.height = 300
- * const gl = canvas.getContext('webgl2')
+ * const gl = createCanvas(400, 300)
  *
  * const cam = tree.createCamera({ eye: [0, 107, 215] })
  * const tip = tree.vec3()
@@ -161,7 +193,7 @@ export function viewOf(gl) {
  * @param {WebGL2RenderingContext} gl
  * @example
  * <caption>Click to tear down: the loop stops, dispose frees the target and caches, the context is lost and the canvas goes; click again for a fresh canvas.</caption>
- * const { setCamera, axes, renderTarget, image, dispose, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, axes, renderTarget, image, dispose, SCREEN, tree } = webglTree
  *
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
@@ -169,10 +201,8 @@ export function viewOf(gl) {
  * let frameId = 0
  *
  * function start() {
- *   const canvas = document.body.appendChild(document.createElement('canvas'))
- *   canvas.width = 400
- *   canvas.height = 300
- *   gl = canvas.getContext('webgl2')
+ *   gl = createCanvas(400, 300)
+ *   const canvas = gl.canvas
  *   const scene = renderTarget(gl)
  *   const cam = tree.createCamera({ eye: [0, 107, 215] })
  *   const frame = (ms) => {

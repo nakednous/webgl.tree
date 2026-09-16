@@ -559,9 +559,34 @@
  * @param {object} cam  The camera state moved.
  * @param {object} [opts]
  * @param {number} [opts.rotate=0.005]  Radians per pixel.
+ * @param {number} [opts.inertia=0]  The coast's time constant in seconds: after a release the gesture's rate over its last 100 ms decays with it, the travel that rate times the constant; 0 keeps the orbit exact.
  * @param {number} [opts.minDistance]
  * @param {number} [opts.maxDistance]
  * @returns {Orbit}
+ * @example
+ * <caption>Flick to orbit: with inertia 0.4 the axes keep turning after the release and settle within a couple of seconds; a finger held still before lifting stops them dead, and a scroll's dolly eases in the same way.</caption>
+ * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam, { inertia: 0.4, minDistance: 150, maxDistance: 600 })
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   orbit.update()
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  * @example
  * <caption>Drag to orbit the camera state around the axes, scroll to dolly — but grabbing the magenta dot drags the handle instead, the orbit leaving that pointer alone.</caption>
  * const { createCanvas, init, setCamera, axes, grid, handleLocus, tree, host } = webglTree

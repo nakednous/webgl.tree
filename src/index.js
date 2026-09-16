@@ -12,6 +12,19 @@
  * @nakednous/tree and @nakednous/host come along as the `tree` and `host`
  * namespaces, so an application imports the stack from one name; `tree` has
  * WebGL's NDC depth convention bound, so no call names it.
+ *
+ * What the bridge names in a shader, and nothing else:
+ *
+ * ```
+ * attributes   the application's own — twgl binds each by the name its arrays use;
+ *              the bridge's geometry (the fullscreen quad, the gizmos, pane) declares
+ *              aPosition, aTexCoord, aColor
+ * transforms   uploaded by draw, each only if the bound program declares it:
+ *              uModelMatrix M · uViewMatrix V · uModelViewMatrix V·M · uProjectionMatrix P
+ *              uModelViewProjectionMatrix P·V·M · uNormalMatrix (V·M)⁻ᵀ
+ * passes       filter fills uSource (tex0 too), uResolution, uTexelSize, each only if declared
+ * the rest     bind(gl, prog, uniforms) — the application's bag, by name
+ * ```
  */
 
 'use strict';

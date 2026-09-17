@@ -461,7 +461,10 @@ export function trackPath(gl, track, opts) {
     for (let i = 0; i < kfs.length; i++) marker(gl, kfs[i], i, track, o);
   }
   if ((bits & HANDLES) && track.handles && track.handles.members) {
-    for (const m of track.handles.members) handleLocus(gl, m.h, { size: track.handles.grabPx, color: o.color, depth: o.depth });
+    // the dot for every member, the ring for a rot dial; a VIEW member's drag plane is not drawn
+    for (const m of track.handles.members) {
+      handleLocus(gl, m.h, { bits: m.field === 'rot' ? HANDLE | LOCUS : HANDLE, size: track.handles.grabPx, color: o.color, depth: o.depth });
+    }
   }
 }
 

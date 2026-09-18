@@ -18,7 +18,8 @@
  * ```
  * attributes   the application's own — twgl binds each by the name its arrays use;
  *              the bridge's geometry (the fullscreen quad, the gizmos, pane) declares
- *              aPosition, aTexCoord, aColor
+ *              aPosition, aTexCoord, aColor; buffer(gl, arrays) names the arrays shape
+ *              aPosition, aNormal, aTangent, aTexCoord, aColor, aJoints, aWeights
  * transforms   uploaded by draw, each only if the bound program declares it:
  *              uModelMatrix M · uViewMatrix V · uModelViewMatrix V·M · uProjectionMatrix P
  *              uModelViewProjectionMatrix P·V·M · uNormalMatrix (V·M)⁻ᵀ
@@ -31,7 +32,7 @@
 
 export { createCanvas, init, dispose, contextOf, viewOf } from './context.js';
 export { setCamera } from './camera.js';
-export { bind, draw, drawInstanced, declaredTransforms, uploadTransforms, TRANSFORMS } from './draw.js';
+export { bind, buffer, draw, drawInstanced, declaredTransforms, uploadTransforms, TRANSFORMS } from './draw.js';
 export { renderTarget, targetSpecs, SCREEN } from './target.js';
 export { program, fullscreen, filter, image, pipe, releasePipe, rectMatrix, passOf, RED, GREEN, BLUE, ALPHA, RGB, NORMAL, ADD, MULTIPLY } from './pass.js';
 export { fill, expand, axes, grid, hermite, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';

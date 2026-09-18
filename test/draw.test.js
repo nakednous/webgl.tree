@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { contextOf, setCamera, declaredTransforms, uploadTransforms, TRANSFORMS } from '../src/index.js';
+import { contextOf, setCamera, declaredTransforms, uploadTransforms, buffer, TRANSFORMS } from '../src/index.js';
 import { createGL } from './gl.js';
 
 const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a - b) <= tol, `${a} ≠ ${b}`);
@@ -64,4 +64,26 @@ test('uploadTransforms: with no M the view and PV are uploaded as they are', () 
   uploadTransforms(ctx, prog, null);
   assert.deepEqual(prog.got.uModelViewMatrix, Array.from(V));
   assert.deepEqual(prog.got.uModelViewProjectionMatrix, Array.from(ctx.PV));
+});
+
+test('buffer: the arrays shape under the bridge\'s attribute names; other keys pass through; joints unnormalised', () => {
+  globalThis.WebGLBuffer ??= class WebGLBuffer {};   // twgl tells a ready buffer from arrays by this class
+  const gl = createGL();
+  const info = buffer(gl, {
+    position: { numComponents: 3, data: new Float32Array(9) },
+    normal: { numComponents: 3, data: new Float32Array(9) },
+    texcoord: { numComponents: 2, data: new Float32Array(6) },
+    joints: { numComponents: 4, data: new Uint8Array(12) },
+    weights: { numComponents: 4, data: new Float32Array(12) },
+    aTarget0: { numComponents: 3, data: new Float32Array(9) },
+    indices: { numComponents: 3, data: new Uint32Array([0, 1, 2]) },
+  });
+  assert.deepEqual(Object.keys(info.attribs).sort(), ['aJoints', 'aNormal', 'aPosition', 'aTarget0', 'aTexCoord', 'aWeights']);
+  assert.equal(info.attribs.aJoints.normalize, false);
+  assert.equal(info.attribs.aTexCoord.numComponents, 2);
+  assert.equal(info.numElements, 3);
+  assert.ok(info.indices);
+  const raw = buffer(gl, { position: new Float32Array(9), joints: new Uint16Array(12) });   // bare typed arrays
+  assert.equal(raw.attribs.aJoints.numComponents, 4);
+  assert.equal(raw.numElements, 3);
 });

@@ -28,7 +28,7 @@
 'use strict';
 
 import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { setUniforms, setBuffersAndAttributes, drawBufferInfo } from 'twgl.js';
+import { setUniforms, setBuffersAndAttributes, drawBufferInfo, createBufferInfoFromArrays } from 'twgl.js';
 import { contextOf } from './context.js';
 
 /** The transform names a program may declare, in the order the bridge fills them. */
@@ -148,6 +148,79 @@ function _draw(gl, obj, M, opts, instances) {
   drawBufferInfo(gl, obj, o.mode, o.count, o.offset, instances);
 }
 
+// The arrays shape's keys as the attribute names the bridge's shaders use.
+const ATTRIBUTES = {
+  position: 'aPosition', normal: 'aNormal', tangent: 'aTangent', texcoord: 'aTexCoord', color: 'aColor',
+  joints: 'aJoints', weights: 'aWeights',
+};
+
+/**
+ * A twgl bufferInfo from the arrays shape — what host.loadModel's meshes and
+ * twgl's primitives both carry — under the bridge's attribute names: position
+ * → aPosition, normal → aNormal, tangent → aTangent, texcoord → aTexCoord,
+ * color → aColor, joints → aJoints, weights → aWeights. `indices` and any
+ * other key pass through as they are, so arrays already named for a shader
+ * mix in. Joint indices upload unnormalised.
+ * @param {WebGL2RenderingContext} gl
+ * @param {object} arrays  The arrays shape: `{ position, indices?, normal?, … }`, each a
+ *        `{ numComponents, data }` or a typed array twgl can size.
+ * @returns {object} A twgl bufferInfo, what draw takes.
+ * @example
+ * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
+ * const { createCanvas, setCamera, bind, buffer, draw, host, tree } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ *
+ * // a model's meshes carry arrays { position, normal, texcoord, indices }; buffer names them aPosition, aNormal, aTexCoord
+ * let torus = null
+ * host.loadModel('models/torus.obj').then((model) => {
+ *   torus = buffer(gl, model.meshes[0].arrays)
+ *   requestAnimationFrame(frame)
+ * })
+ * const cam = tree.createCamera({ eye: [0, 160, 192] })
+ * const M = tree.mat4()
+ * const q = tree.quat()
+ *
+ * function frame(ms) {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   tree.qFromAxisAngle(q, 1, 0, 0, ms / 1000)
+ *   bind(gl, prog, { uColor: [1, 0.82, 0.4] })
+ *   draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+ *   requestAnimationFrame(frame)
+ * }
+ */
+export function buffer(gl, arrays) {
+  const named = {};
+  for (const key in arrays) {
+    let a = arrays[key];
+    if (key === 'joints') a = a.data ? { ...a, normalize: false } : { numComponents: 4, data: a, normalize: false };
+    named[ATTRIBUTES[key] || key] = a;
+  }
+  return createBufferInfoFromArrays(gl, named);
+}
+
 /**
  * Draw geometry under the bound program, uploading the transforms it
  * declares.
@@ -197,52 +270,6 @@ function _draw(gl, obj, M, opts, instances) {
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
- * @example
- * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
- * const { createCanvas, setCamera, bind, draw, host, tree } = webglTree
- *
- * const gl = createCanvas(400, 300)
- *
- * const prog = twgl.createProgramInfo(gl, [`#version 300 es
- * in vec4 aPosition;
- * in vec3 aNormal;
- * uniform mat4 uModelViewProjectionMatrix;
- * uniform mat3 uNormalMatrix;
- * out vec3 vNormal;
- * void main() {
- *   vNormal = uNormalMatrix * aNormal;
- *   gl_Position = uModelViewProjectionMatrix * aPosition;
- * }`, `#version 300 es
- * precision highp float;
- * in vec3 vNormal;
- * uniform vec3 uColor;
- * out vec4 outColor;
- * void main() {
- *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
- *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
- * }`])
- *
- * // a model's meshes carry arrays { position, normal, texcoord, indices }; the shader names its attributes aPosition / aNormal
- * let torus = null
- * host.loadModel('models/torus.obj').then((model) => {
- *   const { position, normal, indices } = model.meshes[0].arrays
- *   torus = twgl.createBufferInfoFromArrays(gl, { aPosition: position, aNormal: normal, indices })
- *   requestAnimationFrame(frame)
- * })
- * const cam = tree.createCamera({ eye: [0, 160, 192] })
- * const M = tree.mat4()
- * const q = tree.quat()
- *
- * function frame(ms) {
- *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
- *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- *   setCamera(gl, cam)
- *   tree.qFromAxisAngle(q, 1, 0, 0, ms / 1000)
- *   bind(gl, prog, { uColor: [1, 0.82, 0.4] })
- *   draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
- *   requestAnimationFrame(frame)
- * }
  */
 export function draw(gl, obj, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }   // draw(gl, obj, opts)

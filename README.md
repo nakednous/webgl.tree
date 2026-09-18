@@ -84,6 +84,7 @@ by `gl`, created on first use and released by `dispose(gl)`. Options object last
 | `init(gl, { host, ndcZMin, raf })` · `dispose(gl)` · `viewOf(gl)` | attach a host (its view bag receives the camera, its labels the gizmo anchors), release every GPU resource the bridge made, read the view bag a host-less application maps through |
 | `setCamera(gl, V, P)` · `setCamera(gl, cam)` | install the view and projection every draw reads; the state form is the seam a track, a helm or the orbit fills |
 | `bind(gl, prog, uniforms)` | `useProgram` + `setUniforms` |
+| `buffer(gl, arrays)` | a twgl bufferInfo from the arrays shape — `host.loadModel`'s meshes, twgl's primitives — under the bridge's attribute names: `position` → `aPosition`, `normal` → `aNormal`, `tangent` → `aTangent`, `texcoord` → `aTexCoord`, `color` → `aColor`, `joints` → `aJoints` (unnormalised), `weights` → `aWeights`; other keys pass through |
 | `draw(gl, obj, M)` · `drawInstanced(gl, obj, n, M)` | attributes, then the declared transforms — `uModelMatrix` · `uViewMatrix` · `uModelViewMatrix` · `uProjectionMatrix` · `uModelViewProjectionMatrix` · `uNormalMatrix`, each only if the program declares it — then `drawBufferInfo` |
 | `renderTarget(gl, opts)` · `SCREEN` | canvas-sized or `{ width, height }`; `{ depth: true }` a depth texture only; `{ depthTexture: true }` colour plus a sampleable depth; `{ color: ['a', 'b'] }` named multiple targets; `{ depth: false }` colour only; `{ float: true }` RGBA16F; `.color`, `.depth`, `.a`, `resize`, `dispose`; route passes with twgl's `bindFramebufferInfo(gl, fbo)` |
 | `program(gl, frag)` · `fullscreen(gl)` · `filter(gl, prog, uniforms)` | a fullscreen pass from its fragment stage; the covering quad, `aTexCoord` bottom-up; bind + draw with the depth test off, `uSource` the image (bound as `tex0` too, for shaders written to p5's convention), `uResolution` and `uTexelSize` filled iff declared |
@@ -140,6 +141,11 @@ npx browser-sync start --config bs-config.cjs     # the harness under testing/
 ```
 
 ---
+
+## Acknowledgements
+
+- [twgl](https://twgljs.org/) (Gregg Tavares) — the layer underneath: programs, buffers, textures, framebuffers; the arrays shape `buffer` takes is its own.
+- The numeric core's and the host's acknowledgements — glTF 2.0, OBJ, three.js — are in [`@nakednous/tree`](https://github.com/nakednous/tree) and [`@nakednous/host`](https://github.com/nakednous/host).
 
 ## License
 

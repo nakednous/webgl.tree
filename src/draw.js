@@ -222,10 +222,11 @@ function _draw(gl, obj, M, opts, instances) {
  *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
  * }`])
  *
- * // { position, normal, texcoord, indices }; the shader names its attributes aPosition / aNormal
+ * // a model's meshes carry arrays { position, normal, texcoord, indices }; the shader names its attributes aPosition / aNormal
  * let torus = null
  * host.loadModel('models/torus.obj').then((model) => {
- *   torus = twgl.createBufferInfoFromArrays(gl, { aPosition: model.position, aNormal: model.normal, indices: model.indices })
+ *   const { position, normal, indices } = model.meshes[0].arrays
+ *   torus = twgl.createBufferInfoFromArrays(gl, { aPosition: position, aNormal: normal, indices })
  *   requestAnimationFrame(frame)
  * })
  * const cam = tree.createCamera({ eye: [0, 160, 192] })

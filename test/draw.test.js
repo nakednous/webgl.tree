@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { contextOf, setCamera, declaredTransforms, uploadTransforms, buffer, TRANSFORMS } from '../src/index.js';
+import { contextOf, setCamera, declaredTransforms, uploadTransforms, disableMissingAttributes, buffer, TRANSFORMS } from '../src/index.js';
 import { createGL } from './gl.js';
 
 const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a - b) <= tol, `${a} ≠ ${b}`);
@@ -89,4 +89,17 @@ test('buffer: the arrays shape under the bridge\'s attribute names; other keys p
   assert.deepEqual(Object.keys(mesh.attribs).sort(), ['aNormal', 'aPosition']);   // keys holding no numbers are skipped
   assert.equal(raw.attribs.aJoints.numComponents, 4);
   assert.equal(raw.numElements, 3);
+});
+
+test('disableMissingAttributes: what the program declares and the buffers lack is disabled; a vertex array object is left alone', () => {
+  const gl = createGL();
+  const prog = { attribSetters: { aPosition: { location: 0 }, aNormal: { location: 1 }, aTarget0: { location: 2 }, aTarget1: { location: 5 } } };
+  const disabled = () => gl.log.filter(e => e[0] === 'disableVertexAttribArray').map(e => e[1]);
+  disableMissingAttributes(gl, prog, { attribs: { aPosition: {}, aNormal: {}, aColor: {} } });   // aColor: carried, not declared — nothing to do
+  assert.deepEqual(disabled(), [2, 5]);
+  gl.log.length = 0;
+  disableMissingAttributes(gl, prog, { attribs: { aPosition: {}, aNormal: {}, aTarget0: {}, aTarget1: {} } });
+  assert.deepEqual(disabled(), []);
+  disableMissingAttributes(gl, prog, { attribs: {}, vertexArrayObject: {} });
+  assert.deepEqual(disabled(), []);
 });

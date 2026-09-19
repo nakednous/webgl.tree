@@ -17,7 +17,8 @@
  * ```
  *
  * @details
- * draw is setBuffersAndAttributes on the bound program, then the declared
+ * draw binds the buffers' attributes on the bound program — disabling what the
+ * program declares and the buffers lack — then the declared
  * transforms, then drawBufferInfo. The transforms are computed into context
  * scratch and each is uploaded only if the bound program declares it, read
  * off programInfo.uniformSetters once per program. A fullscreen pass declares none and gets none; a shadow capture that
@@ -28,8 +29,9 @@
 'use strict';
 
 import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { setUniforms, setBuffersAndAttributes, drawBufferInfo, createBufferInfoFromArrays } from 'twgl.js';
+import { setUniforms, drawBufferInfo, createBufferInfoFromArrays } from 'twgl.js';
 import { contextOf } from './context.js';
+import { bindGeometry } from './programs.js';
 
 /** The transform names a program may declare, in the order the bridge fills them. */
 export const TRANSFORMS = ['uModelMatrix', 'uViewMatrix', 'uModelViewMatrix', 'uProjectionMatrix', 'uModelViewProjectionMatrix', 'uNormalMatrix'];
@@ -142,7 +144,7 @@ function _draw(gl, obj, M, opts, instances) {
   const prog = ctx.prog;
   if (!prog) { console.error('[webgl.tree] draw: no program bound — call bind(gl, prog) first.'); return; }
   if (!obj) { console.error('[webgl.tree] draw: `obj` must be a twgl bufferInfo.'); return; }
-  setBuffersAndAttributes(gl, prog, obj);
+  bindGeometry(gl, prog, obj);
   uploadTransforms(ctx, prog, M);
   const o = opts || {};
   drawBufferInfo(gl, obj, o.mode, o.count, o.offset, instances);
@@ -275,7 +277,10 @@ export function buffer(gl, arrays) {
 
 /**
  * Draw geometry under the bound program, uploading the transforms it
- * declares.
+ * declares. An attribute the program declares and `obj` lacks reads GL's
+ * constant value, (0, 0, 0, 1) unless gl.vertexAttrib* set another — never an
+ * earlier draw's array — so meshes carrying different attributes share a
+ * program.
  * @param {WebGL2RenderingContext} gl
  * @param {object} obj  A twgl bufferInfo.
  * @param {ArrayLike<number>} [M]  A model mat4; omitted for identity.

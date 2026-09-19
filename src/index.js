@@ -33,6 +33,7 @@
 export { createCanvas, init, dispose, contextOf, viewOf } from './context.js';
 export { setCamera } from './camera.js';
 export { bind, buffer, draw, drawInstanced, declaredTransforms, uploadTransforms, TRANSFORMS } from './draw.js';
+export { disableMissingAttributes } from './programs.js';
 export { renderTarget, targetSpecs, SCREEN } from './target.js';
 export { program, fullscreen, filter, image, pipe, releasePipe, rectMatrix, passOf, RED, GREEN, BLUE, ALPHA, RGB, NORMAL, ADD, MULTIPLY } from './pass.js';
 export { fill, expand, axes, grid, hermite, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';

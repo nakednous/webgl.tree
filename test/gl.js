@@ -19,6 +19,7 @@ export function createGL({ width = 640, height = 480 } = {}) {
     deleteProgram(p) { log.push(['deleteProgram', p]); },
     deleteBuffer(b) { log.push(['deleteBuffer', b]); },
     getExtension() { return {}; },
+    disableVertexAttribArray(location) { log.push(['disableVertexAttribArray', location]); },
     createBuffer() { const b = { id: ++gl.buffers }; log.push(['createBuffer', b.id]); return b; },
     bindBuffer(target, b) { gl.bound = b; },
     bufferData(target, data) { if (gl.bound) gl.bound.size = data.byteLength; log.push(['bufferData', gl.bound ? gl.bound.id : null, data.length]); },

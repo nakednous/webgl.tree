@@ -74,19 +74,39 @@ void main() {
  * @returns {object} A twgl programInfo.
  */
 /**
- * Bind a geometry's buffers to a supplied program, and disable every
- * attribute the program declares that the geometry does not supply: an
- * array another draw left enabled at that location would outrun this
- * geometry's buffers and void the draw.
+ * Disable every attribute the program declares and the buffers lack. Attribute
+ * arrays are context state that outlives a draw: an attribute a mesh does not
+ * carry would otherwise keep the array an earlier draw left enabled — another
+ * mesh's data, or a read past its end that voids the draw. Disabled, it reads
+ * GL's constant value instead, (0, 0, 0, 1) unless gl.vertexAttrib* set
+ * another, so a mesh may carry fewer attributes than its program declares,
+ * whatever was drawn before it. A vertex array object holds its own attribute
+ * state and is left alone. Allocates nothing.
  * @param {WebGL2RenderingContext} gl
  * @param {object} prog  A twgl programInfo.
- * @param {object} buffer  A twgl bufferInfo.
+ * @param {object} obj  A twgl bufferInfo, or a vertexArrayInfo.
+ * @ignore
+ */
+export function disableMissingAttributes(gl, prog, obj) {
+  const attribs = obj.attribs, setters = prog.attribSetters;
+  if (!attribs || !setters || obj.vertexArrayObject) return;
+  for (const name in setters) {
+    if (!(name in attribs)) gl.disableVertexAttribArray(setters[name].location);
+  }
+}
+
+/**
+ * Bind a geometry's buffers to a program — the bridge's own, or the one a
+ * draw runs under — then disable what the program declares and the geometry
+ * lacks (disableMissingAttributes).
+ * @param {WebGL2RenderingContext} gl
+ * @param {object} prog  A twgl programInfo.
+ * @param {object} buffer  A twgl bufferInfo, or a vertexArrayInfo.
+ * @ignore
  */
 export function bindGeometry(gl, prog, buffer) {
   setBuffersAndAttributes(gl, prog, buffer);
-  for (const name in prog.attribSetters) {
-    if (!buffer.attribs[name]) gl.disableVertexAttribArray(prog.attribSetters[name].location);
-  }
+  disableMissingAttributes(gl, prog, buffer);
 }
 
 export function flatProgram(gl) {

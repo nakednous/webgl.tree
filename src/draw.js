@@ -154,19 +154,26 @@ const ATTRIBUTES = {
   joints: 'aJoints', weights: 'aWeights',
 };
 
+// Numbers to upload: a typed array, a list of numbers, or either under `data`.
+const _isNumbers = (a) => ArrayBuffer.isView(a) || (Array.isArray(a) && typeof a[0] === 'number');
+const _isAttribute = (a) => a != null && (_isNumbers(a) || _isNumbers(a.data));
+
 /**
- * A twgl bufferInfo from the arrays shape — what host.loadModel's meshes and
+ * A twgl bufferInfo from the arrays shape — what host.loadMesh's mesh, a loadModel part's, tree.platonic's and
  * twgl's primitives both carry — under the bridge's attribute names: position
  * → aPosition, normal → aNormal, tangent → aTangent, texcoord → aTexCoord,
  * color → aColor, joints → aJoints, weights → aWeights. `indices` and any
- * other key pass through as they are, so arrays already named for a shader
- * mix in. Joint indices upload unnormalised.
+ * other key holding numbers pass through as they are, so arrays already named
+ * for a shader mix in; a key that holds no numbers — a mesh's `bounds`, a
+ * generator's `count` and `labels` — is skipped, so a mesh from host.loadMesh,
+ * tree.platonic or a gizmo generator goes in whole. Joint indices upload
+ * unnormalised.
  * @param {WebGL2RenderingContext} gl
  * @param {object} arrays  The arrays shape: `{ position, indices?, normal?, … }`, each a
  *        `{ numComponents, data }` or a typed array twgl can size.
  * @returns {object} A twgl bufferInfo, what draw takes.
  * @example
- * <caption>A model file: host.loadModel reads models/torus.obj into arrays, and the yellow torus tumbles about X, lit by the file's normals.</caption>
+ * <caption>A model file: host.loadMesh reads models/torus.obj into a mesh, and the yellow torus tumbles about X, lit by the file's normals.</caption>
  * const { createCanvas, setCamera, bind, buffer, draw, host, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -190,10 +197,10 @@ const ATTRIBUTES = {
  *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
  * }`])
  *
- * // a model's meshes carry arrays { position, normal, texcoord, indices }; buffer names them aPosition, aNormal, aTexCoord
+ * // a mesh is { position, normal, texcoord, indices } with its bounds; buffer names the attributes aPosition, aNormal, aTexCoord
  * let torus = null
- * host.loadModel('models/torus.obj').then((model) => {
- *   torus = buffer(gl, model.meshes[0].arrays)
+ * host.loadMesh('models/torus.obj').then((mesh) => {
+ *   torus = buffer(gl, mesh)
  *   requestAnimationFrame(frame)
  * })
  * const cam = tree.createCamera({ eye: [0, 160, 192] })
@@ -259,6 +266,7 @@ export function buffer(gl, arrays) {
   const named = {};
   for (const key in arrays) {
     let a = arrays[key];
+    if (!_isAttribute(a)) continue;                        // a mesh's bounds, a generator's count and labels
     if (key === 'joints') a = a.data ? { ...a, normalize: false } : { numComponents: 4, data: a, normalize: false };
     named[ATTRIBUTES[key] || key] = a;
   }

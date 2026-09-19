@@ -492,15 +492,15 @@
  */
 
 /**
- * Fetch an OBJ model as arrays — position and indices, normal and texcoord when present — that `twgl.createBufferInfoFromArrays` takes.
- * @function model
+ * Fetch one mesh — the arrays shape `{ position, indices, normal?, texcoord?, … }` with its `bounds` beside them — from an OBJ file, a one-part glTF file, or any format through `opts.parse`; `buffer` uploads it as it is. A file of several parts rejects, naming `model`.
+ * @function mesh
  * @memberof Host
  * @param {string} url
- * @param {object} [opts]
- * @returns {Promise<object>}
+ * @param {{ format?:string, parse?:function, normals?:'smooth'|'flat'|false, fetch?:object }} [opts]  normals: left out, the file's are kept and a mesh without any gets smooth ones; 'smooth' and 'flat' always recompute; false computes nothing.
+ * @returns {Promise<object>} The mesh.
  * @example
- * <caption>models/torus.obj, fetched into arrays and uploaded with twgl once it arrives: the yellow torus turns, lit by the file's own normals.</caption>
- * const { createCanvas, init, setCamera, bind, draw, tree, host } = webglTree
+ * <caption>models/torus.obj, fetched into a mesh and uploaded once it arrives: the yellow torus turns, lit by the file's own normals.</caption>
+ * const { createCanvas, init, setCamera, bind, buffer, draw, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
@@ -526,9 +526,7 @@
  *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
  * }`])
  * let torus = null
- * canvasHost.model('models/torus.obj').then((m) => {
- *   torus = twgl.createBufferInfoFromArrays(gl, { aPosition: m.position, aNormal: m.normal, indices: m.indices })
- * })
+ * canvasHost.mesh('models/torus.obj').then((mesh) => { torus = buffer(gl, mesh) })
  * const M = tree.mat4(), q = tree.quat()
  *
  * function frame() {
@@ -539,6 +537,61 @@
  *   if (torus) {
  *     bind(gl, prog, { uColor: [1, 0.82, 0.4] })
  *     draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 1, 0, 0, canvasHost.clock()), 1, 1, 1))
+ *   }
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * Fetch a model with its structure — `{ parts: [{ name, node, skin, mesh, targets, color }], nodes, skins, clips }` — what a rig, morph targets or animation need: each part's `mesh` is as `mesh` returns it, `targets` are morph deltas, and `nodes`, `skins` and `clips` feed `tree.clipSample`, `tree.poseBlend`, `tree.poseWorld` and `tree.jointPalette` as they are. A single mesh is `mesh`'s.
+ * @function model
+ * @memberof Host
+ * @param {string} url
+ * @param {{ format?:string, parse?:function, normals?:'smooth'|'flat'|false, fetch?:object }} [opts]
+ * @returns {Promise<object>} The model.
+ * @example
+ * <caption>The same file read with its structure: every part uploaded, then drawn under its node's world matrix from the rest pose — one part and one node for an OBJ file, as many as a glTF file holds.</caption>
+ * const { createCanvas, init, setCamera, bind, buffer, draw, tree, host } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const canvasHost = host.createHost(gl.canvas)
+ * init(gl, { host: canvasHost })
+ * const cam = tree.createCamera({ eye: [0, 160, 192] })
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(uColor * (0.3 + 0.7 * d), 1.0);
+ * }`])
+ * let parts = [], world = null
+ * canvasHost.model('models/torus.obj', { normals: 'flat' }).then((model) => {
+ *   parts = model.parts.map((part) => ({ ...part, buf: buffer(gl, part.mesh) }))
+ *   world = tree.poseWorld(new Float32Array(16 * model.nodes.parents.length), model.nodes.rest, model.nodes.parents)
+ * })
+ *
+ * function frame() {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   tree.cameraOrbit(cam, 0.01, 0)
+ *   setCamera(gl, cam)
+ *   for (const part of parts) {
+ *     bind(gl, prog, { uColor: part.color.slice(0, 3) })
+ *     draw(gl, part.buf, world.subarray(16 * part.node, 16 * part.node + 16))
  *   }
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)

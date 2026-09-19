@@ -50,8 +50,8 @@
     "twgl.js": ">=5.5.4"
   },
   "dependencies": {
-    "@nakednous/host": "^0.0.4",
-    "@nakednous/tree": "^0.0.29"
+    "@nakednous/host": "^0.0.6",
+    "@nakednous/tree": "^0.0.31"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",

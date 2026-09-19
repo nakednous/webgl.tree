@@ -161,15 +161,29 @@ const _isNumbers = (a) => ArrayBuffer.isView(a) || (Array.isArray(a) && typeof a
 const _isAttribute = (a) => a != null && (_isNumbers(a) || _isNumbers(a.data));
 
 /**
- * A twgl bufferInfo from the arrays shape — what host.loadMesh's mesh, a loadModel part's, tree.platonic's and
- * twgl's primitives both carry — under the bridge's attribute names: position
- * → aPosition, normal → aNormal, tangent → aTangent, texcoord → aTexCoord,
- * color → aColor, joints → aJoints, weights → aWeights. `indices` and any
- * other key holding numbers pass through as they are, so arrays already named
- * for a shader mix in; a key that holds no numbers — a mesh's `bounds`, a
- * generator's `count` and `labels` — is skipped, so a mesh from host.loadMesh,
- * tree.platonic or a gizmo generator goes in whole. Joint indices upload
- * unnormalised.
+ * A twgl bufferInfo from a mesh — the arrays shape host.loadMesh returns, a
+ * loadModel part carries, tree.platonic returns, and a twgl primitive is —
+ * under the attribute names the shaders use.
+ *
+ * Names. The keys the arrays shape fixes are renamed: position → aPosition,
+ * normal → aNormal, tangent → aTangent, texcoord → aTexCoord, color → aColor,
+ * joints → aJoints (uploaded unnormalised), weights → aWeights.
+ *
+ * A key of its own keeps its name. Any other key holding numbers is uploaded
+ * under the name it has, and that one rule serves two needs. A custom
+ * attribute: `mesh.aHeat = { numComponents: 1, data }` reaches a shader's `in
+ * float aHeat`, one value per vertex like the rest. A renamed one, for a shader
+ * written to other names: `buffer(gl, { ...mesh, aUV: mesh.texcoord, texcoord:
+ * undefined })` sends the same data as `aUV` — blanking the original key keeps
+ * it from being uploaded twice. a per-triangle attribute wants the mesh flattened first
+ * (tree.meshFlatten). Attribute and shader meet by name alone, at draw: one
+ * the program does not declare is ignored, and one it declares and the mesh
+ * lacks reads GL's constant value (see draw).
+ *
+ * Skipped: a key that holds no numbers — a mesh's `bounds`, a generator's
+ * `count` and `labels` — so any mesh goes in whole. An attribute edited after
+ * the upload is re-sent with twgl's setAttribInfoBufferFromArray(gl,
+ * bufferInfo.attribs.aPosition, data); a key added after it needs a new buffer.
  * @param {WebGL2RenderingContext} gl
  * @param {object} arrays  The arrays shape: `{ position, indices?, normal?, … }`, each a
  *        `{ numComponents, data }` or a typed array twgl can size.
@@ -258,6 +272,62 @@ const _isAttribute = (a) => a != null && (_isNumbers(a) || _isNumbers(a.data));
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 0.4, 1, 0.2, ms / 1400)
+ *   bind(gl, prog)
+ *   draw(gl, solid, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ * @example
+ * <caption>A custom attribute and a renamed one, by the same rule — a key of its own keeps its name: aHeat, one number per vertex added to the mesh, tints the icosahedron from its base to its top, and its texcoord, passed again as aUV for a shader that calls it so, draws the bands.</caption>
+ * const { createCanvas, setCamera, bind, buffer, draw, tree } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * in vec2 aUV;        // the mesh's texcoord, renamed
+ * in float aHeat;     // added to the mesh below
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * out vec2 vUV;
+ * out float vHeat;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   vUV = aUV;
+ *   vHeat = aHeat;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * in vec2 vUV;
+ * in float vHeat;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   vec3 heat = mix(vec3(0.1, 0.3, 1.0), vec3(1.0, 0.35, 0.1), vHeat);
+ *   float band = step(0.5, fract(vUV.y * 6.0));
+ *   outColor = vec4(heat * (0.55 + 0.45 * band) * (0.35 + 0.65 * d), 1.0);
+ * }`])
+ *
+ * const mesh = tree.platonic(tree.ICOSAHEDRON, { radius: 110 })
+ * const p = mesh.position.data, n = p.length / 3
+ * const heat = new Float32Array(n)                       // one value per vertex, like every attribute
+ * for (let v = 0; v < n; v++) heat[v] = (p[3 * v + 1] - mesh.bounds.min[1]) / (mesh.bounds.max[1] - mesh.bounds.min[1])
+ * mesh.aHeat = { numComponents: 1, data: heat }          // a custom attribute: a key of its own, uploaded as aHeat
+ * // a renamed one: the same data under the shader's name; the blanked key is skipped, so it is not uploaded twice
+ * const solid = buffer(gl, { ...mesh, aUV: mesh.texcoord, texcoord: undefined })
+ *
+ * const cam = tree.createCamera({ eye: [0, 120, 330] })
+ * const M = tree.mat4()
+ * const q = tree.quat()
+ * function frame(ms) {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.09, 0.1, 0.13, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1600)
  *   bind(gl, prog)
  *   draw(gl, solid, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
  *   requestAnimationFrame(frame)

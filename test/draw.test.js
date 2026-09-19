@@ -87,6 +87,10 @@ test('buffer: the arrays shape under the bridge\'s attribute names; other keys p
   const mesh = buffer(gl, { position: { numComponents: 3, data: new Float32Array(9) }, normal: [0, 0, 1, 0, 0, 1, 0, 0, 1],
     bounds: { min: [0, 0, 0], max: [1, 1, 0], center: [0.5, 0.5, 0], diag: 1 }, count: 3, labels: [], extra: null });
   assert.deepEqual(Object.keys(mesh.attribs).sort(), ['aNormal', 'aPosition']);   // keys holding no numbers are skipped
+  const uv = { numComponents: 2, data: new Float32Array(6) };
+  const named = buffer(gl, { position: new Float32Array(9), texcoord: undefined, aUV: uv, aHeat: { numComponents: 1, data: new Float32Array(3) } });
+  assert.deepEqual(Object.keys(named.attribs).sort(), ['aHeat', 'aPosition', 'aUV']);   // a key of its own keeps its name; a blanked key is skipped
+  assert.equal(named.attribs.aHeat.numComponents, 1);
   assert.equal(raw.attribs.aJoints.numComponents, 4);
   assert.equal(raw.numElements, 3);
 });

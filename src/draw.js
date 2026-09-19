@@ -210,6 +210,50 @@ const ATTRIBUTES = {
  *   draw(gl, torus, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
  *   requestAnimationFrame(frame)
  * }
+ * @example
+ * <caption>A Platonic solid from tree: the dodecahedron's faces coloured by their orientation through the axis palette, tumbling.</caption>
+ * const { createCanvas, setCamera, bind, buffer, draw, tree } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ *
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * in vec3 aNormal;
+ * in vec4 aColor;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * uniform mat3 uNormalMatrix;
+ * out vec3 vNormal;
+ * out vec4 vColor;
+ * void main() {
+ *   vNormal = uNormalMatrix * aNormal;
+ *   vColor = aColor;
+ *   gl_Position = uModelViewProjectionMatrix * aPosition;
+ * }`, `#version 300 es
+ * precision highp float;
+ * in vec3 vNormal;
+ * in vec4 vColor;
+ * out vec4 outColor;
+ * void main() {
+ *   float d = max(dot(normalize(vNormal), normalize(vec3(0.4, 0.6, 1.0))), 0.0);
+ *   outColor = vec4(vColor.rgb * (0.35 + 0.65 * d), 1.0);
+ * }`])
+ * // { position, normal, texcoord, color, indices } → aPosition, aNormal, aTexCoord, aColor
+ * const solid = buffer(gl, tree.platonic(tree.DODECAHEDRON, { radius: 110 }))
+ * const cam = tree.createCamera({ eye: [0, 120, 330] })
+ * const M = tree.mat4()
+ * const q = tree.quat()
+ *
+ * function frame(ms) {
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.09, 0.1, 0.13, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   tree.qFromAxisAngle(q, 0.4, 1, 0.2, ms / 1400)
+ *   bind(gl, prog)
+ *   draw(gl, solid, tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1))
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function buffer(gl, arrays) {
   const named = {};

@@ -81,7 +81,7 @@ by `gl`, created on first use and released by `dispose(gl)`. Options object last
 
 | call | what it does |
 |---|---|
-| `init(gl, { host, ndcZMin, raf })` · `dispose(gl)` · `viewOf(gl)` | attach a host (its view bag receives the camera, its labels the gizmo anchors), release every GPU resource the bridge made, read the view bag a host-less application maps through |
+| `init(gl, { host, raf })` · `dispose(gl)` · `viewOf(gl)` | attach a host (its view bag receives the camera, its labels the gizmo anchors), release every GPU resource the bridge made, read the view bag a host-less application maps through |
 | `setCamera(gl, V, P)` · `setCamera(gl, cam)` | install the view and projection every draw reads; the state form is the seam a track, a helm or the orbit fills |
 | `bind(gl, prog, uniforms)` | `useProgram` + `setUniforms` |
 | `buffer(gl, arrays)` | a twgl bufferInfo from the arrays shape — `host.loadMesh`'s mesh, a `loadModel` part's, `tree.platonic`'s, twgl's primitives — under the bridge's attribute names: `position` → `aPosition`, `normal` → `aNormal`, `tangent` → `aTangent`, `texcoord` → `aTexCoord`, `color` → `aColor`, `joints` → `aJoints` (unnormalised), `weights` → `aWeights`; any other key holding numbers keeps its own name — a **custom attribute** (`mesh.aHeat = { numComponents: 1, data }` → `in float aHeat`), or a renamed one for a shader written otherwise (`{ ...mesh, aUV: mesh.texcoord, texcoord: undefined }`) — the rest (a mesh's `bounds`, a generator's `count` and `labels`) are skipped — so a mesh from `host.loadMesh`, `tree.platonic` or a twgl primitive goes in whole |

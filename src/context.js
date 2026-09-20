@@ -104,7 +104,6 @@ export function init(gl, opts) {
   const ctx = contextOf(gl, opts);
   const o = opts || {};
   if (o.host !== undefined) ctx.host = o.host || null;
-  if (o.ndcZMin != null) { ctx.ndcZMin = o.ndcZMin; ctx.view.ndcZMin = o.ndcZMin; }
   if (o.raf) ctx.raf = o.raf;
   return ctx;
 }

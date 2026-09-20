@@ -7,7 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { idToRgba, rgbaToId } from '@nakednous/tree';
-import { init, readPixel, contextOf, dispose } from '../src/index.js';
+import { init, readPixel, dispose } from '../src/index.js';
+import { contextOf } from '../src/context.js';
 import { createGL } from './gl.js';
 
 function stubReadback(gl) {

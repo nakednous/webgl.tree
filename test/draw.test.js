@@ -6,7 +6,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { contextOf, setCamera, declaredTransforms, uploadTransforms, disableMissingAttributes, buffer, TRANSFORMS } from '../src/index.js';
+import { setCamera, buffer } from '../src/index.js';
+import { contextOf } from '../src/context.js';
+import { declaredTransforms, uploadTransforms, TRANSFORMS } from '../src/draw.js';
+import { disableMissingAttributes } from '../src/programs.js';
 import { createGL } from './gl.js';
 
 const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a - b) <= tol, `${a} ≠ ${b}`);

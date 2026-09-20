@@ -5,7 +5,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { targetSpecs, SCREEN } from '../src/index.js';
+import { SCREEN } from '../src/index.js';
+import { targetSpecs } from '../src/target.js';
 import { createGL } from './gl.js';
 
 const gl = createGL();

@@ -7,7 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { axesLines, capacityOf, createArrays } from '@nakednous/tree';
-import { fill, expand, contextOf } from '../src/index.js';
+import { fill, expand } from '../src/gizmo.js';
+import { contextOf } from '../src/context.js';
 import { createGL } from './gl.js';
 
 test('fill: sizes the buffer from the generator, grows on demand, re-uploads in steady state', () => {

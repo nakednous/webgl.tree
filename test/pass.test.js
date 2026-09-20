@@ -6,7 +6,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mat4MulPoint } from '@nakednous/tree';
-import { rectMatrix, passOf, RED, RGB, NORMAL, ADD, MULTIPLY } from '../src/index.js';
+import { RED, RGB, NORMAL, ADD, MULTIPLY } from '../src/index.js';
+import { rectMatrix, passOf } from '../src/pass.js';
 
 const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a - b) <= tol, `${a} ≠ ${b}`);
 

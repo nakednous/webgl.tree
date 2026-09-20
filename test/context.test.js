@@ -6,7 +6,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCamera, cameraView, cameraProj, mat4MulPoint, WEBGL } from '@nakednous/tree';
-import { init, dispose, contextOf, viewOf, setCamera, ndcZMin } from '../src/index.js';
+import { init, dispose, viewOf, setCamera } from '../src/index.js';
+import { contextOf } from '../src/context.js';
 import { createGL } from './gl.js';
 
 const near = (a, b, tol = 1e-5) => assert.ok(Math.abs(a - b) <= tol, `${a} ≠ ${b}`);
@@ -16,7 +17,6 @@ test('context: one entry per gl, created on first use, released by dispose', () 
   const ctx = contextOf(gl);
   assert.equal(contextOf(gl), ctx);
   assert.equal(ctx.ndcZMin, WEBGL);
-  assert.equal(ndcZMin, WEBGL);
   assert.equal(viewOf(gl), ctx.view);
   assert.equal(ctx.view.stale, true);
   ctx.programs.flat = { program: 'P1' };

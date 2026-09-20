@@ -10,8 +10,8 @@
  *     `@constant {T} NAME`, or `@typedef {T} Name`.
  * When src/index.js re-exports names, a block is public only if its name is
  * among them. A block tagged `@ignore` is internal whatever it exports: the
- * bridge's own seams, exported for ES module users and other bridges, never on
- * the site. Every other block is internal and ignored. `@memberof` defaults to the
+ * bridge's own seams, shared between its modules and its tests, never on the
+ * site. Every other block is internal and ignored. `@memberof` defaults to the
  * module. Dotted `@param` / `@property` names group under their parent.
  *
  * Audience rule. The rendered description is the block's prose before its

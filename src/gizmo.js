@@ -4,7 +4,7 @@
  * @license AGPL-3.0-only
  *
  * Gizmos drawn by name under the installed camera — frames, grids, curves,
- * frustums, track paths, helm rigs, handles — and screen-space marks between
+ * frustums, track paths, helm rigs, handles — and canvas-space marks between
  * `beginHUD` and `endHUD`. Each takes `gl`, its subject, and options such as
  * `M`, `color`, `bits`, `size` and `depth`.
  *
@@ -24,7 +24,7 @@
  * Depth test on by default; { depth: false } for overlays. { width } counts
  * canvas pixels, default 1, scaled by the pixel density: at or below one
  * device pixel the native GL line draws, above it each segment expands into
- * a screen-space quad of that width through a second internal program, the
+ * a window-space quad of that width through a second internal program, the
  * generators untouched. Colour is semantic where the generator writes a
  * palette (axes, the helm rig), else opts.color (default white). A gizmo
  * binds its own program and restores the one bound before it.
@@ -646,10 +646,10 @@ export function handleLocus(gl, h, opts) {
 // ── HUD ─────────────────────────────────────────────────────────────────
 
 /**
- * Start drawing in screen space: the installed camera is saved, an
+ * Start drawing in canvas space: the installed camera is saved, an
  * orthographic projection over the current viewport in canvas pixels, y
  * down, with an identity view goes in, and the depth test goes off. Pair
- * with endHUD. The screen-space gizmos and image are the usual contents.
+ * with endHUD. The canvas-space gizmos and image are the usual contents.
  * @param {WebGL2RenderingContext} gl
  * @example
  * <caption>Between beginHUD and endHUD, coordinates are canvas pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>

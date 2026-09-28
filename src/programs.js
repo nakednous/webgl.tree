@@ -143,7 +143,7 @@ void main() {
 
 /**
  * The wide line program of a context (experimental): each segment as a
- * quad expanded in screen space by uWidth pixels — aA, aB the endpoints,
+ * quad expanded in window space by uWidth pixels — aA, aB the endpoints,
  * aT which one, aSide the side, optional aColor; uPV, uModel, uViewport,
  * uColor.
  * @param {WebGL2RenderingContext} gl

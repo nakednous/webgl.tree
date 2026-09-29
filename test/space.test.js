@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as treePkg from '@nakednous/tree';
 import { createGL } from './gl.js';
-import { setCamera, mapLocation, mapDirection, unproject, pixelRatio, mat4Viewport, tree } from '../src/index.js';
+import { setCamera, mapLocation, mapDirection, unproject, fragCoord, pixelRatio, mat4Viewport, tree } from '../src/index.js';
 
 const near = (a, b, eps = 1e-3) => assert.ok(Math.abs(a - b) <= eps, `${a} ≉ ${b}`);
 
@@ -42,6 +42,17 @@ test('unproject: the ray under the viewport center passes through the center', (
   assert.ok(unproject(gl, o, d, 200, 150));
   const s = -o[1] / d[1];
   near(o[0] + s * d[0], 0); near(o[2] + s * d[2], 0);
+});
+
+test('fragCoord: a canvas pixel becomes the drawing-buffer pixel, y up (density 2)', () => {
+  const gl = createGL({ width: 800, height: 600 });   // a 400 × 300 canvas on a dense display
+  gl.canvas = { clientWidth: 400, clientHeight: 300 };
+  const out = fragCoord(gl, [0, 0], 200, 150);        // the canvas centre is the buffer centre
+  near(out[0], 400); near(out[1], 300);
+  fragCoord(gl, out, 0, 0);                           // the canvas's top-left is the buffer's top
+  near(out[0], 0); near(out[1], 600);
+  fragCoord(gl, out, 0, 300);                         // its bottom-left, the buffer's bottom
+  near(out[0], 0); near(out[1], 0);
 });
 
 test('pixelRatio and mat4Viewport read the viewport', () => {

@@ -5,7 +5,8 @@
  *
  * `pick` finds the object under a screen-space pixel: draw the scene calling
  * `paint(id)` before each object, and the promise resolves to that id.
- * `readPixel` reads one pixel of any target without stalling the GPU.
+ * `readPixel` reads one pixel of any target without stalling the GPU — a target's
+ * own pixels: for the canvas, cross a canvas pixel with `fragCoord` first.
  *
  * ```
  * readPixel(gl, fbo, x, y) → Promise<Uint8Array>   // a frame or more late
@@ -84,13 +85,14 @@ function _poll(gl, ctx) {
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
  * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 19 141 117 otherwise.</caption>
- * const { createCanvas, setCamera, pane, readPixel, SCREEN, tree } = webglTree
+ * const { createCanvas, setCamera, pane, readPixel, fragCoord, SCREEN, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
  * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  *
  * const cam = tree.createCamera({ eye: [0, 0, 280] })
+ * const centre = fragCoord(gl, [0, 0], 200, 150)   // the canvas centre, in window space
  * let pending = false
  *
  * function frame(ms) {
@@ -101,7 +103,7 @@ function _poll(gl, ctx) {
  *   pane(gl, [x - 30, 30, 0], [x + 30, 30, 0], [x + 30, -30, 0], [x - 30, -30, 0], { color: [1, 79 / 255, 216 / 255, 1] })
  *   if (!pending) {
  *     pending = true
- *     readPixel(gl, SCREEN, 200, 150).then((px) => {
+ *     readPixel(gl, SCREEN, centre[0], centre[1]).then((px) => {
  *       out.textContent = 'centre ' + px.slice(0, 3).join(' ')
  *       pending = false
  *     })

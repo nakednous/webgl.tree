@@ -1,6 +1,6 @@
 {
   "name": "webgl.tree",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "webgl.tree — @nakednous/tree + @nakednous/host on raw WebGL2: gizmo line pipe, HUD, render targets, filter passes, the pipe chain, async colour-ID picking, camera install.",
   "type": "module",
   "main": "dist/index.js",

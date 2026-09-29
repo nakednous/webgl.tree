@@ -32,18 +32,18 @@ const _registry = new WeakMap();
 const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m; };
 
 /**
- * A canvas sized for the display: `width × height` canvas pixels on the page,
+ * A canvas sized for the display: `width × height` logical pixels on the page,
  * its drawing buffer scaled by the pixel density, its WebGL2 context returned.
  * What a framework's canvas call supplies silently.
  * @param {number} width  Canvas pixels.
  * @param {number} height  Canvas pixels.
  * @param {{ density?:number, parent?:Element|null, attributes?:object }} [opts]
- *        density: device pixels per canvas pixel, default `devicePixelRatio`.
+ *        density: device pixels per logical pixel, default `devicePixelRatio`.
  *        parent: the element the canvas is appended to, default `document.body`;
  *        null leaves it detached. attributes: WebGL context attributes.
  * @returns {WebGL2RenderingContext} gl — the element is `gl.canvas`.
  * @example
- * <caption>A 400 × 300 canvas whose drawing buffer matches the display: the bulls-eye, placed in canvas pixels, sits centred with a sharp edge at any pixel density.</caption>
+ * <caption>A 400 × 300 canvas whose drawing buffer matches the display: the bulls-eye, placed in logical pixels, sits centred with a sharp edge at any pixel density.</caption>
  * const { createCanvas, beginHUD, endHUD, bullsEye } = webglTree
  *
  * const gl = createCanvas(400, 300)

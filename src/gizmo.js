@@ -4,7 +4,7 @@
  * @license AGPL-3.0-only
  *
  * Gizmos drawn by name under the installed camera — frames, grids, curves,
- * frustums, track paths, helm rigs, handles — and canvas-space marks between
+ * frustums, track paths, helm rigs, handles — and screen-space marks between
  * `beginHUD` and `endHUD`. Each takes `gl`, its subject, and options such as
  * `M`, `color`, `bits`, `size` and `depth`.
  *
@@ -22,7 +22,7 @@
  * grown when it exceeds capacity; per frame the generator writes into the
  * cached arrays and the buffer is re-uploaded — zero allocation once warm.
  * Depth test on by default; { depth: false } for overlays. { width } counts
- * canvas pixels, default 1, scaled by the pixel density: at or below one
+ * logical pixels, default 1, scaled by the pixel density: at or below one
  * device pixel the native GL line draws, above it each segment expands into
  * a window-space quad of that width through a second internal program, the
  * generators untouched. Colour is semantic where the generator writes a
@@ -164,7 +164,7 @@ export function expand(gl, g) {
 /** Draw a filled gizmo's lines under M: raw gl.LINES, or the expanded quads once the width in device pixels exceeds 1; uColor unless the arrays carry colour. */
 function _drawLines(gl, ctx, g, M, color, depth, width) {
   if (!g.arrays.count) return;
-  const px = (typeof width === 'number' ? width : 1) * canvasScale(gl);   // canvas pixels → device pixels
+  const px = (typeof width === 'number' ? width : 1) * canvasScale(gl);   // logical pixels → device pixels
   const wide = px > 1;
   const prog = wide ? wideLineProgram(gl) : lineProgram(gl);
   if (!prog) return;
@@ -632,7 +632,7 @@ export function handleLocus(gl, h, opts) {
   fill(gl, g, (a) => locusLines(a, h._constraint, { bits: bits & (AIM | LOCUS | RING), mat4View: ctx.V, point: _p, color: o.color }));
   _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (bits & HANDLE) {
-    const V = ctx.V, height = -canvasViewport(gl)[3] || 1;   // the grab radius counts canvas pixels
+    const V = ctx.V, height = -canvasViewport(gl)[3] || 1;   // the grab radius counts logical pixels
     const eyeZ = V[2]*_p[0] + V[6]*_p[1] + V[10]*_p[2] + V[14];
     const r = (o.size ?? h._grabPx ?? 12) * pixelRatio(ctx.P, height, eyeZ, ctx.ndcZMin);
     _du[0] = V[0]; _du[1] = V[4]; _du[2] = V[8];      // the camera's right
@@ -646,13 +646,13 @@ export function handleLocus(gl, h, opts) {
 // ── HUD ─────────────────────────────────────────────────────────────────
 
 /**
- * Start drawing in canvas space: the installed camera is saved, an
- * orthographic projection over the current viewport in canvas pixels, y
+ * Start drawing in screen space: the installed camera is saved, an
+ * orthographic projection over the current viewport in logical pixels, y
  * down, with an identity view goes in, and the depth test goes off. Pair
- * with endHUD. The canvas-space gizmos and image are the usual contents.
+ * with endHUD. The screen-space gizmos and image are the usual contents.
  * @param {WebGL2RenderingContext} gl
  * @example
- * <caption>Between beginHUD and endHUD, coordinates are canvas pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>
+ * <caption>Between beginHUD and endHUD, coordinates are logical pixels: a crosshair near the top-left corner, a bulls-eye near the bottom-right.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, bullsEye, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)

@@ -3,7 +3,7 @@
  * @module webgl.tree/pick
  * @license AGPL-3.0-only
  *
- * `pick` finds the object under a canvas pixel: draw the scene calling
+ * `pick` finds the object under a screen-space pixel: draw the scene calling
  * `paint(id)` before each object, and the promise resolves to that id.
  * `readPixel` reads one pixel of any target without stalling the GPU.
  *
@@ -79,7 +79,7 @@ function _poll(gl, ctx) {
  * Read one pixel of a target back asynchronously.
  * @param {WebGL2RenderingContext} gl
  * @param {object|null} fbo  A render target, or `SCREEN`.
- * @param {number} x  Pixel column in the target, from the left — window space, device pixels; `fragCoord` converts a canvas pixel.
+ * @param {number} x  Pixel column in the target, from the left — window space, device pixels; `fragCoord` converts a logical pixel.
  * @param {number} y  Pixel row in the target, from the bottom.
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
@@ -134,10 +134,10 @@ export function readPixel(gl, fbo, x, y) {
 }
 
 /**
- * The id of the object under a canvas pixel, 0 for a miss.
+ * The id of the object under a screen-space pixel, 0 for a miss.
  * @details Colour-id picking into a cached 1×1 target; ids run 1 … 2²⁴ − 1.
  * @param {WebGL2RenderingContext} gl
- * @param {number} x  The query pixel's column, canvas pixels — a pointer event's offset as is.
+ * @param {number} x  The query pixel's column, logical pixels — a pointer event's offset as is.
  * @param {number} y  Its row, from the top.
  * @param {function(function(number):void):void} drawFn  Draws the scene; call paint(id) before each object's draw.
  * @param {{ program?:object, vp?:number[], sync?:boolean }} [opts]  program: an id program with a uColor uniform in place of the flat one. vp: the viewport the coordinates are in, [x, y, w, h] signed. sync: read the pixel back at once, stalling the GPU; the promise resolves in the same tick.

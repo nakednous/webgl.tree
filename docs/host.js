@@ -844,7 +844,7 @@
  */
 
 /**
- * Place a label at canvas pixels, y down.
+ * Place a label at logical pixels, y down.
  * @function setScreen
  * @memberof Labels
  * @param {string} id
@@ -854,7 +854,7 @@
  * @param {object} [opts]
  * @returns {object}
  * @example
- * <caption>Move the pointer over the canvas: a label set at the pointer's canvas pixels, 18 above it, names its position and follows it.</caption>
+ * <caption>Move the pointer over the canvas: a label set at the pointer's logical pixels, 18 above it, names its position and follows it.</caption>
  * const { createCanvas, init, setCamera, grid, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)

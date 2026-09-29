@@ -4,7 +4,7 @@
  * @license AGPL-3.0-only
  *
  * Every call reads the camera `setCamera` installed and the current viewport.
- * Screen space is canvas space: the canvas's logical pixels, top-left, y down —
+ * Screen space — the surface's logical pixels, top-left, y down —
  * what the pointer, `pick`, labels and `beginHUD` count, so a pointer event's
  * offset feeds these calls as is. `fragCoord` crosses to window space: the
  * drawing buffer's device pixels, bottom-left, y up — what `gl_FragCoord`,
@@ -13,7 +13,7 @@
  * @details
  * tree's mapLocation, mapDirection, unproject, pixelRatio and mat4Viewport
  * with the view bag, the viewport and WEBGL supplied. The viewport is read
- * from gl.VIEWPORT and written into module scratch in canvas space as
+ * from gl.VIEWPORT and written into module scratch in screen space as
  * [x, y + h, w, −h], so a sub-viewport composes through W's origin. The
  * device-pixel scale is the drawing buffer's width over the host's logical
  * width, or over the canvas's client width without a host.
@@ -30,7 +30,7 @@ import { contextOf, viewOf } from './context.js';
 const _vp = [0, 0, 0, 0];
 
 /**
- * Device pixels per canvas pixel.
+ * Device pixels per logical pixel.
  * @param {WebGL2RenderingContext} gl
  * @returns {number}
  * @ignore
@@ -42,7 +42,7 @@ export function canvasScale(gl) {
 }
 
 /**
- * The current viewport in canvas space, [x, y + h, w, −h], in module scratch.
+ * The current viewport in screen space, [x, y + h, w, −h], in module scratch.
  * @param {WebGL2RenderingContext} gl
  * @returns {number[]}
  * @ignore
@@ -65,7 +65,7 @@ const _viewport = canvasViewport;
  * @param {string} to  One of the same.
  * @returns {number[]} out
  * @example
- * <caption>The tip of the spinning x axis, mapped from world space to canvas pixels: the white cross drawn there stays on it.</caption>
+ * <caption>The tip of the spinning x axis, mapped from world space to logical pixels: the white cross drawn there stays on it.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -134,12 +134,12 @@ export function mapDirection(gl, out, dx, dy, dz, from, to) {
 }
 
 /**
- * The world ray under a canvas pixel: its origin on the near plane and its unit direction.
+ * The world ray under a screen-space pixel: its origin on the near plane and its unit direction.
  * @param {WebGL2RenderingContext} gl
  * @param {number[]} outO  3-element origin.
  * @param {number[]} outD  3-element unit direction.
- * @param {number} sx  Canvas x, canvas pixels.
- * @param {number} sy  Canvas y, canvas pixels, down.
+ * @param {number} sx  Screen-space x, logical pixels.
+ * @param {number} sy  Screen-space y, logical pixels, down.
  * @returns {number[]|null} outD, or null when the view cannot be inverted.
  * @example
  * <caption>Move the pointer over the canvas: the ray under its offset, cut where it meets the ground (y = 0), puts the small axes on the grid right under the pointer.</caption>
@@ -173,13 +173,13 @@ export function unproject(gl, outO, outD, sx, sy) {
 }
 
 /**
- * The `gl_FragCoord` of a canvas pixel: canvas space to window space, the
+ * The `gl_FragCoord` of a screen-space pixel: screen space to window space, the
  * drawing buffer's device pixels, y up. The value of a pointer uniform,
  * beside the `uResolution` `filter` fills; the coordinates `readPixel` takes.
  * @param {WebGL2RenderingContext} gl
  * @param {number[]} out  2-element destination.
- * @param {number} x  Canvas x, canvas pixels.
- * @param {number} y  Canvas y, canvas pixels, down.
+ * @param {number} x  Screen-space x, logical pixels.
+ * @param {number} y  Screen-space y, logical pixels, down.
  * @returns {number[]} out
  * @example
  * <caption>Move the pointer over the canvas: an amber disc 40 device pixels in radius follows it — the fragment shader compares its own gl_FragCoord with uMouse, the pointer's.</caption>
@@ -213,7 +213,7 @@ export function fragCoord(gl, out, x, y) {
 }
 
 /**
- * World units per canvas pixel at an eye-space depth, for the installed camera.
+ * World units per logical pixel at an eye-space depth, for the installed camera.
  * @param {WebGL2RenderingContext} gl
  * @param {number} eyeZ  The eye-space z of the depth measured.
  * @returns {number}
@@ -245,12 +245,12 @@ export function pixelRatio(gl, eyeZ) {
 }
 
 /**
- * The viewport matrix W: NDC to canvas pixels (y down), depth to [0, 1].
+ * The viewport matrix W: NDC to logical pixels (y down), depth to [0, 1].
  * @param {WebGL2RenderingContext} gl
  * @param {Float32Array|number[]} out
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>W · P · V takes the spinning x axis's tip straight to canvas pixels, where the white cross is drawn over it.</caption>
+ * <caption>W · P · V takes the spinning x axis's tip straight to logical pixels, where the white cross is drawn over it.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, viewOf, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)

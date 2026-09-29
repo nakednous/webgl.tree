@@ -72,6 +72,17 @@ API. Its WebGPU twin, `webgpu.tree`, realizes the same surface.
 `@nakednous/ui` is an optional peer of the application, not a dependency of the bridge.
 Dependency direction is strict: `{ tree, host } ← webgl.tree`; nothing flows back.
 
+**What it takes from twgl.** The ceremony, and nothing else: `createProgramInfo` ·
+`createBufferInfoFromArrays` · `setAttribInfoBufferFromArray` · `setBuffersAndAttributes` ·
+`setUniforms` · `drawBufferInfo` · `createFramebufferInfo` · `resizeFramebufferInfo` ·
+`bindFramebufferInfo` · `createTexture` · `setTextureFromElement`. The math is
+`@nakednous/tree`'s, so `twgl.m4`, `twgl.v3` and `twgl.primitives` are never called — and
+twgl ships exactly that ceremony as its **core** build (`twgl.js`), the full build
+(`twgl-full.js`) adding the math and the generators. A consumer that needs no more than the
+bridge does can resolve `twgl.js` to the core build (it is a UMD script: an import map wants
+a CDN's ESM transform of it, a bundler takes it as it is), and a bundler that resolves the
+full ESM build instead shakes the unused math and generators away on its own.
+
 ---
 
 ## The surface

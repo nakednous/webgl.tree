@@ -219,8 +219,12 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
 /**
  * A coordinate frame: six half-axes by bit and the X · Y · Z line glyphs
  * with LABELS; semantic colour per axis unless { semantic: false, color }.
+ * The letters read upright under the y-up NDC every projection the bridge
+ * installs produces; a hero drawing through a flipped projection passes
+ * { ndcYSign: -1 }.
  * @param {WebGL2RenderingContext} gl
- * @param {{ M?:ArrayLike<number>, size?:number, bits?:number, semantic?:boolean, color?:number[], depth?:boolean }} [opts]
+ * @param {{ M?:ArrayLike<number>, size?:number, bits?:number, semantic?:boolean, color?:number[],
+ *           ndcYSign?:number, depth?:boolean }} [opts]
  * @example
  * <caption>A frame at the origin, and a second one moved by M to (−150, 0, 0) and turned 45° about Y.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree

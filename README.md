@@ -19,7 +19,7 @@ line confirms a piece of the notation; one that cannot is where the notation cha
 > tarball, which ships `dist/` alone. The gizmo `width` mode is the one piece still unproven.
 
 Repo · [nakednous/webgl.tree](https://github.com/nakednous/webgl.tree) — the source, the harness,
-the issues. API site · [nakednous.github.io/webgl.tree](https://nakednous.github.io/webgl.tree/).
+the issues. API site · [jpcharalambosh.co/webgl.tree](https://jpcharalambosh.co/webgl.tree/).
 
 ---
 
@@ -105,7 +105,7 @@ generators away on its own.
 
 Every export is a free function taking `gl` first; per-context state lives in a registry keyed
 by `gl`, created on first use and released by [`dispose(gl)`][dispose]. Options object last. The
-[API site](https://nakednous.github.io/webgl.tree/) documents every name below, one page per
+[API site](https://jpcharalambosh.co/webgl.tree/) documents every name below, one page per
 module — the links go there.
 
 | call | what it does |
@@ -195,45 +195,45 @@ AGPL-3.0-only
 © JP Charalambos
 
 <!-- The API site's pages for the names above: `npm run docs` checks every one of them. -->
-[ADD]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.ADD
-[MULTIPLY]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.MULTIPLY
-[NORMAL]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.NORMAL
-[RED]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.RED
-[SCREEN]: https://nakednous.github.io/webgl.tree/target.html#webgl.tree/target.SCREEN
-[axes]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.axes
-[beginHUD]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.beginHUD
-[bind]: https://nakednous.github.io/webgl.tree/draw.html#webgl.tree/draw.bind
-[buffer]: https://nakednous.github.io/webgl.tree/draw.html#webgl.tree/draw.buffer
-[bullsEye]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.bullsEye
-[cross]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.cross
-[cubemap]: https://nakednous.github.io/webgl.tree/texture.html#webgl.tree/texture.cubemap
-[dispose]: https://nakednous.github.io/webgl.tree/context.html#webgl.tree/context.dispose
-[draw]: https://nakednous.github.io/webgl.tree/draw.html#webgl.tree/draw.draw
-[drawInstanced]: https://nakednous.github.io/webgl.tree/draw.html#webgl.tree/draw.drawInstanced
-[endHUD]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.endHUD
-[filter]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.filter
-[fragCoord]: https://nakednous.github.io/webgl.tree/space.html#webgl.tree/space.fragCoord
-[fullscreen]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.fullscreen
-[grid]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.grid
-[handleLocus]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.handleLocus
-[helmRig]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.helmRig
-[hermite]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.hermite
-[image]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.image
-[init]: https://nakednous.github.io/webgl.tree/context.html#webgl.tree/context.init
-[mapDirection]: https://nakednous.github.io/webgl.tree/space.html#webgl.tree/space.mapDirection
-[mapLocation]: https://nakednous.github.io/webgl.tree/space.html#webgl.tree/space.mapLocation
-[mat4Viewport]: https://nakednous.github.io/webgl.tree/space.html#webgl.tree/space.mat4Viewport
-[pane]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.pane
-[pick]: https://nakednous.github.io/webgl.tree/pick.html#webgl.tree/pick.pick
-[pipe]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.pipe
-[pixelRatio]: https://nakednous.github.io/webgl.tree/space.html#webgl.tree/space.pixelRatio
-[program]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.program
-[readPixel]: https://nakednous.github.io/webgl.tree/pick.html#webgl.tree/pick.readPixel
-[releasePipe]: https://nakednous.github.io/webgl.tree/pass.html#webgl.tree/pass.releasePipe
-[renderTarget]: https://nakednous.github.io/webgl.tree/target.html#webgl.tree/target.renderTarget
-[setCamera]: https://nakednous.github.io/webgl.tree/camera.html#webgl.tree/camera.setCamera
-[texture]: https://nakednous.github.io/webgl.tree/texture.html#webgl.tree/texture.texture
-[trackPath]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.trackPath
+[ADD]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.ADD
+[MULTIPLY]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.MULTIPLY
+[NORMAL]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.NORMAL
+[RED]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.RED
+[SCREEN]: https://jpcharalambosh.co/webgl.tree/target.html#webgl.tree/target.SCREEN
+[axes]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.axes
+[beginHUD]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.beginHUD
+[bind]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.bind
+[buffer]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.buffer
+[bullsEye]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.bullsEye
+[cross]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.cross
+[cubemap]: https://jpcharalambosh.co/webgl.tree/texture.html#webgl.tree/texture.cubemap
+[dispose]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.dispose
+[draw]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.draw
+[drawInstanced]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.drawInstanced
+[endHUD]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.endHUD
+[filter]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.filter
+[fragCoord]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.fragCoord
+[fullscreen]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.fullscreen
+[grid]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.grid
+[handleLocus]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.handleLocus
+[helmRig]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.helmRig
+[hermite]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.hermite
+[image]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.image
+[init]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.init
+[mapDirection]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.mapDirection
+[mapLocation]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.mapLocation
+[mat4Viewport]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.mat4Viewport
+[pane]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.pane
+[pick]: https://jpcharalambosh.co/webgl.tree/pick.html#webgl.tree/pick.pick
+[pipe]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.pipe
+[pixelRatio]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.pixelRatio
+[program]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.program
+[readPixel]: https://jpcharalambosh.co/webgl.tree/pick.html#webgl.tree/pick.readPixel
+[releasePipe]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.releasePipe
+[renderTarget]: https://jpcharalambosh.co/webgl.tree/target.html#webgl.tree/target.renderTarget
+[setCamera]: https://jpcharalambosh.co/webgl.tree/camera.html#webgl.tree/camera.setCamera
+[texture]: https://jpcharalambosh.co/webgl.tree/texture.html#webgl.tree/texture.texture
+[trackPath]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.trackPath
 [twgl.bindFramebufferInfo]: https://twgljs.org/docs/module-twgl.html#.bindFramebufferInfo
 [twgl.createBufferInfoFromArrays]: https://twgljs.org/docs/module-twgl.html#.createBufferInfoFromArrays
 [twgl.createFramebufferInfo]: https://twgljs.org/docs/module-twgl.html#.createFramebufferInfo
@@ -249,8 +249,8 @@ AGPL-3.0-only
 [twgl.setTextureFromElement]: https://twgljs.org/docs/module-twgl_textures.html#.setTextureFromElement
 [twgl.setUniforms]: https://twgljs.org/docs/module-twgl.html#.setUniforms
 [twgl.v3]: https://twgljs.org/docs/module-twgl_v3.html
-[unproject]: https://nakednous.github.io/webgl.tree/space.html#webgl.tree/space.unproject
-[upload]: https://nakednous.github.io/webgl.tree/texture.html#webgl.tree/texture.upload
-[viewFrustum]: https://nakednous.github.io/webgl.tree/gizmo.html#webgl.tree/gizmo.viewFrustum
-[viewOf]: https://nakednous.github.io/webgl.tree/context.html#webgl.tree/context.viewOf
+[unproject]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.unproject
+[upload]: https://jpcharalambosh.co/webgl.tree/texture.html#webgl.tree/texture.upload
+[viewFrustum]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.viewFrustum
+[viewOf]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.viewOf
 [webgl.tree]: https://github.com/nakednous/webgl.tree

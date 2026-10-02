@@ -28,7 +28,7 @@ export function splitFences(md) {
 }
 
 /** The site the README links into by hand — the deployed API reference. */
-const SITE_URL = 'https://nakednous.github.io/webgl.tree/';
+const SITE_URL = 'https://jpcharalambosh.co/webgl.tree/';
 
 /** `webgl.tree/gizmo` → `gizmo.html`; a bare `webgl.tree` → `webgl.tree.html`. */
 export function pageOf(moduleName) {

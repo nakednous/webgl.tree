@@ -19,18 +19,46 @@ twgl.module = `${CDN}/twgl.js@${twgl.version}/dist/7.x/twgl-full.module.js`;
 twgl.reference = 'https://twgljs.org/docs/';
 
 /**
+ * twgl documents three of its namespaces on a module page of their own, and a
+ * few of its functions off the module index every other anchor sits on.
+ */
+const twglNamespaces = ['m4', 'v3', 'primitives'];
+const twglOwnPage = { setTextureFromElement: 'module-twgl_textures.html' };
+
+/**
  * The twgl reference page of a `twgl.`-prefixed name: `twgl.createProgramInfo`
  * → module-twgl.html#.createProgramInfo, `twgl.m4.perspective` →
- * module-twgl_m4.html#.perspective. Null for anything else.
+ * module-twgl_m4.html#.perspective, the namespace alone → its module page.
+ * Null for anything else.
  */
 export function twglRefUrl(name) {
   const m = /^twgl\.(?:([a-z]\w*)\.)?([\w$]+)$/.exec(name);
   if (!m) return null;
-  return `${twgl.reference}module-twgl${m[1] ? '_' + m[1] : ''}.html#.${m[2]}`;
+  const namespace = m[1];
+  const fn = m[2];
+  if (namespace) return `${twgl.reference}module-twgl_${namespace}.html#.${fn}`;
+  if (twglNamespaces.includes(fn)) return `${twgl.reference}module-twgl_${fn}.html`;
+  return `${twgl.reference}${twglOwnPage[fn] ?? 'module-twgl.html'}#.${fn}`;
 }
 
 /** The text a `twgl.`-prefixed link shows: the name as written (`twgl.setUniforms`). */
 export const twglRefText = (name) => name;
+
+/**
+ * The stack's packages, named in prose or as a module's root: a mention links
+ * to the repository that develops it — and `webgl.tree` itself, whose root
+ * module has no page of its own, is the one address for the package's name.
+ */
+export const packages = {
+  '@nakednous/tree': 'https://github.com/nakednous/tree',
+  '@nakednous/host': 'https://github.com/nakednous/host',
+  '@nakednous/ui':   'https://github.com/nakednous/ui',
+  'twgl.js':         'https://twgljs.org/',
+  'webgl.tree':      'https://github.com/nakednous/webgl.tree',
+};
+
+/** The address of a package named in prose, or null. */
+export const packageRefUrl = (name) => packages[name] ?? null;
 
 /** Class names in prose link to the factory that makes them. */
 export const aliases = {};

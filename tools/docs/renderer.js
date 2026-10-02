@@ -4,19 +4,25 @@
  * @module tools/docs/renderer
  * @license AGPL-3.0-only
  *
- * Every URL emitted is relative, so the site serves unchanged under the
- * `/webgl.tree/` base path. Types render verbatim — nothing here parses a type
- * expression.
+ * Every URL this file makes up is relative, so the site serves unchanged under
+ * the `/webgl.tree/` base path; the references it carries — twgl's docs, the
+ * stack's repositories — are absolute. Types render verbatim — nothing here
+ * parses a type expression.
  */
 
 import { Marked } from 'marked';
-import { splitFences, linkTable } from './validator.js';
-import { twgl, codemirror, site, namespaces, twglRefUrl, twglRefText } from './config.js';
+import { splitFences, linkTable, pageOf, anchorOf } from './validator.js';
+import { twgl, codemirror, site, namespaces, twglRefUrl, twglRefText, packageRefUrl } from './config.js';
 
 const LINK_RE = /\{@link\s+([^}\s]+)\s*\}/g;
 // A backticked identifier in prose — `setCamera`, `update()`,
-// `twgl.setUniforms` — that is not already a link's text.
-const CODE_RE = /(^|[^[`\\])`((?:[\w$]+\.)*[\w$]+)(\(\))?`/g;
+// `draw(gl, obj, M)` — that is not already a link's text: the name resolves,
+// the argument list stays part of the code span.
+const CODE_RE = /(^|[^[`\\])`((?:[\w$]+\.)*[\w$]+)((?:\([^`]*\))?)`/g;
+// A package named in prose — `@nakednous/ui`, backticked or bare — that is not
+// already a link's text.
+const PKG_CODE_RE = /(^|[^[`\\])`(@nakednous\/[\w.-]+)`/g;
+const PKG_RE      = /(^|[\s(])(@nakednous\/[\w.-]+)(?![\w/.-])/g;
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -37,26 +43,21 @@ const marked = new Marked({
 
 // ── Addresses ───────────────────────────────────────────────────────────────
 
-/** `webgl.tree/gizmo` → `gizmo.html`; a bare `webgl.tree` → `webgl.tree.html`. */
-export function pageOf(moduleName) {
-  const i = moduleName.lastIndexOf('/');
-  return (i < 0 ? moduleName : moduleName.slice(i + 1)) + '.html';
-}
-
-const anchorOf = (d) => `${d.owner}.${d.name}`;
-const hrefOf   = (entry) => entry.module
-  ? pageOf(entry.module.name)
+// A module with no page of its own — the package's root — keeps its address.
+const hrefOf = (entry) => entry.module
+  ? (packageRefUrl(entry.module.name) ?? pageOf(entry.module.name))
   : `${pageOf(entry.doclet.module)}#${anchorOf(entry.doclet)}`;
 
 /**
- * A name as a markdown link: to its page when documented, to twgl's reference
- * when `twgl.`-prefixed, else plain code.
+ * A name as a markdown link: to its page when documented, to its repository
+ * when it names a package, to twgl's reference when `twgl.`-prefixed, else
+ * plain code. `prefer` wins over the table for a name several owners share.
  */
-function linkTo(name, call, table) {
-  const entry = table.get(name);
+function linkTo(name, call, table, prefer) {
+  const entry = prefer?.get(name) ?? table.get(name);
   const code = `\`${name}${call}\``;
   if (entry) return `[${code}](${hrefOf(entry)})`;
-  const href = twglRefUrl(name);
+  const href = packageRefUrl(name) ?? twglRefUrl(name);
   return href ? `[\`${twglRefText(name)}${call}\`](${href})` : code;
 }
 
@@ -65,13 +66,34 @@ function linkTo(name, call, table) {
  * to the documented name (or to twgl's reference for a `twgl.`-prefixed one),
  * and so does any backticked identifier that resolves the same way — with
  * or without a trailing `()`. A bare name shared by several owners stays
- * plain code unless written as `Owner.name`.
+ * plain code unless written as `Owner.name`, or unless `prefer` names the
+ * owner the page reads it as. A package named in prose links to its
+ * repository.
  */
-function resolveLinks(text, table) {
+function resolveLinks(text, table, prefer) {
   return splitFences(text).map((seg, i) => i % 2 ? seg : seg
-    .replace(LINK_RE, (_, name) => linkTo(name, '', table))
+    .replace(LINK_RE, (_, name) => linkTo(name, '', table, prefer))
     .replace(CODE_RE, (all, pre, name, call) =>
-      table.ambiguous.has(name) ? all : pre + linkTo(name, call || '', table))).join('');
+      (table.ambiguous.has(name) && !prefer?.has(name)) ? all : pre + linkTo(name, call || '', table, prefer))
+    .replace(PKG_CODE_RE, (_, pre, name) => `${pre}[\`${name}\`](${packageRefUrl(name)})`)
+    .replace(PKG_RE, (_, pre, name) => `${pre}[${name}](${packageRefUrl(name)})`)).join('');
+}
+
+/**
+ * The owner the README reads a bare ambiguous name as: the bridge's own, when
+ * exactly one of its modules documents it. The README is the bridge's index
+ * page, so a `bind` there is `bind(gl, prog, uniforms)`, not a handle's method.
+ * @param {Array<Object>} doclets
+ * @param {Set<string>} ambiguous
+ * @returns {Map<string, Object>} name → link-table entry
+ */
+function indexOwners(doclets, ambiguous) {
+  const own = new Map();
+  for (const d of doclets) {
+    if (!ambiguous.has(d.name) || !String(d.owner).startsWith('webgl.tree/')) continue;
+    own.set(d.name, own.has(d.name) ? null : { doclet: d });
+  }
+  return new Map([...own].filter(([, entry]) => entry));
 }
 
 /** Bare names several owners share: auto-links leave them alone. */
@@ -266,6 +288,7 @@ function searchIndex(doclets) {
 export function render(parsed, { pkg, readme, esm }) {
   const table = linkTable(parsed);
   table.ambiguous = ambiguousNames(parsed.doclets);
+  const prefer = indexOwners(parsed.doclets, table.ambiguous);
   const pages = new Map();
 
   // Modules with at least one public doclet, in source order.
@@ -281,7 +304,7 @@ export function render(parsed, { pkg, readme, esm }) {
 
   pages.set('index.html', shell({
     title: 'README', active: 'index.html', nav, pkg, examples: true,
-    body: `    <article class="readme">${marked.parse(readme)}</article>\n${esmSection(esm)}`,
+    body: `    <article class="readme">${marked.parse(resolveLinks(readme, table, prefer))}</article>\n${esmSection(esm)}`,
   }));
 
   for (const m of modules) {

@@ -32,17 +32,24 @@ import { bind, draw } from './draw.js';
 import { renderTarget } from './target.js';
 import { PASS_VERT, flatProgram, bindGeometry } from './programs.js';
 
-/** Colour write masks for image's `mask`. */
+/** `image`'s `mask` for the red channel alone. */
 export const RED = [true, false, false, false];
+/** `image`'s `mask` for the green channel alone. */
 export const GREEN = [false, true, false, false];
+/** `image`'s `mask` for the blue channel alone. */
 export const BLUE = [false, false, true, false];
+/** `image`'s `mask` for the alpha channel alone. */
 export const ALPHA = [false, false, false, true];
+/** `image`'s `mask` for colour without alpha. */
 export const RGB = [true, true, true, false];
 
-/** Blend modes for image's `blend`: [srcRGB, dstRGB] factors by name, resolved on the context. */
+/** `image`'s `blend`: src alpha over one-minus-src alpha. */
 export const NORMAL = 'NORMAL';
+/** `image`'s `blend`: one over one, additive. */
 export const ADD = 'ADD';
+/** `image`'s `blend`: dst colour over zero, multiplicative. */
 export const MULTIPLY = 'MULTIPLY';
+// The blend modes by name: [srcRGB, dstRGB] factors, resolved on the context.
 const _BLEND = {
   NORMAL: (gl) => [gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA],
   ADD: (gl) => [gl.ONE, gl.ONE],

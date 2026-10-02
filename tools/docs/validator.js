@@ -6,7 +6,7 @@
  * Errors fail the build; warnings print and continue.
  */
 
-import { twglRefUrl, aliases, owners } from './config.js';
+import { twglRefUrl, aliases, owners, paths } from './config.js';
 
 const VOCABULARY = new Set([
   'file', 'module', 'license',
@@ -25,6 +25,29 @@ const MODULE_RE = /^\s*(import|export)\b|\bimport\s*\(|\bawait\b/m;
 /** Split markdown into [text, fence, text, fence, …] so links inside fenced code are left alone. */
 export function splitFences(md) {
   return md.split(/(```[\s\S]*?```)/g);
+}
+
+/** The site the README links into by hand — the deployed API reference. */
+const SITE_URL = 'https://nakednous.github.io/webgl.tree/';
+
+/** `webgl.tree/gizmo` → `gizmo.html`; a bare `webgl.tree` → `webgl.tree.html`. */
+export function pageOf(moduleName) {
+  const i = moduleName.lastIndexOf('/');
+  return (i < 0 ? moduleName : moduleName.slice(i + 1)) + '.html';
+}
+
+/** A doclet's anchor: the owner-qualified name, as the renderer writes it. */
+export const anchorOf = (d) => `${d.owner}.${d.name}`;
+
+/** Every absolute API-site target the README carries — inline or reference-style — and its line. */
+function readmeTargets(md) {
+  const out = new Map();
+  md.split('\n').forEach((text, i) => {
+    for (const m of text.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)) out.set(m[1], i + 1);
+    const ref = /^\[[^\]]+\]:\s*(\S+)$/.exec(text);
+    if (ref) out.set(ref[1], i + 1);
+  });
+  return [...out].filter(([url]) => url.startsWith(SITE_URL) && url.length > SITE_URL.length);
 }
 
 /** Every `{@link name}` target in a markdown string, fenced code excluded. */
@@ -128,10 +151,11 @@ function ownerScope(api, owner) {
 
 /**
  * @param {{ modules, doclets, blocks }} parsed
- * @param {{ api?: object }} [ctx]  api: the evaluated IIFE build, for the re-exported surface.
+ * @param {{ api?: object, readme?: string }} [ctx]  api: the evaluated IIFE build, for the
+ *   re-exported surface; readme: the README's markdown, whose own links into the site are checked.
  * @returns {{ errors: string[], warnings: string[] }}
  */
-export function validate(parsed, { api } = {}) {
+export function validate(parsed, { api, readme } = {}) {
   const { modules, doclets, blocks } = parsed;
   const errors = [], warnings = [];
   const at   = (x) => `${x.file}:${x.line}`;
@@ -208,6 +232,23 @@ export function validate(parsed, { api } = {}) {
     const documented = d.params.map((p) => p.name);
     if (built.length !== documented.length || built.some((n, i) => n !== null && n !== documented[i])) {
       fail(d, `${d.owner}.${d.name}(${documented.join(', ')}) does not match the build's (${built.map((n) => n ?? '{…}').join(', ')})`);
+    }
+  }
+
+  // The README's own links into the API site — every one of them names a page
+  // this build writes and, with an anchor, a name it documents. The README
+  // carries them by hand, so this is what keeps them from rotting.
+  if (readme) {
+    const written = new Set(['index.html']);
+    const documented = new Set();
+    const byModule = new Set(doclets.map((d) => d.module));
+    for (const m of modules) if (byModule.has(m.name)) written.add(pageOf(m.name));
+    for (const d of doclets) documented.add(`${pageOf(d.module)}#${anchorOf(d)}`);
+    for (const [url, line] of readmeTargets(readme)) {
+      const [page, anchor] = url.slice(SITE_URL.length).split('#');
+      const where = `${page}${anchor ? `#${anchor}` : ''}`;
+      const ok = anchor ? documented.has(where) : written.has(page);
+      if (!ok) fail({ file: paths.readme, line }, `${url} is ${anchor ? 'no documented name' : 'no page'} in this build`);
     }
   }
 

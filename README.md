@@ -13,13 +13,11 @@ pseudo-code design, expected to rest on its foundations:
 notebook's archetype columns write by hand and the notation leaves out. A hero that ports line for
 line confirms a piece of the notation; one that cannot is where the notation changes.
 
-> **Status: 0.0.x.** The surface below is shipped. The browser harness — the notebook's imaging,
-> picking and portal heroes and every gizmo on the bridge, p5.tree beside for parity — lives in the
-> repo at [`testing/`](https://github.com/nakednous/webgl.tree/tree/main/testing), never in the npm
-> tarball, which ships `dist/` alone. The gizmo `width` mode is the one piece still unproven.
+> **Status: 0.0.x.** The surface below is shipped; the gizmo `width` mode is the one piece still
+> unproven.
 
-Repo · [nakednous/webgl.tree](https://github.com/nakednous/webgl.tree) — the source, the harness,
-the issues. API site · [jpcharalambosh.co/webgl.tree](https://jpcharalambosh.co/webgl.tree/).
+Repo · [nakednous/webgl.tree](https://github.com/nakednous/webgl.tree) — the source and the issues.
+API site · [jpcharalambosh.co/webgl.tree](https://jpcharalambosh.co/webgl.tree/).
 
 ---
 
@@ -167,20 +165,7 @@ twgl sets the viewport on bind and every bridge call reads it back.
 ```bash
 npm test                                          # node:test — the pure parts against a gl stub
 npm run build                                     # rollup → dist/index.js, twgl.js external
-npx browser-sync start --config bs-config.cjs     # the harness under testing/, from the repo root
 ```
-
-The harness pages resolve twgl.js, [`webgl.tree`][webgl.tree],
-[`@nakednous/tree`](https://github.com/nakednous/tree) and
-[`@nakednous/host`](https://github.com/nakednous/host) through an
-import map pointing inside this repo (`node_modules/`, `dist/`), and load p5 plus p5.tree — the parity
-column — from a sibling `../p5.tree`, so a clone needs that checkout built beside this one
-(`npm run build` there). The npm tarball carries `dist/` alone: the harness is a development page,
-never a published artifact.
-
-`index.html` lists the five: `blur.html` and `pipe.html` (the notebook's imaging), `gizmos.html`
-(every gizmo), `pick.html` (colour-id picking), `portal.html` (the inner camera on its near plane) —
-each with the bridge on the left of the page and p5.tree on the right.
 
 ---
 

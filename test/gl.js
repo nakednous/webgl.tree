@@ -16,6 +16,8 @@ export function createGL({ width = 640, height = 480 } = {}) {
     DEPTH24_STENCIL8: 35056, DEPTH_STENCIL_ATTACHMENT: 33306, MAX_SAMPLES: 36183, NONE: 0,
     COLOR_ATTACHMENT0: 36064, DEPTH_ATTACHMENT: 36096, FRAMEBUFFER: 36160, VIEWPORT: 2978, FRAMEBUFFER_BINDING: 36006,
     ARRAY_BUFFER: 34962, ELEMENT_ARRAY_BUFFER: 34963, STATIC_DRAW: 35044, FLOAT: 5126,
+    LESS: 513, LEQUAL: 515,
+    depthFunc(f) { log.push(['depthFunc', f]); },
     deleteProgram(p) { log.push(['deleteProgram', p]); },
     deleteBuffer(b) { log.push(['deleteBuffer', b]); },
     getExtension() { return {}; },

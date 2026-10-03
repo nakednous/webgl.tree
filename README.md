@@ -142,7 +142,10 @@ beginHUD(gl) … endHUD(gl)          // 8  screen space
 ```
 
 Depth is the application's to clear; [`filter`][filter], [`image`][image] and the HUD disable it and
-restore it. Texture orientation is GL's, settled at upload. The bridge tracks no current target:
+restore it. The compare is the platform's, `LESS`, stated by [`createCanvas`][createCanvas] rather than
+left to be inherited: a pass that writes the far plane's depth — a skybox pinned to `z/w = 1` — lands on
+the value a cleared depth buffer already holds and raises the compare to `LEQUAL` for itself. Texture
+orientation is GL's, settled at upload. The bridge tracks no current target:
 twgl sets the viewport on bind and every bridge call reads it back.
 
 ---
@@ -191,6 +194,7 @@ AGPL-3.0-only
 [buffer]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.buffer
 [bullsEye]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.bullsEye
 [cross]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.cross
+[createCanvas]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.createCanvas
 [cubemap]: https://jpcharalambosh.co/webgl.tree/texture.html#webgl.tree/texture.cubemap
 [dispose]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.dispose
 [draw]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.draw

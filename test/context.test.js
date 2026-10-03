@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCamera, cameraView, cameraProj, mat4MulPoint, WEBGL } from '@nakednous/tree';
-import { init, dispose, viewOf, setCamera } from '../src/index.js';
+import { init, dispose, viewOf, setCamera, createCanvas } from '../src/index.js';
 import { contextOf } from '../src/context.js';
 import { createGL } from './gl.js';
 
@@ -85,4 +85,23 @@ test('setCamera: a bad call logs and leaves the context alone', () => {
   try { setCamera(gl, [1, 2, 3]); } finally { console.error = orig; }
   assert.equal(errors.length, 1);
   assert.equal(contextOf(gl).V[14], 0);
+});
+
+test('createCanvas: the context is sized for the display and its depth compare is stated', () => {
+  const gl = createGL();
+  const appended = [];
+  const el = { style: {} };
+  el.getContext = (kind) => { if (kind !== 'webgl2') return null; gl.canvas = el; return gl; };
+  const doc = globalThis.document;
+  globalThis.document = { createElement: () => el, body: { appendChild: (node) => appended.push(node) } };
+  try {
+    const out = createCanvas(300, 150, { density: 2 });
+    assert.equal(out, gl);
+    assert.equal(el.style.width, '300px');
+    assert.equal(el.width, 600);
+    assert.deepEqual(appended, [el]);
+    assert.deepEqual(gl.log, [['depthFunc', gl.LESS]]);   // stated, not inherited
+  } finally {
+    if (doc === undefined) delete globalThis.document; else globalThis.document = doc;
+  }
 });

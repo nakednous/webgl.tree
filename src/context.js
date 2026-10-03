@@ -35,6 +35,13 @@ const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m;
  * A canvas sized for the display: `width × height` logical pixels on the page,
  * its drawing buffer scaled by the pixel density, its WebGL2 context returned.
  * What a framework's canvas call supplies silently.
+ *
+ * The depth compare is stated as the platform's, `LESS`, rather than left to be
+ * inherited. A pass that writes the far plane's depth — a skybox pinned to
+ * `z/w = 1` — lands on the value a cleared depth buffer already holds, and an
+ * equal depth fails `LESS`; such a pass raises the compare to `LEQUAL` for
+ * itself. p5's renderer instead sets `LEQUAL` once for the context it owns, so
+ * a pin ported from a p5 sketch keeps its backdrop there and loses it here.
  * @param {number} width  Canvas pixels.
  * @param {number} height  Canvas pixels.
  * @param {{ density?:number, parent?:Element|null, attributes?:object }} [opts]
@@ -64,6 +71,7 @@ export function createCanvas(width, height, opts) {
   if (o.parent !== null) (o.parent || document.body).appendChild(canvas);
   const gl = canvas.getContext('webgl2', o.attributes);
   if (!gl) throw new Error('[webgl.tree] createCanvas: WebGL2 is unavailable.');
+  gl.depthFunc(gl.LESS);   // the platform's compare, stated — a far-plane pin raises it
   return gl;
 }
 

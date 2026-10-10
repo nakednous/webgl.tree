@@ -17,17 +17,28 @@
  * [x, y + h, w, −h], so a sub-viewport composes through W's origin. The
  * device-pixel scale is the drawing buffer's width over the host's logical
  * width, or over the canvas's client width without a host.
+ *
+ * A non-string from or to — a 16-element column-major frame matrix — maps
+ * through a custom frame: tree's MATRIX space, fromFrame aliasing the
+ * caller's matrix and toFrameInv the destination frame's inverse, taken into
+ * module scratch per call. A null return names a singular destination frame.
  */
 
 'use strict';
 
 import {
   mapLocation as _mapLocation, mapDirection as _mapDirection, unproject as _unproject,
-  pixelRatio as _pixelRatio, mat4Viewport as _mat4Viewport, WEBGL,
+  pixelRatio as _pixelRatio, mat4Viewport as _mat4Viewport, WEBGL, MATRIX, mat4Invert,
 } from '@nakednous/tree';
 import { contextOf, viewOf } from './context.js';
 
 const _vp = [0, 0, 0, 0];
+const _wb = new Float32Array(16);   // a `to` frame's inverse, refilled per call
+const _bag = {                      // the frames' bag — the view's matrices, aliased
+  mat4Proj: null, mat4View: null, mat4PV: null, mat4PVInv: null, mat4Eye: null,
+  fromFrame: null, toFrameInv: null,
+};
+const _r = { m: null, from: null, to: null };   // the dispatch, refilled per call
 
 /**
  * Device pixels per logical pixel.
@@ -55,15 +66,50 @@ export function canvasViewport(gl) {
 const _viewport = canvasViewport;
 
 /**
- * Map a point from one space to another through the installed camera.
+ * The bag and space names a mapping reads. Space names pass the view through
+ * untouched; a non-string from or to — a frame matrix — dispatches as tree's
+ * MATRIX space: fromFrame aliases the caller's matrix, toFrameInv is its
+ * inverse into module scratch, both valid until the call returns.
+ * @param {object} view  The view bag — viewOf(gl).
+ * @param {string|Float32Array|number[]} from  A space name or a frame matrix.
+ * @param {string|Float32Array|number[]} to  A space name or a frame matrix.
+ * @returns {object} { m, from, to } in module scratch, or null when `to` is a singular frame.
+ * @ignore
+ */
+function _dispatch(view, from, to) {
+  const inFrame = from != null && typeof from !== 'string';
+  const outFrame = to != null && typeof to !== 'string';
+  if (!inFrame && !outFrame) {
+    _r.m = view; _r.from = from; _r.to = to;
+    return _r;
+  }
+  if (outFrame && mat4Invert(_wb, to) === null) return null;
+  _bag.mat4Proj = view.mat4Proj;
+  _bag.mat4View = view.mat4View;
+  _bag.mat4PV = view.mat4PV;
+  _bag.mat4PVInv = view.mat4PVInv;
+  _bag.mat4Eye = view.mat4Eye;
+  _bag.fromFrame = inFrame ? from : null;
+  _bag.toFrameInv = outFrame ? _wb : null;
+  _r.m = _bag;
+  _r.from = inFrame ? MATRIX : from;
+  _r.to = outFrame ? MATRIX : to;
+  return _r;
+}
+
+/**
+ * Map a point from one space to another through the installed camera. The
+ * spaces are named — `tree.WORLD`, `tree.EYE`, `tree.NDC` or `tree.SCREEN` —
+ * or a 16-element column-major frame matrix maps through a custom frame: the
+ * point is given in, or read into, that frame's own coordinates.
  * @param {WebGL2RenderingContext} gl
  * @param {number[]} out  3-element destination.
  * @param {number} x
  * @param {number} y
  * @param {number} z
- * @param {string} from  `tree.WORLD`, `tree.EYE`, `tree.NDC` or `tree.SCREEN`.
- * @param {string} to  One of the same.
- * @returns {number[]} out
+ * @param {string|Float32Array|number[]} from  A space name, or the frame the point is given in.
+ * @param {string|Float32Array|number[]} to  A space name, or the frame the point is read into (its inverse is taken per call).
+ * @returns {number[]|null} out, or null when `to` is a singular frame.
  * @example
  * <caption>The tip of the spinning x axis, mapped from world space to logical pixels: the white cross drawn there stays on it.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
@@ -88,21 +134,50 @@ const _viewport = canvasViewport;
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
+ * @example
+ * <caption>The same tip given in the object's own frame — the frame matrix as from maps it straight to logical pixels, camera and all.</caption>
+ * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const cam = tree.createCamera({ eye: [180, 150, 300] })
+ * const M = tree.mat4(), q = tree.quat(), screen = tree.vec3()
+ *
+ * function frame(ms) {
+ *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
+ *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   axes(gl, { M, size: 100 })
+ *   mapLocation(gl, screen, 100, 0, 0, M, tree.SCREEN)
+ *   beginHUD(gl)
+ *   cross(gl, { x: screen[0], y: screen[1], size: 24, color: [1, 1, 1, 1] })
+ *   endHUD(gl)
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function mapLocation(gl, out, x, y, z, from, to) {
-  return _mapLocation(out, x, y, z, from, to, viewOf(gl), _viewport(gl), WEBGL);
+  const r = _dispatch(viewOf(gl), from, to);
+  if (!r) return null;
+  return _mapLocation(out, x, y, z, r.from, r.to, r.m, _viewport(gl), WEBGL);
 }
 
 /**
- * Map a direction from one space to another through the installed camera.
+ * Map a direction from one space to another through the installed camera,
+ * ignoring translation. The spaces are named — `tree.WORLD`, `tree.EYE`,
+ * `tree.NDC` or `tree.SCREEN` — or a 16-element column-major frame matrix maps
+ * through a custom frame's orientation: the direction is given in, or read
+ * into, that frame's own coordinates.
  * @param {WebGL2RenderingContext} gl
  * @param {number[]} out  3-element destination.
  * @param {number} dx
  * @param {number} dy
  * @param {number} dz
- * @param {string} from  `tree.WORLD`, `tree.EYE`, `tree.NDC` or `tree.SCREEN`.
- * @param {string} to  One of the same.
- * @returns {number[]} out
+ * @param {string|Float32Array|number[]} from  A space name, or the frame the direction is given in.
+ * @param {string|Float32Array|number[]} to  A space name, or the frame the direction is read into (its inverse is taken per call).
+ * @returns {number[]|null} out, or null when `to` is a singular frame.
  * @example
  * <caption>The spinning x axis's direction, mapped from world space to the screen: the white cross, placed 80 pixels from the center along it, rides over the red axis.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapDirection, tree } = webglTree
@@ -130,7 +205,9 @@ export function mapLocation(gl, out, x, y, z, from, to) {
  * requestAnimationFrame(frame)
  */
 export function mapDirection(gl, out, dx, dy, dz, from, to) {
-  return _mapDirection(out, dx, dy, dz, from, to, viewOf(gl), _viewport(gl), WEBGL);
+  const r = _dispatch(viewOf(gl), from, to);
+  if (!r) return null;
+  return _mapDirection(out, dx, dy, dz, r.from, r.to, r.m, _viewport(gl), WEBGL);
 }
 
 /**

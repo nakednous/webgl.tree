@@ -23,6 +23,6 @@ test('the namespaces keep clashing names apart', () => {
 
 test('the surface is the documented verbs: no internal helper is exported', () => {
   for (const name of ['contextOf', 'declaredTransforms', 'uploadTransforms', 'TRANSFORMS', 'disableMissingAttributes',
-    'targetSpecs', 'rectMatrix', 'passOf', 'fill', 'expand', 'ndcZMin']) assert.equal(name in bridge, false, name);
+    'targetSpecs', 'rectMatrix', 'passOf', 'samplersOf', 'fill', 'expand', 'ndcZMin']) assert.equal(name in bridge, false, name);
   for (const name of ['releasePipe', 'fragCoord', 'pixelRatio', 'mat4Viewport']) assert.equal(typeof bridge[name], 'function', name);
 });

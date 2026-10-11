@@ -8,17 +8,19 @@
  * through two cached targets.
  *
  * ```
- * program(gl, frag)                // a pass program; vTexCoord in, uSource the input
- * filter(gl, prog, uniforms)       // run one pass
- * image(gl, tex, opts)             // { x, y, width, height, tint, mask, blend }
- * pipe(gl, source, passes, opts)   // the chain; releasePipe(gl) frees its targets
+ * program(gl, frag)                  // a pass program; vTexCoord in, the input by declaration
+ * filter(gl, prog, uniforms, input)  // run one pass
+ * image(gl, tex, opts)               // { x, y, width, height, tint, mask, blend }
+ * pipe(gl, source, passes, opts)     // the chain; releasePipe(gl) frees its targets
  * ```
  *
  * @details
  * The pass-through vertex stage is fixed in NDC; the covering geometry's
- * aTexCoord is bottom-up. filter fills uResolution (the current viewport) and uTexelSize
- * ([1 / w, 1 / h] of uSource) only when the program declares them. The input
- * is bound as uSource and, for shaders written to p5's convention, as tex0. image goes
+ * aTexCoord is bottom-up. filter fills uResolution (the current viewport) and
+ * uTexelSize ([1 / w, 1 / h] of the input) only when the program declares them,
+ * and binds `input` to every sampler the program declares and the bag leaves
+ * unset — so a stage names its own input (uSource, uScene, its own word) and a
+ * stage that reads no texture is handed none. image goes
  * through the internal flat program with a rect in target pixels, origin
  * bottom-left, default cover; no flip option anywhere — orientation is
  * settled at upload.
@@ -65,7 +67,7 @@ const _res = [0, 0], _texel = [0, 0];
  * A fullscreen-pass program from a fragment shader alone; for your own
  * vertex stage use `twgl.createProgramInfo`.
  * @param {WebGL2RenderingContext} gl
- * @param {string} frag  GLSL ES 3.00 fragment source; vTexCoord in, uSource the input image.
+ * @param {string} frag  GLSL ES 3.00 fragment source; vTexCoord in, the input by declaration.
  * @returns {object|null} A twgl programInfo, or null on a compile error (logged by twgl).
  * @example
  * <caption>A fragment shader alone: red grows to the right, green upward.</caption>
@@ -121,15 +123,61 @@ export function fullscreen(gl) {
 
 const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0]; _vp[1] = v[1]; _vp[2] = v[2]; _vp[3] = v[3]; return _vp; };
 
+// The sampler uniforms a program declares, read once per program and kept on it
+// under a private key. `filter` binds the pass's input to each of them that the
+// bag leaves unset — the same rule by which it already fills uResolution and
+// uTexelSize only where a stage declares them.
+const SAMPLERS = Symbol('webgl.tree.samplers');
+const UNSET = Symbol('webgl.tree.unsetSamplerLogged');
+const _SAMPLER_TYPES = ['SAMPLER_2D', 'SAMPLER_3D', 'SAMPLER_CUBE', 'SAMPLER_2D_SHADOW', 'SAMPLER_CUBE_SHADOW',
+  'SAMPLER_2D_ARRAY', 'SAMPLER_2D_ARRAY_SHADOW', 'INT_SAMPLER_2D', 'INT_SAMPLER_3D', 'INT_SAMPLER_CUBE',
+  'INT_SAMPLER_2D_ARRAY', 'UNSIGNED_INT_SAMPLER_2D', 'UNSIGNED_INT_SAMPLER_3D', 'UNSIGNED_INT_SAMPLER_CUBE',
+  'UNSIGNED_INT_SAMPLER_2D_ARRAY'];
+
+/** Whether a GL uniform type is one of the sampler types. @ignore */
+function _isSampler(gl, type) {
+  for (let i = 0; i < _SAMPLER_TYPES.length; i++) if (gl[_SAMPLER_TYPES[i]] === type) return true;
+  return false;
+}
+
+/**
+ * The names of a program's sampler uniforms, in declaration order, cached on
+ * the program. An array of samplers contributes its base name, the key twgl's
+ * setters use.
+ * @param {WebGL2RenderingContext} gl
+ * @param {object} prog  A programInfo.
+ * @returns {string[]} @ignore
+ */
+export function samplersOf(gl, prog) {
+  let names = prog[SAMPLERS];
+  if (names) return names;
+  names = [];
+  const n = gl.getProgramParameter(prog.program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++) {
+    const info = gl.getActiveUniform(prog.program, i);
+    if (info && _isSampler(gl, info.type)) names.push(info.name.replace(/\[0\]$/, ''));
+  }
+  Object.defineProperty(prog, SAMPLERS, { value: names, configurable: true });
+  return names;
+}
+
 /**
  * Run a fullscreen pass over the current target. `uResolution` and
- * `uTexelSize` are filled when the program declares them.
+ * `uTexelSize` are filled when the program declares them, and `input` is bound
+ * to every sampler the program declares that `uniforms` does not set.
  * @details bind(prog, uniforms) with the depth test off, then draw(fullscreen).
+ * A stage names its own input — uSource where it has no better word, uScene or
+ * its own where it has — and the argument reaches it by declaration, not by
+ * name: a stage that reads no texture is handed none. The bag wins wherever it
+ * sets a name, so a second texture (`uDepth`, `uHistory`) travels in the bag.
  * @param {WebGL2RenderingContext} gl
  * @param {object} prog  A pass program from program(gl, frag).
- * @param {object} [uniforms]  uSource is the image filtered.
+ * @param {object} [uniforms]  The pass's bag, by name; `null` when it has none.
+ * @param {WebGLTexture|object} [input]  The image filtered: a texture, or a
+ *        target (its `.color`). `uTexelSize` is its texel size, or — where the
+ *        argument is absent — the bag's `uSource` / `tex0`.
  * @example
- * <caption>Axes drawn into a target, then shown colour-inverted: the green background turns pink.</caption>
+ * <caption>A stage that names its own input: uScene, bound by the argument, shown colour-inverted — the green ground turns pink.</caption>
  * const { createCanvas, setCamera, axes, renderTarget, program, filter, SCREEN, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -137,11 +185,11 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * const scene = renderTarget(gl)
  * const invert = program(gl, `#version 300 es
  * precision highp float;
- * uniform sampler2D uSource;
+ * uniform sampler2D uScene;
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   outColor = vec4(1.0 - texture(uSource, vTexCoord).rgb, 1.0);
+ *   outColor = vec4(1.0 - texture(uScene, vTexCoord).rgb, 1.0);
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
@@ -152,19 +200,34 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
- * filter(gl, invert, { uSource: scene.color })
+ * filter(gl, invert, null, scene)      // uScene takes the target's colour texture
  */
-export function filter(gl, prog, uniforms) {
+export function filter(gl, prog, uniforms, input) {
   const ctx = contextOf(gl);
   const depth = gl.isEnabled(gl.DEPTH_TEST);
   if (depth) gl.disable(gl.DEPTH_TEST);
   if (!bind(gl, prog, uniforms)) return;
   const s = prog.uniformSetters;
+  // the input, normalized as pipe's source is: a texture, or a target's colour
+  const tex = input && typeof input === 'object' && input.color ? input.color : input;
+  const names = samplersOf(gl, prog);
+  let unset = null;
+  for (let i = 0; i < names.length; i++) {
+    const n = names[i];
+    if (uniforms && uniforms[n] !== undefined) continue;      // the bag's own value wins
+    if (tex) { const set = s[n]; if (typeof set === 'function') set(tex); }
+    else if (!unset) unset = n;
+  }
+  if (unset && !prog[UNSET]) {
+    prog[UNSET] = true;
+    console.error('[webgl.tree] filter: the program declares the sampler `' + unset +
+      '` and neither `uniforms` nor `input` sets it — it reads whatever texture unit it holds.');
+  }
   const vp = _viewport(gl);
   if (typeof s.uResolution === 'function') { _res[0] = vp[2]; _res[1] = vp[3]; s.uResolution(_res); }
   if (typeof s.uTexelSize === 'function') {
-    const input = uniforms && (uniforms.uSource || uniforms.tex0);
-    const size = (input && ctx.sizes.get(input)) || null;
+    const src = tex || (uniforms && (uniforms.uSource || uniforms.tex0));
+    const size = (src && ctx.sizes.get(src)) || null;
     _texel[0] = 1 / (size ? size[0] : vp[2]); _texel[1] = 1 / (size ? size[1] : vp[3]);
     s.uTexelSize(_texel);
   }
@@ -285,7 +348,8 @@ const _clearBlack = (gl) => { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFE
  *        pong: your own targets, never cached. clear / clearFn(gl): clear a
  *        working target before its pass (default black). clearDisplay /
  *        clearDisplayFn(gl): the same for the display. draw(gl, tex, pass):
- *        how a pass renders its input (default filter with uSource).
+ *        how a pass renders its input (default: filter with the chain's
+ *        texture as the pass's input argument).
  * @returns {object|null} The target holding the result, or null without passes.
  * @example
  * <caption>Pixelate into 20 × 20 cells, then invert: magenta turns green, yellow blue, the ground pink.</caption>
@@ -331,7 +395,7 @@ export function pipe(gl, source, passes, opts) {
   const key = o.key ?? 'default';
   const clearFn = typeof o.clearFn === 'function' ? o.clearFn : _clearBlack;
   const clearDisplayFn = typeof o.clearDisplayFn === 'function' ? o.clearDisplayFn : clearFn;
-  const drawPass = typeof o.draw === 'function' ? o.draw : (g, tex, pass) => filter(g, pass.program, pass.uniforms ? Object.assign({ uSource: tex, tex0: tex }, pass.uniforms) : { uSource: tex, tex0: tex });
+  const drawPass = typeof o.draw === 'function' ? o.draw : (g, tex, pass) => filter(g, pass.program, pass.uniforms, tex);
   if (source && typeof source.resolve === 'function') source.resolve();   // a multisampled target fills its textures first
   const srcTex = source && source.color ? source.color : source;
   const outer = gl.getParameter(gl.FRAMEBUFFER_BINDING);

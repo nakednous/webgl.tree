@@ -23,7 +23,8 @@
  * transforms   uploaded by draw, each only if the bound program declares it:
  *              uModelMatrix M · uViewMatrix V · uModelViewMatrix V·M · uProjectionMatrix P
  *              uModelViewProjectionMatrix P·V·M · uNormalMatrix (V·M)⁻ᵀ
- * passes       filter fills uSource (tex0 too), uResolution, uTexelSize, each only if declared
+ * passes       filter binds the input to every declared sampler the bag
+ *              leaves unset, and fills uResolution, uTexelSize, each only if declared
  * the rest     bind(gl, prog, uniforms) — the application's bag, by name
  * ```
  */

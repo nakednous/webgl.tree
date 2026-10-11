@@ -1,7 +1,8 @@
 /**
  * @file A minimal WebGL2 stub for the bridge tests: the constants and calls
- *       the registry, the camera install and the pure helpers touch. Nothing
- *       here rasterizes; the browser harness under testing/ is the real gate.
+ *       the registry, the camera install, the pass rule and the pure helpers
+ *       touch. Nothing here rasterizes; the browser harness under testing/ is
+ *       the real gate.
  */
 
 export function createGL({ width = 640, height = 480 } = {}) {
@@ -16,6 +17,7 @@ export function createGL({ width = 640, height = 480 } = {}) {
     DEPTH24_STENCIL8: 35056, DEPTH_STENCIL_ATTACHMENT: 33306, MAX_SAMPLES: 36183, NONE: 0,
     COLOR_ATTACHMENT0: 36064, DEPTH_ATTACHMENT: 36096, FRAMEBUFFER: 36160, VIEWPORT: 2978, FRAMEBUFFER_BINDING: 36006,
     ARRAY_BUFFER: 34962, ELEMENT_ARRAY_BUFFER: 34963, STATIC_DRAW: 35044, FLOAT: 5126,
+    ACTIVE_UNIFORMS: 35718, SAMPLER_2D: 35678, SAMPLER_CUBE: 35680, SAMPLER_2D_ARRAY: 36289,
     LESS: 513, LEQUAL: 515,
     depthFunc(f) { log.push(['depthFunc', f]); },
     deleteProgram(p) { log.push(['deleteProgram', p]); },
@@ -26,6 +28,20 @@ export function createGL({ width = 640, height = 480 } = {}) {
     bindBuffer(target, b) { gl.bound = b; },
     bufferData(target, data) { if (gl.bound) gl.bound.size = data.byteLength; log.push(['bufferData', gl.bound ? gl.bound.id : null, data.length]); },
     getBufferParameter() { return gl.bound ? gl.bound.size : 0; },
+    useProgram(p) { gl.program = p; },
+    drawArrays() { log.push(['drawArrays']); },
+    drawElements() { log.push(['drawElements']); },
+    isEnabled() { return false; },
+    enable() {}, disable() {}, clear() {}, clearColor() {}, viewport() {},
+    getParameter(pname) {
+      if (pname === gl.VIEWPORT) return [0, 0, width, height];
+      if (pname === gl.FRAMEBUFFER_BINDING) return null;
+      return null;
+    },
+    // program inspection — samplersOf's side: a program object → its uniforms
+    activeUniforms: new WeakMap(),
+    getProgramParameter(p, pname) { return pname === gl.ACTIVE_UNIFORMS ? (gl.activeUniforms.get(p) || []).length : 0; },
+    getActiveUniform(p, i) { return (gl.activeUniforms.get(p) || [])[i]; },
     buffers: 0, bound: null,
   };
   return gl;

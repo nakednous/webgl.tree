@@ -120,3 +120,13 @@ test('filter: uTexelSize is the input\'s own texel, and the bag\'s uSource witho
   filter(gl, prog, { uSource: scene });                      // the bag form keeps its behaviour
   near(prog.got.uTexelSize[0], 1 / 64);
 });
+
+test('filter: returns the bound program, and null where nothing was drawn', () => {
+  const gl = createGL();
+  const prog = samplerProgram(['uScene']);
+  gl.activeUniforms.set(prog.program, [{ name: 'uScene', type: gl.SAMPLER_2D }]);
+  assert.equal(filter(gl, prog, null, { tex: 'scene' }), prog);
+  gl.depthTest = true;
+  assert.equal(filter(gl, null, null), null);
+  assert.equal(gl.depthTest, true, 'a failed pass leaves the depth test as it found it');
+});

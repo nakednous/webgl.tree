@@ -38,8 +38,9 @@ export function createGL({ width = 640, height = 480 } = {}) {
     useProgram(p) { gl.program = p; },
     drawArrays() { log.push(['drawArrays']); },
     drawElements() { log.push(['drawElements']); },
-    isEnabled() { return false; },
-    enable() {}, disable() {},
+    isEnabled(cap) { return cap === gl.DEPTH_TEST ? !!gl.depthTest : false; },
+    enable(cap) { if (cap === gl.DEPTH_TEST) gl.depthTest = true; },
+    disable(cap) { if (cap === gl.DEPTH_TEST) gl.depthTest = false; },
     clearColor(r, g, b, a) { gl.clearColorValue = [r, g, b, a]; log.push(['clearColor', r, g, b, a]); },
     clear(mask) { gl.clears.push(mask); log.push(['clear', mask]); },
     viewport(x, y, w, h) { gl.viewport4 = [x, y, w, h]; },
@@ -69,7 +70,7 @@ export function createGL({ width = 640, height = 480 } = {}) {
       return null;
     },
     clears: [], framebuffers: 0, textures: 0, renderbuffers: 0, boundFramebuffer: null,
-    clearColorValue: [0, 0, 0, 0], viewport4: [0, 0, width, height],
+    clearColorValue: [0, 0, 0, 0], viewport4: [0, 0, width, height], depthTest: false,
     // program inspection — samplersOf's side: a program object → its uniforms
     activeUniforms: new WeakMap(),
     getProgramParameter(p, pname) { return pname === gl.ACTIVE_UNIFORMS ? (gl.activeUniforms.get(p) || []).length : 0; },

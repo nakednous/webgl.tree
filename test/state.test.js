@@ -108,3 +108,18 @@ test('state.resize and dispose: the count zeroes, the attachments go', () => {
   s.dispose();
   assert.equal(gl.log.filter((e) => e[0] === 'deleteFramebuffer').length, 2);
 });
+
+test('state.pass: a program that did not bind advances nothing', () => {
+  const gl = createGL();
+  const s = state(gl, { width: 8, height: 8 });
+  const a = s.read, b = s.write;
+  const outer = { id: 5 };
+  gl.boundFramebuffer = outer;
+  gl.depthTest = true;
+  s.pass(null);                                   // program(gl, frag) returns null on a compile error
+  assert.equal(s.count, 0, 'the count is a pass\'s, and no pass ran');
+  assert.equal(s.read, a);
+  assert.equal(s.write, b);
+  assert.equal(gl.boundFramebuffer, outer, 'the caller\'s target is back');
+  assert.equal(gl.depthTest, true, 'and the depth test it found');
+});

@@ -176,6 +176,9 @@ export function samplersOf(gl, prog) {
  * @param {WebGLTexture|object} [input]  The image filtered: a texture, or a
  *        target (its `.color`). `uTexelSize` is its texel size, or — where the
  *        argument is absent — the bag's `uSource` / `tex0`.
+ * @returns {object|null} The bound program, as `bind` returns it, or null where
+ *        nothing was drawn: a `program(gl, frag)` that failed to compile is null,
+ *        and a pass handed one runs nothing rather than half of something.
  * @example
  * <caption>A stage that names its own input: uScene, bound by the argument, shown colour-inverted — the green ground turns pink.</caption>
  * const { createCanvas, setCamera, axes, renderTarget, program, filter, SCREEN, tree } = webglTree
@@ -206,7 +209,11 @@ export function filter(gl, prog, uniforms, input) {
   const ctx = contextOf(gl);
   const depth = gl.isEnabled(gl.DEPTH_TEST);
   if (depth) gl.disable(gl.DEPTH_TEST);
-  if (!bind(gl, prog, uniforms)) return;
+  const bound = bind(gl, prog, uniforms);
+  if (!bound) {                                   // nothing drawn: the state as it was
+    if (depth) gl.enable(gl.DEPTH_TEST);
+    return null;
+  }
   const s = prog.uniformSetters;
   // the input, normalized as pipe's source is: a texture, or a target's colour
   const tex = input && typeof input === 'object' && input.color ? input.color : input;
@@ -233,6 +240,7 @@ export function filter(gl, prog, uniforms, input) {
   }
   draw(gl, fullscreen(gl));
   if (depth) gl.enable(gl.DEPTH_TEST);
+  return bound;
 }
 
 /**

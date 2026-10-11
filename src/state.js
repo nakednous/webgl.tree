@@ -95,6 +95,9 @@ export function state(gl, opts) {
   const pair = {
     /**
      * Run a fullscreen pass from the read side into the write side, then swap.
+     * A program that did not bind — `program(gl, frag)` returns null on a compile
+     * error — draws nothing, and then neither the pair nor the count moves: the
+     * frame is not advanced by a pass that did not run.
      * @param {object} prog  A pass program from program(gl, frag).
      * @param {object} [uniforms]  The pass's bag, by name.
      * @returns {object} The state.
@@ -103,9 +106,11 @@ export function state(gl, opts) {
       const outer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
       _viewport(gl);
       bindFramebufferInfo(gl, write);                 // twgl's verb: it sets the viewport too
-      filter(gl, prog, uniforms, read.color);         // the input is the read side, by declaration
-      const t = read; read = write; write = t;
-      count += 1;
+      const ran = filter(gl, prog, uniforms, read.color);   // the input is the read side, by declaration
+      if (ran) {                                      // a pass that did not run is not one:
+        const t = read; read = write; write = t;      // the pair and the count stay where they were
+        count += 1;
+      }
       gl.bindFramebuffer(gl.FRAMEBUFFER, outer);
       gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
       return pair;

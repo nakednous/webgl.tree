@@ -36,6 +36,7 @@ export { setCamera } from './camera.js';
 export { bind, buffer, draw, drawInstanced } from './draw.js';
 export { renderTarget, SCREEN } from './target.js';
 export { program, fullscreen, filter, image, pipe, releasePipe, RED, GREEN, BLUE, ALPHA, RGB, NORMAL, ADD, MULTIPLY } from './pass.js';
+export { state } from './state.js';
 export { axes, grid, hermite, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';
 export { readPixel, pick } from './pick.js';
 export { texture, upload, cubemap } from './texture.js';

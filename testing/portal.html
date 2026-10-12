@@ -142,7 +142,12 @@ new p5((p) => {
     p.ambientLight(90); p.directionalLight(255, 255, 255, 0.4, -0.6, -1)
     scene()
     p.stroke(102, 230, 255); p.noFill()
-    p.viewFrustum({ camera: INNER, bits: p5.Tree.BODY | p5.Tree.APEX | p5.Tree.NEAR, nearTexture: fbo.color, viewer: () => {} })
+    // fboCam, not the INNER literal: the image was rendered by the framebuffer's own
+    // camera, whose y p5 inverts, and viewFrustum reads exactly that off the camera it
+    // is handed to choose the near plane's uvs. A literal carries no yScale, so the
+    // default framebuffer flip applied and the plane read upside down — the image was
+    // right, the uv rule was told the wrong thing about how it was made.
+    p.viewFrustum({ camera: fboCam, bits: p5.Tree.BODY | p5.Tree.APEX | p5.Tree.NEAR, nearTexture: fbo.color, viewer: () => {} })
   }
 }, document.getElementById('p5'))
 </script>

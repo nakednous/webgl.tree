@@ -26,7 +26,7 @@
 <a class="back" href="index.html">← harness</a>
 <div id="note">the inner camera's view, rendered to a target, textured onto its own near plane by viewFrustum's nearTexture with the default uvs — it must read upright, the red sphere left and low, the yellow cone right; the outer view orbits slowly</div>
 <main>
-  <section><h2><b>webgl.tree</b> · renderTarget → viewFrustum({ nearTexture }) — one orientation, no flip</h2><canvas id="gl" width="600" height="420"></canvas></section>
+  <section><h2><b>webgl.tree</b> · renderTarget → viewFrustum({ nearTexture }) — one orientation, no flip</h2><div id="gl"></div></section>
   <section><h2><b>p5.tree</b> · createFramebuffer → viewFrustum({ nearTexture })</h2><div id="p5"></div></section>
 </main>
 
@@ -54,11 +54,14 @@ void main() { float d = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
 // a small scene rendered into a target; a third-person outer view shows that
 // image textured onto the inner camera's near plane — the orientation gate.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, viewFrustum, grid, tree } from 'webgl.tree'
+import { createCanvas, setCamera, bind, draw, renderTarget, viewFrustum, grid, tree } from 'webgl.tree'
 
 const src = (id) => document.getElementById(id).textContent
-const canvas = document.getElementById('gl')
-const gl = canvas.getContext('webgl2')
+// createCanvas, not a hand-written element: it sizes the drawing buffer by the
+// display's pixel ratio, so a high-density screen does not get a bitmap the browser
+// has to upscale — which softens every one-pixel line and every glyph-sized gizmo.
+const gl = createCanvas(600, 420, { parent: document.getElementById('gl') })
+const canvas = gl.canvas
 const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
 const cube = twgl.primitives.createCubeVertices(1)
 const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })

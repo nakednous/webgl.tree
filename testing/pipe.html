@@ -26,7 +26,7 @@
 <a class="back" href="index.html">← harness</a>
 <div id="readout">move the mouse over either canvas: x sets the grain</div>
 <main>
-  <section><h2><b>webgl.tree</b> · renderTarget → pipe(scene, [pixelate, vignette])</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>webgl.tree</b> · renderTarget → pipe(scene, [pixelate, vignette])</h2><div id="gl"></div></section>
   <section><h2><b>p5.tree</b> · createFramebuffer → pipe(scene, [pixelate, vignette])</h2><div id="p5"></div></section>
 </main>
 
@@ -84,11 +84,14 @@ void main() {
 // uploads it), then the two-stage chain; the first stage's uCells reads the
 // mouse, the second declares uResolution and gets it filled.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, renderTarget, program, pipe, tree } from 'webgl.tree'
+import { createCanvas, setCamera, bind, draw, renderTarget, program, pipe, tree } from 'webgl.tree'
 
 const src = (id) => document.getElementById(id).textContent
-const canvas = document.getElementById('gl')
-const gl = canvas.getContext('webgl2')
+// createCanvas, not a hand-written element: it sizes the drawing buffer by the
+// display's pixel ratio, so a high-density screen does not get a bitmap the browser
+// has to upscale — which softens every one-pixel line and every glyph-sized gizmo.
+const gl = createCanvas(600, 400, { parent: document.getElementById('gl') })
+const canvas = gl.canvas
 let mx = 0.5
 for (const el of [canvas, document.getElementById('p5')]) el.addEventListener('pointermove', (e) => { mx = e.offsetX / 600 })
 

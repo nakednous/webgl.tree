@@ -25,7 +25,7 @@
 <body>
 <a class="back" href="index.html">← harness</a>
 <main>
-  <section><h2><b>webgl.tree</b> · pick(gl, x, y, drawFn) — async, a frame-stamp per resolved id</h2><canvas id="gl" width="600" height="400"></canvas><div class="readout" id="out">move over a sphere</div></section>
+  <section><h2><b>webgl.tree</b> · pick(gl, x, y, drawFn) — async, a frame-stamp per resolved id</h2><div id="gl"></div><div class="readout" id="out">move over a sphere</div></section>
   <section><h2><b>p5.tree</b> · mousePick — synchronous readPixels</h2><div id="p5"></div><div class="readout" id="p5out">move over a sphere</div></section>
 </main>
 
@@ -57,11 +57,14 @@ void main() {
 // for the pick (paint(id) on the flat program) and lit for the eye. The pick
 // is asynchronous: the readout shows the id and how many frames late it landed.
 import * as twgl from 'twgl.js'
-import { setCamera, bind, draw, pick, tree } from 'webgl.tree'
+import { createCanvas, setCamera, bind, draw, pick, tree } from 'webgl.tree'
 
 const src = (id) => document.getElementById(id).textContent
-const canvas = document.getElementById('gl')
-const gl = canvas.getContext('webgl2')
+// createCanvas, not a hand-written element: it sizes the drawing buffer by the
+// display's pixel ratio, so a high-density screen does not get a bitmap the browser
+// has to upscale — which softens every one-pixel line and every glyph-sized gizmo.
+const gl = createCanvas(600, 400, { parent: document.getElementById('gl') })
+const canvas = gl.canvas
 const out = document.getElementById('out')
 const lit = twgl.createProgramInfo(gl, [src('lit-vert'), src('lit-frag')])
 const sv = twgl.primitives.createSphereVertices(60, 24, 16)

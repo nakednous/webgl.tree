@@ -5,7 +5,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { state } from '../src/index.js';
+import { pipe, state } from '../src/index.js';
 import { createGL } from './gl.js';
 
 // A pass program whose one sampler records what it is handed.
@@ -146,4 +146,18 @@ test('state.resize: the pair is defined again, and the count with it', () => {
   assert.equal(s.count, 0);
   assert.equal(s.read, after, 'a resize does not swap: the sides are a pass\'s');
   assert.equal(gl.clears.length, 2, 'reallocated storage is defined too');
+});
+
+test('a state composes: pipe reads the state\'s read side, and leaves the pair alone', () => {
+  const gl = createGL();
+  const s = state(gl, { width: 16, height: 8 });
+  s.pass(accumProgram(gl));
+  const read = s.read, count = s.count;
+  const flat = accumProgram(gl);                       // a chain stage, one sampler
+  gl.log.length = 0;
+  const out = pipe(gl, s.read.color, [{ program: flat, uniforms: {} }], { display: false, key: 'chain' });
+  assert.ok(out, 'the chain produced a target');
+  assert.equal(s.read, read, 'the chain does not swap another verb\'s pair');
+  assert.equal(s.count, count);
+  assert.equal(out.color !== undefined, true);
 });

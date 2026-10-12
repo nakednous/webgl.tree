@@ -15,9 +15,12 @@
  * image(gl, mean.read.color)                            // the value, shown
  * ```
  *
- * Nothing is ever cleared: the pair holds the value, and a clear would zero the
- * data. `reset()` is the one call that clears — and the one that zeroes the
- * count the blend's weight is made of. A pass that draws *geometry* into the
+ * `state()` clears both sides once, when it makes them: a driver's fresh storage
+ * is undefined, and the first pass would otherwise read a history that is not
+ * there — Chrome says so out loud (*lazy initialization*) and some drivers hand
+ * back noise. After that nothing is ever cleared: the pair holds the value, and
+ * a clear would zero the data. `reset()` is the one call that clears again — and
+ * the one that zeroes the count the blend's weight is made of. A pass that draws *geometry* into the
  * state binds `.write` itself and calls `swap()`; a pass that reads the state
  * while writing elsewhere — a caustics map, a display — reads `.read.color` as a
  * plain texture.
@@ -43,10 +46,12 @@ const _viewport = (gl) => {
  * the last pass wrote, `.write` the side the next one writes, and `pass` runs a
  * fullscreen pass from the first into the second and swaps them.
  * @details The caller owns the object — a simulation is held, not re-run per
- * frame — and nothing is cleared except by `reset()`: the pair's contents are
- * the data. `pass` restores the framebuffer binding and the viewport it found,
- * so a pass or a reset fired from a panel or a pointer callback cannot leave the
- * frame drawing into the state.
+ * frame — and the pair starts *defined*: `state()` resets it once as it makes it,
+ * so the first pass never reads storage the driver has not written. Nothing is
+ * cleared after that except by `reset()`: the pair's contents are the data.
+ * `pass` restores the framebuffer binding and the viewport it found, so a pass
+ * or a reset fired from a panel or a pointer callback cannot leave the frame
+ * drawing into the state.
  * @param {WebGL2RenderingContext} gl
  * @param {{ width?:number, height?:number, format?:number, float?:boolean,
  *           minMag?:number, wrap?:number, clear?:number[] }} [opts]
@@ -126,9 +131,11 @@ export function state(gl, opts) {
       return pair;
     },
     /**
-     * Clear both sides to the state's own colour and zero the count: a defined
-     * start, for a target pair whose contents the API leaves undefined. The
-     * context's clear colour and its bound target are its own again afterwards.
+     * Clear both sides to the state's own colour and zero the count — what
+     * `state()` itself runs as it makes the pair, so a state always starts
+     * defined, and what a figure's own reset calls when the value is a value *of*
+     * something that has changed. The context's clear colour and its bound target
+     * are its own again afterwards.
      * @returns {object} The state.
      */
     reset() {
@@ -144,9 +151,10 @@ export function state(gl, opts) {
       return pair;
     },
     /**
-     * Resize both sides and zero the count — the frames a mean was taken of were
-     * taken at another size. The API zeroes the reallocated storage, so the pair
-     * starts blank.
+     * Resize both sides, zero the count and clear them — the frames a mean was
+     * taken of were taken at another size, and reallocated storage is as
+     * undefined as new storage: the pair starts defined for the same reason a
+     * fresh state does.
      * @param {number} width
      * @param {number} height
      * @returns {object} The state.
@@ -154,7 +162,7 @@ export function state(gl, opts) {
     resize(width, height) {
       A.resize(width, height);
       B.resize(width, height);
-      count = 0;
+      pair.reset();          // zeroes the count too
       return pair;
     },
     /**
@@ -175,5 +183,9 @@ export function state(gl, opts) {
     write: { get: () => write, enumerable: true },
     count: { get: () => count, enumerable: true },
   });
+
+  // a defined start: the pair is cleared as it is made, so the first pass reads a
+  // history that exists (zero) rather than storage the driver has not written
+  pair.reset();
   return pair;
 }

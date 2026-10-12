@@ -123,3 +123,27 @@ test('state.pass: a program that did not bind advances nothing', () => {
   assert.equal(gl.boundFramebuffer, outer, 'the caller\'s target is back');
   assert.equal(gl.depthTest, true, 'and the depth test it found');
 });
+
+test('state: the pair is defined as it is made', () => {
+  const gl = createGL();
+  const outer = { id: 7 };
+  gl.boundFramebuffer = outer;
+  gl.clears.length = 0;
+  const s = state(gl, { width: 8, height: 8 });
+  assert.equal(s.count, 0, 'a fresh state has run no pass');
+  assert.equal(gl.clears.length, 2, 'both sides are cleared as they are made');
+  assert.equal(gl.boundFramebuffer, outer, 'and the caller keeps its target');
+});
+
+test('state.resize: the pair is defined again, and the count with it', () => {
+  const gl = createGL();
+  const s = state(gl, { width: 8, height: 8 });
+  s.pass(accumProgram(gl));
+  assert.equal(s.count, 1);
+  const after = s.read;                       // the side the pass wrote
+  gl.clears.length = 0;
+  s.resize(16, 16);
+  assert.equal(s.count, 0);
+  assert.equal(s.read, after, 'a resize does not swap: the sides are a pass\'s');
+  assert.equal(gl.clears.length, 2, 'reallocated storage is defined too');
+});

@@ -28,7 +28,7 @@
 <a class="back" href="index.html">← harness</a>
 <div id="note">same fixed camera on both sides · drag the two handle dots (sphere, plane) on either side · the rig is fed a synthetic push · bottom-left cross and centre bulls-eye are HUD gizmos</div>
 <main>
-  <section><h2><b>webgl.tree</b> · the line pipe</h2><canvas id="gl" width="600" height="400"></canvas></section>
+  <section><h2><b>webgl.tree</b> · the line pipe</h2><div id="gl"></div></section>
   <section><h2><b>p5.tree</b> · the same gizmos</h2><div id="p5"></div></section>
 </main>
 
@@ -39,10 +39,14 @@
 // The bridge column: a host on the canvas for the handles and the rig labels,
 // the camera installed once per frame, every gizmo drawn by name.
 import * as twgl from 'twgl.js'
-import { init, setCamera, axes, grid, hermite, viewFrustum, trackPath, helmRig, handleLocus, cross, bullsEye, beginHUD, endHUD, tree, host } from 'webgl.tree'
+import { createCanvas, init, setCamera, axes, grid, hermite, viewFrustum, trackPath, helmRig, handleLocus, cross, bullsEye, beginHUD, endHUD, tree, host } from 'webgl.tree'
 
-const canvas = document.getElementById('gl')
-const gl = canvas.getContext('webgl2')
+// createCanvas, not a hand-written element: it sizes the drawing buffer by the
+// display's pixel ratio, so on a high-density screen the browser does not upscale
+// a 600 x 400 bitmap into a 1200 x 800 region and soften every one-pixel line —
+// which is what this column looked like next to p5's retina column.
+const gl = createCanvas(600, 400, { parent: document.getElementById('gl') })
+const canvas = gl.canvas
 const canvasHost = host.createHost(canvas)
 init(gl, { host: canvasHost })
 

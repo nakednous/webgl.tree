@@ -540,11 +540,17 @@ export function helmRig(gl, helm, opts) {
 }
 
 function _rigHud(gl, ctx, helm, o) {
+  // The HUD's coordinates are logical pixels, as beginHUD's ortho is: the rig's own
+  // target is that size times the canvas's scale, and the rect it is displayed in is
+  // the same. Reading x / y / size as device pixels put the corner rigs at half size
+  // and the wrong offset on any display whose drawing buffer is denser than the canvas.
+  const s = canvasScale(gl);
   const size = o.size ?? 120;
+  const px = Math.max(1, Math.round(size * s));
   let entry = ctx.rigs.get(helm);
-  if (!entry || entry.size !== size) {
+  if (!entry || entry.size !== px) {
     if (entry) entry.fbo.dispose();
-    entry = { fbo: renderTarget(gl, { width: size, height: size }), size };
+    entry = { fbo: renderTarget(gl, { width: px, height: px }), size: px };
     ctx.rigs.set(helm, entry);
   }
   let az = _AZ_ISO, el = _EL_ISO;
@@ -570,7 +576,7 @@ function _rigHud(gl, ctx, helm, o) {
   if (!wasDepth) gl.disable(gl.DEPTH_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
   gl.viewport(vx, vy, vw, vh);
-  image(gl, entry.fbo.color, { x: o.x, y: vh - o.y - size, width: size, height: size, tint: o.tint, blend: 'NORMAL' });
+  image(gl, entry.fbo.color, { x: (o.x ?? 0) * s, y: vh - ((o.y ?? 0) + size) * s, width: px, height: px, tint: o.tint, blend: 'NORMAL' });
 }
 
 const _DOT_N = 24;

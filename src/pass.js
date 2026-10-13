@@ -175,7 +175,7 @@ export function samplersOf(gl, prog) {
  * @param {object} [uniforms]  The pass's bag, by name; `null` when it has none.
  * @param {WebGLTexture|object} [input]  The image filtered: a texture, or a
  *        target (its `.color`). `uTexelSize` is its texel size, or — where the
- *        argument is absent — the bag's `uSource` / `tex0`.
+ *        argument is absent — the bag's `uSource`.
  * @returns {object|null} The bound program, as `bind` returns it, or null where
  *        nothing was drawn: a `program(gl, frag)` that failed to compile is null,
  *        and a pass handed one runs nothing rather than half of something.
@@ -233,7 +233,7 @@ export function filter(gl, prog, uniforms, input) {
   const vp = _viewport(gl);
   if (typeof s.uResolution === 'function') { _res[0] = vp[2]; _res[1] = vp[3]; s.uResolution(_res); }
   if (typeof s.uTexelSize === 'function') {
-    const src = tex || (uniforms && (uniforms.uSource || uniforms.tex0));
+    const src = tex || (uniforms && uniforms.uSource);
     const size = (src && ctx.sizes.get(src)) || null;
     _texel[0] = 1 / (size ? size[0] : vp[2]); _texel[1] = 1 / (size ? size[1] : vp[3]);
     s.uTexelSize(_texel);

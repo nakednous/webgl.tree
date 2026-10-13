@@ -119,6 +119,11 @@ test('filter: uTexelSize is the input\'s own texel, and the bag\'s uSource witho
   near(prog.got.uTexelSize[0], 1 / 64); near(prog.got.uTexelSize[1], 1 / 32);
   filter(gl, prog, { uSource: scene });                      // the bag form keeps its behaviour
   near(prog.got.uTexelSize[0], 1 / 64);
+  // and the bridge knows no name but the book's: a bag naming p5's `tex0` does not
+  // reach the lookup, so the size falls back to the viewport rather than to a
+  // texture the bridge is pretending to recognise
+  filter(gl, prog, { tex0: scene });
+  near(prog.got.uTexelSize[0], 1 / gl.viewport4[2]);
 });
 
 test('filter: returns the bound program, and null where nothing was drawn', () => {

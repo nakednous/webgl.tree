@@ -40,6 +40,7 @@ export { state } from './state.js';
 export { axes, grid, hermite, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';
 export { readPixel, pick } from './pick.js';
 export { texture, upload, cubemap } from './texture.js';
+export { decodeRGBE, encodeRGBE, loadHDR } from './hdr.js';
 export { mapLocation, mapDirection, unproject, fragCoord, pixelRatio, mat4Viewport } from './space.js';
 export * as tree from './tree.js';
 export * as host from '@nakednous/host';

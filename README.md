@@ -121,7 +121,8 @@ module — the links go there.
 | [`axes`][axes] · [`grid`][grid] · [`hermite`][hermite] · [`viewFrustum`][viewFrustum] · [`trackPath`][trackPath] · [`helmRig`][helmRig] · [`handleLocus`][handleLocus] · [`pane`][pane] | the scene gizmos over the core generators: `(gl, subject?, { M, color, bits, size, depth, width })`; [`viewFrustum`][viewFrustum] takes a camera state, a track or `{ mat4Eye, mat4Proj }` plus `nearTexture` / `farTexture`; [`trackPath`][trackPath] draws markers and `HANDLES`; [`helmRig`][helmRig] orients to the helm's frame and, with `{ x, y, size, tilt }`, composites a corner readout; [`handleLocus`][handleLocus] draws a host handle's dot, aim and locus |
 | [`beginHUD(gl)`][beginHUD] · [`endHUD(gl)`][endHUD] · [`cross`][cross] · [`bullsEye`][bullsEye] | an orthographic camera over the viewport in y-down pixels with the depth test off; the two screen-space gizmos wrap themselves in it when called outside |
 | [`readPixel(gl, fbo, x, y)`][readPixel] · [`pick(gl, x, y, drawFn, opts)`][pick] | one pixel back through a PBO and a fence, polled on the bridge's own frame loop; colour-id scene picking on a 1×1 target through `mat4Pick`, `paint(id)` handed to `drawFn`, ids `1 … 2²⁴ − 1`, `0` a miss |
-| [`texture(gl, source, opts)`][texture] · [`upload(gl, tex, source)`][upload] · [`cubemap(gl, faces, opts)`][cubemap] | over twgl's [`twgl.createTexture`][twgl.createTexture] and [`twgl.setTextureFromElement`][twgl.setTextureFromElement]; images and elements flipped into GL's bottom-up space at upload, so nothing downstream flips |
+| [`texture(gl, source, opts)`][texture] · [`upload(gl, tex, source)`][upload] · [`cubemap(gl, faces, opts)`][cubemap] | over twgl's [`twgl.createTexture`][twgl.createTexture] and [`twgl.setTextureFromElement`][twgl.setTextureFromElement]; images and elements flipped into GL's bottom-up space at upload, so nothing downstream flips — a `{ data, width, height }` pixel source is taken as given unless `{ flip: true }` asks for the same reversal, since GL cannot flip a typed array at upload; a `Float32Array` becomes RGBA32F with type FLOAT (radiance, unclamped), any other array a byte per channel, and `internalFormat` / `type` carry the pair twgl cannot infer |
+| [`decodeRGBE(bytes, opts)`][decodeRGBE] · [`encodeRGBE(r, g, b, out)`][encodeRGBE] · [`loadHDR(url, opts)`][loadHDR] | Radiance `.hdr` — the one high-dynamic-range format a few dozen lines decode — into the pixel source [`texture`][texture] uploads as RGBA32F: `decodeRGBE` is pure and DOM-free, `loadHDR` is it over `fetch`. Values above 1.0 survive, which is the whole point: a pass that tone-maps needs the radiance that a `loadImage` `ImageBitmap` has already clamped. Rows come back in the order the file states (`-Y`, top-down) and are never flipped here; `rowOrder: 'BOTTOM_UP'` asks for GL's. Verified against three.js's `HDRLoader` and ImageMagick (`testing/compare-three-hdr.mjs`) |
 | [`mapLocation(gl, out, x, y, z, from, to)`][mapLocation] · [`mapDirection(gl, out, dx, dy, dz, from, to)`][mapDirection] · [`unproject(gl, outO, outD, sx, sy)`][unproject] · [`fragCoord(gl, out, x, y)`][fragCoord] · [`pixelRatio(gl, eyeZ)`][pixelRatio] · [`mat4Viewport(gl, out)`][mat4Viewport] | points, directions and rays between spaces — named, or a frame matrix naming a custom frame — through the installed camera and the current viewport; a screen-space pixel as `gl_FragCoord`; world units per logical pixel at an eye-space depth; the viewport matrix W, NDC to logical pixels |
 
 Not exported: the internal flat, line, wide-line and pass-through programs. A hero binds its
@@ -197,9 +198,11 @@ AGPL-3.0-only
 [cross]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.cross
 [createCanvas]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.createCanvas
 [cubemap]: https://jpcharalambosh.co/webgl.tree/texture.html#webgl.tree/texture.cubemap
+[decodeRGBE]: https://jpcharalambosh.co/webgl.tree/hdr.html#webgl.tree/hdr.decodeRGBE
 [dispose]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.dispose
 [draw]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.draw
 [drawInstanced]: https://jpcharalambosh.co/webgl.tree/draw.html#webgl.tree/draw.drawInstanced
+[encodeRGBE]: https://jpcharalambosh.co/webgl.tree/hdr.html#webgl.tree/hdr.encodeRGBE
 [endHUD]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.endHUD
 [filter]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.filter
 [fragCoord]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.fragCoord
@@ -210,6 +213,7 @@ AGPL-3.0-only
 [hermite]: https://jpcharalambosh.co/webgl.tree/gizmo.html#webgl.tree/gizmo.hermite
 [image]: https://jpcharalambosh.co/webgl.tree/pass.html#webgl.tree/pass.image
 [init]: https://jpcharalambosh.co/webgl.tree/context.html#webgl.tree/context.init
+[loadHDR]: https://jpcharalambosh.co/webgl.tree/hdr.html#webgl.tree/hdr.loadHDR
 [mapDirection]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.mapDirection
 [mapLocation]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.mapLocation
 [mat4Viewport]: https://jpcharalambosh.co/webgl.tree/space.html#webgl.tree/space.mat4Viewport

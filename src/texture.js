@@ -59,13 +59,76 @@ function _opts(gl, o) {
   };
 }
 
+// The internal format and upload type a pixel source asks for. A Float32Array
+// holds radiance, which is RGBA32F; everything else is a byte, and would clamp.
+// twgl would otherwise reach texImage2D as (RGBA, FLOAT) — an invalid
+// combination — so both have to be stated here. WebGL2's table pairs each float
+// format with one type (RGBA32F with FLOAT, RGBA16F with HALF_FLOAT), and
+// `opts.internalFormat` / `opts.type` override both where twgl cannot infer a
+// type (a Uint16Array of half-floats).
+function _formatOf(gl, data, o) {
+  const internalFormat = o.internalFormat || (data instanceof Float32Array ? gl.RGBA32F : gl.RGBA8);
+  const type = o.type ||
+    (internalFormat === gl.RGBA32F ? gl.FLOAT :
+      internalFormat === gl.RGBA16F ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE);
+  return { internalFormat, format: gl.RGBA, type };
+}
+
+// Whether the format is one that stores more than a byte per channel.
+const _isFloat = (gl, internalFormat) => internalFormat === gl.RGBA32F || internalFormat === gl.RGBA16F;
+
+// One scratch typed array per source type, resized as needed: a caller never
+// sees the flip, and a repeated upload allocates once.
+let _scratch8 = null, _scratch32 = null;
+function _flippedRows(data, width, height) {
+  const out = data instanceof Float32Array
+    ? (_scratch32 && _scratch32.length === data.length ? _scratch32 : (_scratch32 = new Float32Array(data.length)))
+    : (_scratch8 && _scratch8.length === data.length ? _scratch8 : (_scratch8 = new Uint8Array(data.length)));
+  const row = width * 4;
+  for (let y = 0; y < height; y++) {
+    const from = data.subarray ? data.subarray(y * row, y * row + row) : data.slice(y * row, y * row + row);
+    out.set(from, (height - 1 - y) * row);
+  }
+  return out;
+}
+
+// The pixel path of texture(): the format is resolved, the rows are flipped
+// when asked, and the size is registered for filter's uTexelSize.
+function _pixelTexture(gl, ctx, source, o) {
+  const spec = _opts(gl, o);
+  const format = _formatOf(gl, source.data, o);
+  spec.internalFormat = format.internalFormat;
+  spec.format = format.format;
+  spec.type = format.type;
+  spec.src = o.flip ? _flippedRows(source.data, source.width, source.height) : source.data;
+  spec.width = source.width;
+  spec.height = source.height;
+  spec.flipY = 0;
+  if (_isFloat(gl, spec.internalFormat)) {
+    if (spec.type === gl.FLOAT && spec.min === gl.LINEAR && ctx.floatLinearExt === undefined) {
+      ctx.floatLinearExt = gl.getExtension('OES_texture_float_linear') || false;
+      if (!ctx.floatLinearExt) console.error('[webgl.tree] texture: OES_texture_float_linear is unavailable; a gl.FLOAT texture sampled linearly reads black — use gl.HALF_FLOAT or minMag: gl.NEAREST.');
+    }
+  }
+  return createTexture(gl, spec);
+}
+
 /**
  * Create a texture from an element, a bitmap or raw pixels.
  * @details Elements and bitmaps are flipped into GL's bottom-up space; a
- * { data, width, height } pixel source is taken as given.
+ * { data, width, height } pixel source is taken as given unless `flip` asks
+ * for the same normalization, since GL cannot flip a typed array at upload
+ * (`UNPACK_FLIP_Y_WEBGL` is defined for elements alone). A Float32Array source
+ * becomes RGBA32F — radiance, unclamped, the range a tone operator has
+ * something to compress — where any other array is a byte per channel.
  * @param {WebGL2RenderingContext} gl
  * @param {ImageBitmap|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|{data:ArrayBufferView,width:number,height:number}} source
- * @param {{ minMag?:number, wrap?:number, mipmaps?:boolean }} [opts]
+ * @param {{ minMag?:number, wrap?:number, mipmaps?:boolean, flip?:boolean,
+ *           internalFormat?:number, type?:number }} [opts]
+ *        flip: the pixel path's row reversal, into GL's bottom-up space.
+ *        internalFormat / type: for a format twgl cannot infer from the array
+ *        — RGBA16F with a Uint16Array of half-floats. Defaults: RGBA8 for a
+ *        byte array, RGBA32F for a Float32Array.
  * @returns {WebGLTexture}
  * @example
  * <caption>Raw pixels start at the bottom row: magenta bottom-left and top-right, yellow in the other corners.</caption>
@@ -82,15 +145,43 @@ function _opts(gl, o) {
  * gl.clear(gl.COLOR_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [0, 0, 205] }))
  * pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
+ * @example
+ * <caption>Radiance past 1.0 survives the upload: a Radiance file decoded to a float texture, then mapped down by hand.</caption>
+ * const { createCanvas, program, filter, texture, loadHDR } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const show = program(gl, `#version 300 es
+ * precision highp float;
+ * uniform sampler2D uSource;
+ * in vec2 vTexCoord;
+ * out vec4 outColor;
+ * void main() {
+ *   vec3 L = texture(uSource, vTexCoord).rgb;             // may exceed 1.0
+ *   outColor = vec4(L / (1.0 + L), 1.0);                  // Reinhard, per pixel
+ * }`)
+ *
+ * loadHDR('models/tone_sunset_128x48.hdr').then((hdr) => {
+ *   const radiance = texture(gl, hdr)                     // RGBA32F, from the array type
+ *   gl.clearColor(0, 0, 0, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT)
+ *   filter(gl, show, null, radiance)
+ * })
  */
 export function texture(gl, source, opts) {
   const ctx = contextOf(gl);
   const o = opts || {};
+  if (_isPixels(source)) {
+    const tex = _pixelTexture(gl, ctx, source, o);
+    ctx.sizes.set(tex, [source.width, source.height]);
+    if (!ctx.textures) ctx.textures = new Set();
+    ctx.textures.add(tex);
+    return tex;
+  }
   const spec = _opts(gl, o);
-  if (_isPixels(source)) { spec.src = source.data; spec.width = source.width; spec.height = source.height; spec.flipY = 0; }
-  else { spec.src = _isBitmap(source) ? _viaCanvas(source) : source; spec.flipY = 1; }
+  spec.src = _isBitmap(source) ? _viaCanvas(source) : source;
+  spec.flipY = 1;
   const tex = createTexture(gl, spec);
-  const size = _isPixels(source) ? [source.width, source.height] : _sizeOf(source);
+  const size = _sizeOf(source);
   if (size) ctx.sizes.set(tex, size);
   if (!ctx.textures) ctx.textures = new Set();
   ctx.textures.add(tex);

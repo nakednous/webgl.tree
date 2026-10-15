@@ -218,6 +218,7 @@ function shell({ title, active, body, nav, pkg, examples }) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${esc(title)} — ${esc(pkg.name)}</title>
+  <link rel="icon" href="${site.favicon}">
   <link rel="stylesheet" href="${site.style}">${cm}
   <script>window.webglTreeDocs = ${JSON.stringify(cfg)};</script>
   <script src="${site.runner}" defer></script>

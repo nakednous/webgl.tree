@@ -115,6 +115,7 @@ export const site = {
   module: 'webgl.tree.esm.js',
   deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js' },
   style:  'assets/style.css',
+  favicon: 'favicon.svg',
   runner: 'assets/runner.js',
   search: 'assets/search.js',
   index:  'search.json',

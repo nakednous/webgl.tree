@@ -17,13 +17,12 @@
  *
  * `state()` clears both sides once, when it makes them: a driver's fresh storage
  * is undefined, and the first pass would otherwise read a history that is not
- * there — Chrome says so out loud (*lazy initialization*) and some drivers hand
- * back noise. After that nothing is ever cleared: the pair holds the value, and
- * a clear would zero the data. `reset()` is the one call that clears again — and
- * the one that zeroes the count the blend's weight is made of. A pass that draws *geometry* into the
- * state binds `.write` itself and calls `swap()`; a pass that reads the state
- * while writing elsewhere — a caustics map, a display — reads `.read.color` as a
- * plain texture.
+ * there. After that nothing is cleared but by `reset()` — the pair holds the
+ * value, and a clear would zero the data. `reset()` also zeroes the count the
+ * blend's weight is made of. A pass that draws *geometry* into the state binds
+ * `.write` itself and calls `swap()`; a pass that reads the state while writing
+ * elsewhere — a caustics map, a display — reads `.read.color` as a plain
+ * texture.
  */
 
 'use strict';

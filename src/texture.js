@@ -14,13 +14,20 @@
  *
  * @details
  * One orientation rule: every texture the bridge holds is in GL's bottom-up
- * space. Decoded images and elements arrive top-down and are uploaded with
- * flipY on; a render target's texture is already bottom-up and never passes
- * through upload. So image, pane, filter and the pick pass carry no flip
- * switch, and a pane's default uvs read a texture upright. GL ignores the
- * flip flag for an ImageBitmap, whose orientation is fixed at its creation,
- * so a bitmap is drawn through a scratch 2D canvas first, whose upload the
- * flag does flip.
+ * space. An element or a bitmap arrives top-down and is flipped at upload,
+ * through a scratch 2D canvas for the bitmap, whose orientation GL's flag
+ * cannot turn (it is fixed at the bitmap's creation). A `{ data, width, height }`
+ * pixel source is taken as given — row 0 at v = 0 — so a caller holding rows the
+ * other way asks for `flip`, the same normalization the element path applies
+ * silently; the [hdr](hdr.html) decoder hands back file order and a caller asks
+ * for it that way. A render target's texture is already bottom-up
+ * and never passes through upload. So image, pane, filter and the pick pass
+ * carry no flip switch, and a pane's default uvs read a texture upright.
+ *
+ * The format follows the source: a Float32Array is RGBA32F with type FLOAT —
+ * radiance, unclamped, what a tone operator needs — and any other array a byte
+ * per channel. `internalFormat` and `type` override both where twgl cannot
+ * infer the pair, as a Uint16Array of half-floats cannot be.
  */
 
 'use strict';

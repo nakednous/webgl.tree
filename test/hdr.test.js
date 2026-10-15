@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { decodeRGBE, encodeRGBE } from '../src/hdr.js';
+import { decodeRGBE, encodeRGBE, loadHDR } from '../src/hdr.js';
 
 // ── the fixtures: a Radiance file is a header, a resolution line, and rows ──
 
@@ -223,6 +223,19 @@ test('hdr: what the encoder writes, the decoder reads back — to one mantissa s
     assert.ok(Math.abs(got - value) <= step + 1e-30, `${value} → ${got}, past a step of ${step}`);
   }
 });
+
+test('hdr: loadHDR hands back GL\'s row order, so a file goes up upright', async () => {
+  // two rows, the first bright and the second black. The file states -Y, so row
+  // 0 is the top of the picture; GL's space has row 0 at v = 0, the bottom, so
+  // uploading file order would hang the picture upside down.
+  const bytes = file('-Y 2 +X 1', flat([[200, 200, 200, 136], [0, 0, 0, 0]]));
+  const asFile = decodeRGBE(bytes)
+  const asGl = await loadHDR('data:application/octet-stream;base64,' + Buffer.from(bytes).toString('base64'))
+  assert.equal(asFile.data[0], 200, 'decodeRGBE keeps the file\'s own order')
+  assert.equal(asGl.data[0], 0, 'loadHDR turns them over: the dark row is now row 0')
+  assert.equal(asGl.data[4], 200, 'and the bright row is at the top of the texture')
+  assert.deepEqual([...asGl.data], [...decodeRGBE(bytes, { rowOrder: 'BOTTOM_UP' }).data])
+})
 
 test('hdr: a file this decoder did not write decodes to its own radiance', () => {
   const bytes = new Uint8Array(readFileSync(hdrFile()));

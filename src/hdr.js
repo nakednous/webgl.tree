@@ -24,7 +24,10 @@
  * declares. Rows keep the order the file states and are never flipped here: GL's
  * bottom-up space is the upload's concern (see texture.js).
  *
- * `encodeRGBE` is the inverse, and the decoder is trusted by round-tripping
+ * `loadHDR` is where that concern is met — it hands back GL's order, so the
+ * result goes straight into `texture` upright, while `decodeRGBE` keeps the
+ * file's own rows and takes `rowOrder: 'BOTTOM_UP'` to do the same. `encodeRGBE`
+ * is the inverse of the decode, and the decoder is trusted by round-tripping
  * through it and by agreeing with a second reader on a real file —
  * `node testing/compare-three-hdr.mjs <file.hdr>`.
  */
@@ -185,15 +188,16 @@ function _scanline(data, pos, row, w, off, rowBytes) {
 
 /**
  * Decode Radiance RGBE bytes into the pixel source `texture` takes.
- * @details Every pixel becomes four float channels — R, G, B and 1 — in the
- * order the file states, top-down for the `-Y` every writer emits; rows are
- * flipped only when `opts.rowOrder` asks for the other convention. The
- * decoder holds no state, allocates its output once, and needs no DOM, so it
- * runs under node:test as well as in the browser.
+ * @details Every pixel becomes four float channels — R, G, B and 1 — and the
+ * rows come back in the order the file states, top-down for the `-Y` every
+ * writer emits. `loadHDR` is the one that turns them over for GL; a caller
+ * here that wants the same passes `rowOrder: 'BOTTOM_UP'`. The decoder holds no
+ * state, allocates its output once, and needs no DOM, so it runs under
+ * node:test as well as in the browser.
  * @param {ArrayBuffer|Uint8Array} bytes  The whole file.
  * @param {{ rowOrder?:string, maxPixels?:number }} [opts]
- *        rowOrder: `FILE` (default) or `BOTTOM_UP` — the latter for a caller
- *        whose texture space is GL's, row 0 at v = 0.
+ *        rowOrder: `FILE` (default) or `BOTTOM_UP` — the latter for GL's
+ *        texture space, row 0 at v = 0.
  *        maxPixels: refuse past this many pixels (default 16 MPixel).
  * @returns {{ data:Float32Array, width:number, height:number }} Radiance in
  *          linear light: what `texture` uploads as RGBA32F, and the range a
@@ -260,14 +264,18 @@ export function decodeRGBE(bytes, opts) {
 }
 
 /**
- * Fetch a Radiance `.hdr` file and decode it.
- * @details `decodeRGBE` over `fetch` — the browser's, or Node's from 18 —
- * with the same contract, so a caller that has the bytes already (a file
- * input, a cache) uses `decodeRGBE` directly and skips this.
+ * Fetch a Radiance `.hdr` file and decode it, rows turned over for GL.
+ * @details `decodeRGBE` over `fetch` — the browser's, or Node's from 18 — with
+ * one difference that matters: the rows come back in GL's bottom-up order, the
+ * order `texture` wants a pixel source in, so the result goes straight into a
+ * texture. Fed file order instead, a photograph renders upside down with
+ * nothing to say so. A caller that has the bytes already (a file input, a
+ * cache) uses `decodeRGBE` and passes `rowOrder: 'BOTTOM_UP'` for the same.
  * @param {string} url
  * @param {{ fetch?:object, rowOrder?:string, maxPixels?:number }} [opts]
- *        fetch: the fetch init (credentials, mode, …). The rest reach
- *        `decodeRGBE`.
+ *        fetch: the fetch init (credentials, mode, …). rowOrder defaults to
+ *        `BOTTOM_UP` here; `FILE` keeps the file's own order. maxPixels
+ *        reaches `decodeRGBE`.
  * @returns {Promise<{ data:Float32Array, width:number, height:number }>}
  * @example
  * <caption>A whole file the page serves — a 128 × 48 fixture whose sun reads 2464, small on purpose — decoded and tone-mapped with Reinhard while the exposure swings.</caption>
@@ -286,7 +294,7 @@ export function decodeRGBE(bytes, opts) {
  * }`)
  *
  * loadHDR('models/tone_sunrise_128x48.hdr').then((hdr) => {   // { data, width, height }
- *   const radiance = texture(gl, hdr)                        // RGBA32F, from the array type
+ *   const radiance = texture(gl, hdr)                        // RGBA32F, upright
  *   let exposure = -2
  *   setInterval(() => {
  *     exposure = exposure >= 2 ? -2 : exposure + 0.1
@@ -300,5 +308,6 @@ export async function loadHDR(url, opts) {
   const o = opts || {};
   const res = await fetch(url, o.fetch);
   if (!res.ok) throw new Error('[webgl.tree] hdr: ' + url + ' → ' + res.status);
-  return decodeRGBE(await res.arrayBuffer(), o);
+  const rows = o.rowOrder || 'BOTTOM_UP';
+  return decodeRGBE(await res.arrayBuffer(), { maxPixels: o.maxPixels, rowOrder: rows });
 }

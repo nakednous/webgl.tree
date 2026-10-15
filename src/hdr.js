@@ -263,7 +263,7 @@ export function decodeRGBE(bytes, opts) {
  *   outColor = vec4(pow(L / (1.0 + L), vec3(1.0 / 2.2)), 1.0);
  * }`)
  *
- * loadHDR('models/tone_sunset_128x48.hdr').then((hdr) => {   // { data, width, height }
+ * loadHDR('models/tone_sunrise_128x48.hdr').then((hdr) => {   // { data, width, height }
  *   const radiance = texture(gl, hdr)                        // RGBA32F, from the array type
  *   let exposure = -2
  *   setInterval(() => {

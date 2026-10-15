@@ -1,6 +1,6 @@
 # Test fixtures
 
-`tone_sunset_128x48.hdr` — 128 × 48 px, Radiance RGBE (`32-bit_rle_rgbe`), flat
+`tone_sunrise_128x48.hdr` — 128 × 48 px, Radiance RGBE (`32-bit_rle_rgbe`), flat
 scanlines. A sun-lit ridge: a 2464-radiance sun disk, two specular glints, a sky
 gradient and a dark foreground, with 1593 of its 6144 pixels above 1.0. Written
 by a standalone Python encoder (`numeric.frexp` → mantissa levels and a shared

@@ -251,5 +251,5 @@ test('hdr: a file this decoder did not write decodes to its own radiance', () =>
  */
 function hdrFile() {
   return process.env.WEBGL_TREE_HDR ||
-    join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'tone_sunset_128x48.hdr');
+    join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'tone_sunrise_128x48.hdr');
 }

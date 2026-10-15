@@ -160,7 +160,7 @@ function _pixelTexture(gl, ctx, source, o) {
  *   outColor = vec4(L / (1.0 + L), 1.0);                  // Reinhard, per pixel
  * }`)
  *
- * loadHDR('models/tone_sunset_128x48.hdr').then((hdr) => {
+ * loadHDR('models/tone_sunrise_128x48.hdr').then((hdr) => {
  *   const radiance = texture(gl, hdr)                     // RGBA32F, from the array type
  *   gl.clearColor(0, 0, 0, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT)

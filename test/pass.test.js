@@ -126,6 +126,17 @@ test('filter: uTexelSize is the input\'s own texel, and the bag\'s uSource witho
   near(prog.got.uTexelSize[0], 1 / gl.viewport4[2]);
 });
 
+test('filter: a stage that declares p5\'s tex0 runs when the bag names it', () => {
+  // the bridge knows no name of its own — the rule binds whatever the stage
+  // declares — so a shader written for p5's filter() runs here unchanged when the
+  // caller puts its input under the name that shader declared
+  const gl = createGL();
+  const prog = samplerProgram(['tex0']);
+  const canvas = { tex: 'a p5 canvas' };
+  assert.equal(filter(gl, prog, { tex0: canvas }), prog);
+  assert.equal(prog.got.tex0, canvas, 'the bag binds the declared tex0');
+});
+
 test('filter: returns the bound program, and null where nothing was drawn', () => {
   const gl = createGL();
   const prog = samplerProgram(['uScene']);

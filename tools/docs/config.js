@@ -115,7 +115,8 @@ export const site = {
   module: 'webgl.tree.esm.js',
   deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js' },
   style:  'assets/style.css',
-  favicon: 'favicon.svg',
+  favicon32:  'favicon-32.png',      // the p5.tree cube, cropped square
+  favicon128: 'favicon-128.png',
   runner: 'assets/runner.js',
   search: 'assets/search.js',
   index:  'search.json',

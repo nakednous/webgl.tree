@@ -275,6 +275,14 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  *        a multiplier (default white); mask a colorMask (RED, …); blend
  *        NORMAL · ADD · MULTIPLY (default: the state as it is). The previous
  *        program, depth test, mask and blend are restored after.
+ *
+ *        **Target px are the drawing buffer's, not the page's.** `createCanvas`
+ *        sizes that buffer by the display's pixel ratio, so a rect given in
+ *        logical pixels draws into a corner at 1/ratio scale on a HiDPI display.
+ *        Scale a logical rect by `gl.drawingBufferWidth / gl.canvas.clientWidth`
+ *        — the notebook's inset figures (`arcball`, `flock_cpu`, `volume_grid`)
+ *        each carry that factor, and a figure that draws with `filter()` or in
+ *        world space never has the question.
  * @example
  * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of a yellow canvas.</caption>
  * const { createCanvas, setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree

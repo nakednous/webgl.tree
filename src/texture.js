@@ -8,6 +8,8 @@
  *
  * ```
  * texture(gl, source, opts)   // an ImageBitmap, an element, or { data, width, height }
+ *                             //   + depth  → a volume  (TEXTURE_3D)
+ *                             //   + layers → an array  (TEXTURE_2D_ARRAY)
  * upload(gl, tex, source)     // refresh from a video or canvas each frame
  * cubemap(gl, faces, opts)    // six sources → a cube map
  * ```
@@ -67,34 +69,46 @@ function _opts(gl, o) {
 }
 
 // The internal format and upload type a pixel source asks for. A Float32Array
-// holds radiance, which is RGBA32F; everything else is a byte, and would clamp.
-// twgl would otherwise reach texImage2D as (RGBA, FLOAT) — an invalid
+// holds radiance, which is a 32F format; everything else is a byte, and would
+// clamp. twgl would otherwise reach texImage2D as (RGBA, FLOAT) — an invalid
 // combination — so both have to be stated here. WebGL2's table pairs each float
-// format with one type (RGBA32F with FLOAT, RGBA16F with HALF_FLOAT), and
+// format with one type (32F with FLOAT, 16F with HALF_FLOAT), and
 // `opts.internalFormat` / `opts.type` override both where twgl cannot infer a
-// type (a Uint16Array of half-floats).
-function _formatOf(gl, data, o) {
-  const internalFormat = o.internalFormat || (data instanceof Float32Array ? gl.RGBA32F : gl.RGBA8);
-  const type = o.type ||
-    (internalFormat === gl.RGBA32F ? gl.FLOAT :
-      internalFormat === gl.RGBA16F ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE);
-  return { internalFormat, format: gl.RGBA, type };
-}
+// type (a Uint16Array of half-floats). `opts.format` picks the channels — a
+// density volume is one channel, so it states gl.RED and gets R8.
+const _CHANNELS = (gl, format) =>
+  format === gl.RED ? 1 : format === gl.RG ? 2 : format === gl.RGB ? 3 : 4;
 
-// Whether the format is one that stores more than a byte per channel.
-const _isFloat = (gl, internalFormat) => internalFormat === gl.RGBA32F || internalFormat === gl.RGBA16F;
+function _formatOf(gl, data, o) {
+  const format = o.format || gl.RGBA;
+  const ch = _CHANNELS(gl, format);
+  const float = data instanceof Float32Array;
+  const half = o.type === gl.HALF_FLOAT;
+  const B8 = [gl.R8, gl.RG8, gl.RGB8, gl.RGBA8];
+  const F32 = [gl.R32F, gl.RG32F, gl.RGB32F, gl.RGBA32F];
+  const F16 = [gl.R16F, gl.RG16F, gl.RGB16F, gl.RGBA16F];
+  const internalFormat = o.internalFormat || (float ? F32[ch - 1] : half ? F16[ch - 1] : B8[ch - 1]);
+  const type = o.type ||
+    (F32.indexOf(internalFormat) >= 0 ? gl.FLOAT :
+      F16.indexOf(internalFormat) >= 0 ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE);
+  return { internalFormat, format, type, channels: ch };
+}
 
 // One scratch typed array per source type, resized as needed: a caller never
 // sees the flip, and a repeated upload allocates once.
 let _scratch8 = null, _scratch32 = null;
-function _flippedRows(data, width, height) {
+function _flippedRows(data, width, height, channels, slices) {
   const out = data instanceof Float32Array
     ? (_scratch32 && _scratch32.length === data.length ? _scratch32 : (_scratch32 = new Float32Array(data.length)))
     : (_scratch8 && _scratch8.length === data.length ? _scratch8 : (_scratch8 = new Uint8Array(data.length)));
-  const row = width * 4;
-  for (let y = 0; y < height; y++) {
-    const from = data.subarray ? data.subarray(y * row, y * row + row) : data.slice(y * row, y * row + row);
-    out.set(from, (height - 1 - y) * row);
+  const row = width * channels;              // a texel is `channels` values wide
+  const slice = row * height;
+  for (let s = 0; s < slices; s++) {
+    for (let y = 0; y < height; y++) {
+      const from = s * slice + y * row;
+      const part = data.subarray ? data.subarray(from, from + row) : data.slice(from, from + row);
+      out.set(part, s * slice + (height - 1 - y) * row);   // rows within each slice, never slices
+    }
   }
   return out;
 }
@@ -104,15 +118,21 @@ function _flippedRows(data, width, height) {
 function _pixelTexture(gl, ctx, source, o) {
   const spec = _opts(gl, o);
   const format = _formatOf(gl, source.data, o);
+  const layers = typeof source.layers === 'number' ? source.layers : 0;
+  const depth = layers || (typeof source.depth === 'number' ? source.depth : 0);
+  if (depth) {                                 // a volume, or an array of 2D slices
+    spec.target = layers ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_3D;
+    spec.depth = depth;
+  }
   spec.internalFormat = format.internalFormat;
   spec.format = format.format;
   spec.type = format.type;
-  spec.src = o.flip ? _flippedRows(source.data, source.width, source.height) : source.data;
+  spec.src = o.flip ? _flippedRows(source.data, source.width, source.height, format.channels, depth || 1) : source.data;
   spec.width = source.width;
   spec.height = source.height;
   spec.flipY = 0;
-  if (_isFloat(gl, spec.internalFormat)) {
-    if (spec.type === gl.FLOAT && spec.min === gl.LINEAR && ctx.floatLinearExt === undefined) {
+  if (spec.type === gl.FLOAT) {
+    if (spec.min === gl.LINEAR && ctx.floatLinearExt === undefined) {
       ctx.floatLinearExt = gl.getExtension('OES_texture_float_linear') || false;
       if (!ctx.floatLinearExt) console.error('[webgl.tree] texture: OES_texture_float_linear is unavailable; a gl.FLOAT texture sampled linearly reads black — use gl.HALF_FLOAT or minMag: gl.NEAREST.');
     }
@@ -126,16 +146,29 @@ function _pixelTexture(gl, ctx, source, o) {
  * { data, width, height } pixel source is taken as given unless `flip` asks
  * for the same normalization, since GL cannot flip a typed array at upload
  * (`UNPACK_FLIP_Y_WEBGL` is defined for elements alone). A Float32Array source
- * becomes RGBA32F — radiance, unclamped, the range a tone operator has
- * something to compress — where any other array is a byte per channel.
+ * becomes a 32F format — radiance, unclamped, the range a tone operator has
+ * something to compress — where any other array is a byte per channel, and
+ * `format` picks how many channels either carries.
+ * A source with `depth` or `layers` is a volume or an array of slices: the same
+ * normalization, with `flip` reversing rows inside each slice and the slice
+ * order left as given (slice 0 at w = 0, the px-space counterpart of row 0 at
+ * v = 0).
  * @param {WebGL2RenderingContext} gl
- * @param {ImageBitmap|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|{data:ArrayBufferView,width:number,height:number}} source
+ * @param {ImageBitmap|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|{data:ArrayBufferView,width:number,height:number,depth?:number,layers?:number}} source
+ *        A pixel source with `depth` becomes a volume (`TEXTURE_3D`); with
+ *        `layers` an array of 2D slices (`TEXTURE_2D_ARRAY`). The data is
+ *        flat, slice after slice: slice 0 is w = 0.
  * @param {{ minMag?:number, wrap?:number, mipmaps?:boolean, flip?:boolean,
- *           internalFormat?:number, type?:number }} [opts]
- *        flip: the pixel path's row reversal, into GL's bottom-up space.
+ *           format?:number, internalFormat?:number, type?:number }} [opts]
+ *        flip: the pixel path's row reversal, into GL's bottom-up space — rows
+ *        within each slice, never the slice order.
+ *        format: the channels — gl.RED (one, a density), gl.RG, gl.RGB or
+ *        gl.RGBA (default). The internal format follows from it and the array
+ *        type: R8 / RG8 / RGB8 / RGBA8 for bytes, the 32F or 16F family
+ *        otherwise. A one-channel source is what a volume usually is.
  *        internalFormat / type: for a format twgl cannot infer from the array
- *        — RGBA16F with a Uint16Array of half-floats. Defaults: RGBA8 for a
- *        byte array, RGBA32F for a Float32Array.
+ *        — RGBA16F with a Uint16Array of half-floats.
+ *        mipmaps: generateMipmap covers 2D, 3D and array targets in WebGL 2.
  * @returns {WebGLTexture}
  * @example
  * <caption>Raw pixels start at the bottom row: magenta bottom-left and top-right, yellow in the other corners.</caption>

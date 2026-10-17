@@ -47,6 +47,12 @@ export function createGL({ width = 640, height = 480 } = {}) {
     // framebuffers, textures and renderbuffers — renderTarget's side. The bound
     // framebuffer is tracked so that a verb restoring it can be asserted.
     TEXTURE_2D: 3553, TEXTURE0: 33984, FRAMEBUFFER_COMPLETE: 36053,
+    TEXTURE_3D: 32879, TEXTURE_2D_ARRAY: 35866, TEXTURE_CUBE_MAP: 34067,
+    RED: 6403, RG: 33319, RGB: 6407,
+    R8: 33321, RG8: 33323, RGB8: 32849,
+    R32F: 33326, RG32F: 33328, RGB32F: 34837,
+    R16F: 33325, RG16F: 33327, RGB16F: 34843,
+    LINEAR_MIPMAP_LINEAR: 9987, UNPACK_ALIGNMENT: 3317, UNPACK_FLIP_Y_WEBGL: 37440,
     READ_FRAMEBUFFER: 36008, DRAW_FRAMEBUFFER: 36009, COLOR_CLEAR_VALUE: 3106,
     READ_FRAMEBUFFER_BINDING: 36010, DRAW_FRAMEBUFFER_BINDING: 36011,
     createFramebuffer() { const f = tagged('WebGLFramebuffer', { id: ++gl.framebuffers }); log.push(['createFramebuffer', f.id]); return f; },
@@ -57,6 +63,8 @@ export function createGL({ width = 640, height = 480 } = {}) {
     bindTexture(target, t) { gl.boundTexture = t; },
     deleteTexture(t) { log.push(['deleteTexture', t ? t.id : null]); },
     texImage2D(...args) { log.push(['texImage2D', ...args]); },
+    texImage3D(...args) { log.push(['texImage3D', ...args]); },
+    generateMipmap(target) { log.push(['generateMipmap', target]); },
     pixelStorei(pname, value) { log.push(['pixelStorei', pname, value]); },
     texParameteri() {},
     activeTexture() {},

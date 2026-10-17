@@ -90,3 +90,66 @@ test('texture: a float texture sampled linearly is checked against its extension
   texture(gl, { data: new Float32Array(4), width: 1, height: 1 });
   assert.equal(asked, 'OES_texture_float_linear', 'the one extension a linear float read needs');
 });
+
+// The texImage3D call twgl made, in its own argument order.
+const upload3 = (gl) => {
+  const call = [...gl.log].reverse().find((l) => l[0] === 'texImage3D');
+  assert.ok(call, 'a texImage3D reached the context');
+  return {
+    target: call[1], level: call[2], internalFormat: call[3], width: call[4], height: call[5],
+    depth: call[6], format: call[8], type: call[9], src: call[10],
+  };
+};
+
+test('texture: a source with depth is a TEXTURE_3D, one channel if it says so', () => {
+  const gl = createGL();
+  const data = new Uint8Array(4 * 4 * 4).fill(255);
+  const tex = texture(gl, { data, width: 4, height: 4, depth: 4 }, { format: gl.RED });
+  const call = upload3(gl);
+  assert.equal(call.target, gl.TEXTURE_3D);
+  assert.equal(call.internalFormat, gl.R8, 'one byte, one channel — a density');
+  assert.equal(call.format, gl.RED);
+  assert.equal(call.type, gl.UNSIGNED_BYTE);
+  assert.deepEqual([call.width, call.height, call.depth], [4, 4, 4]);
+  assert.equal(call.src.length, 64, 'all four slices went up in one call');
+  assert.deepEqual(contextOf(gl).sizes.get(tex), [4, 4], 'filter\'s uTexelSize still reads this');
+});
+
+test('texture: a source with layers is a TEXTURE_2D_ARRAY of the same slices', () => {
+  const gl = createGL();
+  const tex = texture(gl, { data: new Uint8Array(2 * 2 * 3 * 4), width: 2, height: 2, layers: 3 });
+  const call = upload3(gl);
+  assert.equal(call.target, gl.TEXTURE_2D_ARRAY);
+  assert.equal(call.internalFormat, gl.RGBA8, 'no format named, so four channels as in 2D');
+  assert.equal(call.depth, 3);
+  assert.deepEqual(contextOf(gl).sizes.get(tex), [2, 2]);
+});
+
+test('texture: a float volume keeps its radiance and its precision in one channel', () => {
+  const gl = createGL();
+  const data = new Float32Array(2 * 2 * 2).fill(3.5);
+  texture(gl, { data, width: 2, height: 2, depth: 2 }, { format: gl.RED });
+  const call = upload3(gl);
+  assert.equal(call.internalFormat, gl.R32F);
+  assert.equal(call.format, gl.RED);
+  assert.equal(call.type, gl.FLOAT);
+  assert.equal(call.src[7], 3.5, 'radiance past 1.0 survives');
+});
+
+test('texture: half floats name their own format where twgl cannot infer one', () => {
+  const gl = createGL();
+  const data = new Uint16Array(2 * 2 * 2 * 4);
+  texture(gl, { data, width: 2, height: 2, depth: 2 }, { type: gl.HALF_FLOAT });
+  const call = upload3(gl);
+  assert.equal(call.internalFormat, gl.RGBA16F);
+  assert.equal(call.format, gl.RGBA);
+  assert.equal(call.type, gl.HALF_FLOAT);
+});
+
+test('texture: flip reverses rows inside each slice and leaves the slice order alone', () => {
+  const gl = createGL();
+  const data = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);   // two 2×2 slices, one channel
+  texture(gl, { data, width: 2, height: 2, depth: 2 }, { format: gl.RED, flip: true });
+  const call = upload3(gl);
+  assert.deepEqual([...call.src], [3, 4, 1, 2, 7, 8, 5, 6], 'slice 0 and slice 1 each turned over');
+});

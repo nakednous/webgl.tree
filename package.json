@@ -1,7 +1,7 @@
 {
   "name": "webgl.tree",
   "version": "0.0.15",
-  "description": "webgl.tree \u2014 @nakednous/tree + @nakednous/host on raw WebGL2: gizmo line pipe, HUD, render targets, filter passes, the pipe chain, async colour-ID picking, camera install.",
+  "description": "webgl.tree — @nakednous/tree + @nakednous/host on raw WebGL2: gizmo line pipe, HUD, render targets, filter passes, the pipe chain, async colour-ID picking, camera install.",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -50,7 +50,7 @@
     "twgl.js": ">=5.5.4"
   },
   "dependencies": {
-    "@nakednous/host": "^0.0.11",
+    "@nakednous/host": "^0.0.12",
     "@nakednous/tree": "^0.0.34"
   },
   "devDependencies": {

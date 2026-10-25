@@ -13,7 +13,11 @@
  * fight over a port. The binary is `CHROME_BIN` when set, else the first of
  * chromium, chromium-browser, google-chrome, google-chrome-stable, chrome that
  * answers `--version`. The profile lives in a temporary directory and goes with
- * the browser. `load` waits on `window.__density.done`, which the page sets two
+ * the browser, and extensions are off: a fresh profile is not enough, because
+ * `plasma-browser-integration` ships a system-wide external-extension manifest
+ * (`/usr/share/chromium/extensions/`) that every profile installs, and its
+ * native host aborts in a sandbox with no display. `load` waits on
+ * `window.__density.done`, which the page sets two
  * frames after load; a page that never gets there is reported, not thrown.
  * `--enable-unsafe-swiftshader` is stated so a machine without a GPU — a CI
  * runner — renders WebGL2 in software instead of refusing the context; the gate
@@ -53,6 +57,7 @@ export async function browserAt(density) {
   const profile = mkdtempSync(join(tmpdir(), 'webgl-tree-density-'));
   const proc = spawn(bin, [
     '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader',
+    '--disable-extensions',
     '--remote-debugging-port=0', `--user-data-dir=${profile}`,
     `--force-device-scale-factor=${density}`, '--window-size=1000,760',
     '--hide-scrollbars', '--mute-audio', 'about:blank',

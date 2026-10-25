@@ -281,8 +281,8 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  *        logical pixels draws into a corner at 1/ratio scale on a HiDPI display.
  *        Scale a logical rect by `gl.drawingBufferWidth / gl.canvas.clientWidth`
  *        — the notebook's inset figures (`arcball`, `flock_cpu`, `volume_grid`)
- *        each carry that factor, and a figure that draws with `filter()` or in
- *        world space never has the question.
+ *        each carry that factor, and so does the example below — and a figure
+ *        that draws with `filter()` or in world space never has the question.
  * @example
  * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of a yellow canvas.</caption>
  * const { createCanvas, setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
@@ -300,7 +300,8 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  * twgl.bindFramebufferInfo(gl, SCREEN)
  * gl.clearColor(1, 0.82, 0.4, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
- * image(gl, scene.color, { x: 20, y: 20, width: 160, height: 120 })
+ * const s = gl.drawingBufferWidth / gl.canvas.clientWidth   // the inset is given in logical pixels
+ * image(gl, scene.color, { x: 20 * s, y: 20 * s, width: 160 * s, height: 120 * s })
  */
 export function image(gl, tex, opts) {
   const ctx = contextOf(gl);

@@ -159,9 +159,11 @@ export function targetSpecs(gl, opts) {
  * }
  * smooth.resolve()
  *
+ * // image draws into the drawing buffer's pixels: scale the panels by the display's density
+ * const s = gl.drawingBufferWidth / gl.canvas.clientWidth
  * twgl.bindFramebufferInfo(gl, SCREEN)
- * image(gl, plain.color, { x: 0, y: 0, width: 200, height: 300 })
- * image(gl, smooth.color, { x: 200, y: 0, width: 200, height: 300 })
+ * image(gl, plain.color, { x: 0, y: 0, width: 200 * s, height: 300 * s })
+ * image(gl, smooth.color, { x: 200 * s, y: 0, width: 200 * s, height: 300 * s })
  */
 export function renderTarget(gl, opts) {
   const ctx = contextOf(gl);

@@ -1,20 +1,20 @@
 import resolve from '@rollup/plugin-node-resolve';
 
 export default [
-  // ESM: twgl.js, tree and host are the application's imports (an import map,
-  // a bundler), so each loads once.
+  // ESM: twgl.js, tree, host and the composites' layer are the application's
+  // imports (an import map, a bundler), so each loads once.
   {
     input: 'src/index.js',
-    external: ['twgl.js', '@nakednous/tree', '@nakednous/host'],
+    external: ['twgl.js', '@nakednous/tree', '@nakednous/host', '@nakednous/idiom'],
     output: {
       file: 'dist/index.js',
       format: 'es',
       sourcemap: true
     }
   },
-  // IIFE: for script tags; tree and host bundled in as webglTree.tree and
-  // webglTree.host, twgl.js read from the global `twgl`. One copy of tree,
-  // wherever host resolves its own.
+  // IIFE: for script tags; tree, host and the layer bundled in as
+  // webglTree.tree and webglTree.host, twgl.js read from the global `twgl`. One
+  // copy of tree, wherever host and the layer resolve their own.
   {
     input: 'src/index.js',
     external: ['twgl.js'],

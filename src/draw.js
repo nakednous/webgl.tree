@@ -17,21 +17,20 @@
  * ```
  *
  * @details
- * draw binds the buffers' attributes on the bound program — disabling what the
- * program declares and the buffers lack — then the declared
- * transforms, then drawBufferInfo. The transforms are computed into context
- * scratch and each is uploaded only if the bound program declares it, read
- * off programInfo.uniformSetters once per program. A fullscreen pass declares none and gets none; a shadow capture that
- * declares uModelMatrix and its own light matrix gets uModelMatrix and
- * nothing the bridge would mistake for the light's. Zero allocation per draw.
+ * draw binds the buffers' attributes on the bound program, installs the
+ * declared transforms the layer computes into the record's scratch, and calls
+ * the backend's draw. The transforms are uploaded only if the bound program
+ * declares them — read off its uniform setters once per program — so a
+ * fullscreen pass declares none and gets none, and a shadow capture that
+ * declares uModelMatrix and its own light matrix gets uModelMatrix and nothing
+ * the bridge would mistake for the light's. Zero allocation per draw.
  */
 
 'use strict';
 
-import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { setUniforms, drawBufferInfo, createBufferInfoFromArrays } from 'twgl.js';
+import { setUniforms } from 'twgl.js';
+import { buffer as bufferOf, draw as drawOf, install } from '@nakednous/idiom';
 import { contextOf } from './context.js';
-import { bindGeometry } from './programs.js';
 
 /** The transform names a program may declare, in the order the bridge fills them. */
 export const TRANSFORMS = ['uModelMatrix', 'uViewMatrix', 'uModelViewMatrix', 'uProjectionMatrix', 'uModelViewProjectionMatrix', 'uNormalMatrix'];
@@ -65,7 +64,6 @@ const _declared = (ctx, prog) => {
 };
 
 const _isMat4 = (m) => m != null && typeof m === 'object' && typeof m.length === 'number' && m.length >= 16;
-const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 
 /**
  * Upload the transforms the bound program declares, for a model matrix M
@@ -78,14 +76,7 @@ const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 export function uploadTransforms(ctx, prog, M) {
   const d = _declared(ctx, prog);
   if (!d.any) return;
-  const s = prog.uniformSetters;
-  const MV = M ? mat4Mul(ctx.MV, ctx.V, M) : ctx.V;
-  if (d.model) s.uModelMatrix(M || IDENTITY);
-  if (d.view) s.uViewMatrix(ctx.V);
-  if (d.mv) s.uModelViewMatrix(MV);
-  if (d.proj) s.uProjectionMatrix(ctx.P);
-  if (d.mvp) s.uModelViewProjectionMatrix(M ? mat4Mul(ctx.MVP, ctx.P, MV) : ctx.PV);
-  if (d.normal) s.uNormalMatrix(mat3NormalFromMat4(ctx.N, MV));
+  install(ctx, prog, M);        // the six values, computed and uploaded by the layer
 }
 
 /**
@@ -138,27 +129,6 @@ export function bind(gl, prog, uniforms) {
   if (uniforms) setUniforms(prog, uniforms);
   return prog;
 }
-
-function _draw(gl, obj, M, opts, instances) {
-  const ctx = contextOf(gl);
-  const prog = ctx.prog;
-  if (!prog) { console.error('[webgl.tree] draw: no program bound — call bind(gl, prog) first.'); return; }
-  if (!obj) { console.error('[webgl.tree] draw: `obj` must be a twgl bufferInfo.'); return; }
-  bindGeometry(gl, prog, obj);
-  uploadTransforms(ctx, prog, M);
-  const o = opts || {};
-  drawBufferInfo(gl, obj, o.mode, o.count, o.offset, instances);
-}
-
-// The arrays shape's keys as the attribute names the bridge's shaders use.
-const ATTRIBUTES = {
-  position: 'aPosition', normal: 'aNormal', tangent: 'aTangent', texcoord: 'aTexCoord', color: 'aColor',
-  joints: 'aJoints', weights: 'aWeights',
-};
-
-// Numbers to upload: a typed array, a list of numbers, or either under `data`.
-const _isNumbers = (a) => ArrayBuffer.isView(a) || (Array.isArray(a) && typeof a[0] === 'number');
-const _isAttribute = (a) => a != null && (_isNumbers(a) || _isNumbers(a.data));
 
 /**
  * A twgl bufferInfo from a mesh — the arrays shape host.loadMesh returns, a
@@ -335,14 +305,7 @@ const _isAttribute = (a) => a != null && (_isNumbers(a) || _isNumbers(a.data));
  * requestAnimationFrame(frame)
  */
 export function buffer(gl, arrays) {
-  const named = {};
-  for (const key in arrays) {
-    let a = arrays[key];
-    if (!_isAttribute(a)) continue;                        // a mesh's bounds, a generator's count and labels
-    if (key === 'joints') a = a.data ? { ...a, normalize: false } : { numComponents: 4, data: a, normalize: false };
-    named[ATTRIBUTES[key] || key] = a;
-  }
-  return createBufferInfoFromArrays(gl, named);
+  return bufferOf(contextOf(gl), arrays);
 }
 
 /**
@@ -399,8 +362,7 @@ export function buffer(gl, arrays) {
  * requestAnimationFrame(frame)
  */
 export function draw(gl, obj, M, opts) {
-  if (M != null && !_isMat4(M)) { opts = M; M = null; }   // draw(gl, obj, opts)
-  _draw(gl, obj, M || null, opts, undefined);
+  return drawOf(contextOf(gl), obj, M, opts);
 }
 
 /**
@@ -447,5 +409,10 @@ export function draw(gl, obj, M, opts) {
  */
 export function drawInstanced(gl, obj, n, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }
-  _draw(gl, obj, M || null, opts, n);
+  const ctx = contextOf(gl);
+  const prog = ctx.prog;
+  if (!prog) { console.error('[webgl.tree] draw: no program bound — call bind(gl, prog) first.'); return; }
+  if (!obj) { console.error('[webgl.tree] draw: `obj` must be a twgl bufferInfo.'); return; }
+  install(ctx, prog, M || null);
+  return ctx.backend.drawInstanced(ctx, prog, obj, n, opts);
 }

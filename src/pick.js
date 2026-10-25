@@ -30,51 +30,15 @@
 'use strict';
 
 import { mat4Pick, idToRgba, rgbaToId } from '@nakednous/tree';
-import { bindFramebufferInfo } from 'twgl.js';
 import { contextOf } from './context.js';
 import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
-import { flatProgram } from './programs.js';
 import { canvasViewport } from './space.js';
 
 const _rgba = [0, 0, 0, 1];
 const _Ppick = new Float32Array(16);
 const _V = new Float32Array(16);
 const _P = new Float32Array(16);
-const _vp = [0, 0, 0, 0];
-
-function _pending(ctx) {
-  if (!ctx.readbacks) ctx.readbacks = { list: [], pool: [], polling: false };
-  return ctx.readbacks;
-}
-
-function _poll(gl, ctx) {
-  const rb = _pending(ctx);
-  const raf = ctx.raf || ((cb) => requestAnimationFrame(cb));
-  const step = () => {
-    rb.polling = false;
-    if (typeof gl.isContextLost === 'function' && gl.isContextLost()) {
-      for (const r of rb.list) r.reject(new Error('[webgl.tree] readPixel: the context was lost.'));
-      rb.list.length = 0;
-      return;
-    }
-    for (let i = rb.list.length - 1; i >= 0; i--) {
-      const r = rb.list[i];
-      const status = gl.clientWaitSync(r.sync, 0, 0);
-      if (status === gl.TIMEOUT_EXPIRED) continue;
-      rb.list.splice(i, 1);
-      gl.deleteSync(r.sync);
-      if (status === gl.WAIT_FAILED) { rb.pool.push(r.pbo); r.reject(new Error('[webgl.tree] readPixel: the fence failed.')); continue; }
-      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, r.pbo);
-      gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, r.out);
-      gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-      rb.pool.push(r.pbo);
-      r.resolve(r.out);
-    }
-    if (rb.list.length && !rb.polling) { rb.polling = true; raf(step); }
-  };
-  if (!rb.polling) { rb.polling = true; raf(step); }
-}
 
 /**
  * Read one pixel of a target back asynchronously.
@@ -114,25 +78,7 @@ function _poll(gl, ctx) {
  */
 export function readPixel(gl, fbo, x, y) {
   const ctx = contextOf(gl);
-  const rb = _pending(ctx);
-  const prev = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-  const vp = gl.getParameter(gl.VIEWPORT);
-  _vp[0] = vp[0]; _vp[1] = vp[1]; _vp[2] = vp[2]; _vp[3] = vp[3];
-  // a multisampled target is read from its resolved textures
-  bindFramebufferInfo(gl, fbo && typeof fbo.resolve === 'function' ? fbo.resolve().resolved : fbo);
-  const pbo = rb.pool.pop() || gl.createBuffer();
-  gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
-  gl.bufferData(gl.PIXEL_PACK_BUFFER, 4, gl.STREAM_READ);
-  gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-  gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-  const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-  gl.flush();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, prev);
-  gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
-  return new Promise((resolve, reject) => {
-    rb.list.push({ sync, pbo, out: new Uint8Array(4), resolve, reject });
-    _poll(gl, ctx);
-  });
+  return ctx.backend.readPixels(ctx, fbo, x, y);   // a PBO, a fence, and the bridge's own frame loop
 }
 
 /**
@@ -208,18 +154,17 @@ export function pick(gl, x, y, drawFn, opts) {
   const o = opts || {};
   if (!ctx.pickTarget) ctx.pickTarget = renderTarget(gl, { width: 1, height: 1 });
   const target = ctx.pickTarget;
-  const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-  const vp = gl.getParameter(gl.VIEWPORT);
-  _vp[0] = vp[0]; _vp[1] = vp[1]; _vp[2] = vp[2]; _vp[3] = vp[3];
+  const vp = ctx.backend.setViewport(ctx);
+  const prevFbo = ctx.backend.bindTarget(ctx);
   const pvp = o.vp || canvasViewport(gl);
   _V.set(ctx.V); _P.set(ctx.P);
   _Ppick.set(ctx.P);
   mat4Pick(_Ppick, x, y, pvp);
   const prevProg = ctx.prog;
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
-  const prog = o.program || flatProgram(gl);
+  const prog = o.program || ctx.backend.imageProgram(ctx);
 
-  bindFramebufferInfo(gl, target);
+  ctx.backend.bindTarget(ctx, target);
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST);
@@ -240,8 +185,8 @@ export function pick(gl, x, y, drawFn, opts) {
     if (!wasDepth) gl.disable(gl.DEPTH_TEST);
     if (prevProg) gl.useProgram(prevProg.program);
     ctx.prog = prevProg;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
-    gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
+    ctx.backend.bindTarget(ctx, prevFbo);
+    ctx.backend.setViewport(ctx, vp);
   }
   if (syncId >= 0) return Promise.resolve(syncId);
   return readPixel(gl, target, 0, 0).then((px) => rgbaToId(px[0], px[1], px[2]));

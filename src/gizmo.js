@@ -40,12 +40,11 @@ import {
   X, Y, _Z, _X, _Y, Z, NEAR, FAR, BODY, APEX, PATH, HANDLES, HANDLE, AIM, LOCUS, RING, POINT, WEBGL,
 } from '@nakednous/tree';
 import { helmBasis } from '@nakednous/host';
-import { createBufferInfoFromArrays, setAttribInfoBufferFromArray, drawBufferInfo, bindFramebufferInfo } from 'twgl.js';
+import { buffer as bufferOf, writeBuffer as writeBufferOf } from '@nakednous/idiom';
 import { contextOf, viewOf } from './context.js';
 import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
 import { image } from './pass.js';
-import { lineProgram, wideLineProgram, flatProgram, bindGeometry } from './programs.js';
 import { canvasViewport, canvasScale } from './space.js';
 
 const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
@@ -59,7 +58,6 @@ const _p = [0, 0, 0];                 // a point
 const _c24 = new Float64Array(24);    // frustum corners
 const _cam = createCamera();          // a track's evaluated state
 const _rigCam = createCamera({ fov: null, halfHeight: 90, near: 0.1, far: 960 });
-const _vp = [0, 0, 0, 0];
 
 /** The gizmo names the pipe caches, one buffer each per context. */
 const _keyed = (ctx, name, opts) => {
@@ -88,21 +86,18 @@ const _arraysOf = (g) => {
  * @ignore
  */
 export function fill(gl, g, gen) {
+  const ctx = contextOf(gl);
   let n = gen(g.arrays);
   if (n > capacityOf(g.arrays)) { growArrays(g.arrays, n); gen(g.arrays); }
   if (!g.buffer || g.capacity !== capacityOf(g.arrays)) {
     if (g.buffer) for (const a of Object.values(g.buffer.attribs)) gl.deleteBuffer(a.buffer);
-    g.buffer = createBufferInfoFromArrays(gl, _arraysOf(g));
+    g.buffer = bufferOf(ctx, _arraysOf(g));         // the layer's geometry, over the backend's buffers
     g.capacity = capacityOf(g.arrays);
   } else if (g.arrays.count > 0) {
-    setAttribInfoBufferFromArray(gl, g.buffer.attribs.aPosition, g.arrays.position.data);
-    if (g.arrays.color) setAttribInfoBufferFromArray(gl, g.buffer.attribs.aColor, g.arrays.color.data);
-    if (g.arrays.texcoord) setAttribInfoBufferFromArray(gl, g.buffer.attribs.aTexCoord, g.arrays.texcoord.data);
+    writeBufferOf(ctx, g.buffer, _arraysOf(g));     // in place: the arrays a frame refilled
   }
   return g.arrays.count;
 }
-
-const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0]; _vp[1] = v[1]; _vp[2] = v[2]; _vp[3] = v[3]; return _vp; };
 
 /**
  * Expand a gizmo's line list into the wide-line quads (experimental): four
@@ -115,6 +110,7 @@ const _viewport = (gl) => { const v = gl.getParameter(gl.VIEWPORT); _vp[0] = v[0
  * @ignore
  */
 export function expand(gl, g) {
+  const ctx = contextOf(gl);
   const segs = (g.arrays.count / 2) | 0;
   let w = g.wide;
   if (!w || w.capacity < segs) {
@@ -122,7 +118,7 @@ export function expand(gl, g) {
     w = {
       A: new Float32Array(12 * cap), B: new Float32Array(12 * cap), T: new Float32Array(4 * cap), S: new Float32Array(4 * cap),
       color: g.arrays.color ? new Float32Array(16 * cap) : null, indices: new Uint32Array(6 * cap),
-      buffer: null, capacity: cap, segments: 0,
+      buffer: null, capacity: cap, segments: 0, specs: null, moves: null,
     };
     for (let i = 0; i < cap; i++) {
       const v = 4 * i;
@@ -149,15 +145,19 @@ export function expand(gl, g) {
     }
   }
   w.segments = segs;
-  if (!w.buffer) {
-    const arrays = { aA: { numComponents: 3, data: w.A }, aB: { numComponents: 3, data: w.B }, aT: { numComponents: 1, data: w.T }, aSide: { numComponents: 1, data: w.S }, indices: { numComponents: 3, data: w.indices } };
-    if (w.color) arrays.aColor = { numComponents: 4, data: w.color };
-    w.buffer = createBufferInfoFromArrays(gl, arrays);
-  } else if (segs > 0) {
-    setAttribInfoBufferFromArray(gl, w.buffer.attribs.aA, w.A);
-    setAttribInfoBufferFromArray(gl, w.buffer.attribs.aB, w.B);
-    if (w.color) setAttribInfoBufferFromArray(gl, w.buffer.attribs.aColor, w.color);
+  // one spec set per cache, built with it: a warm frame re-uploads and allocates nothing
+  if (!w.specs) {
+    w.specs = {
+      aA: { numComponents: 3, data: w.A }, aB: { numComponents: 3, data: w.B },
+      aT: { numComponents: 1, data: w.T }, aSide: { numComponents: 1, data: w.S },
+      indices: { numComponents: 3, data: w.indices },
+    };
+    if (w.color) w.specs.aColor = { numComponents: 4, data: w.color };
+    w.moves = { aA: w.specs.aA, aB: w.specs.aB };
+    if (w.color) w.moves.aColor = w.specs.aColor;
   }
+  if (!w.buffer) w.buffer = bufferOf(ctx, w.specs);
+  else if (segs > 0) writeBufferOf(ctx, w.buffer, w.moves);
   return w;
 }
 
@@ -166,42 +166,41 @@ function _drawLines(gl, ctx, g, M, color, depth, width) {
   if (!g.arrays.count) return;
   const px = (typeof width === 'number' ? width : 1) * canvasScale(gl);   // logical pixels → device pixels
   const wide = px > 1;
-  const prog = wide ? wideLineProgram(gl) : lineProgram(gl);
+  const prog = wide ? ctx.backend.wideLineProgram(ctx) : ctx.backend.lineProgram(ctx);
   if (!prog) return;
   const prev = ctx.prog;
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
   if (depth === false && wasDepth) gl.disable(gl.DEPTH_TEST);
   gl.useProgram(prog.program);
+  ctx.prog = prog;
   const s = prog.uniformSetters;
   s.uPV(ctx.PV); s.uModel(M || IDENTITY); s.uColor(color || WHITE);
-  const useColor = !!g.arrays.color;
-  s.uUseColor(useColor);
+  s.uUseColor(!!g.arrays.color);
   if (wide) {
     const w = expand(gl, g);
-    const vp = _viewport(gl);
+    const vp = ctx.backend.setViewport(ctx);
     _res2[0] = vp[2]; _res2[1] = vp[3];
     s.uViewport(_res2); s.uWidth(px);
-    bindGeometry(gl, prog, w.buffer);
-    drawBufferInfo(gl, w.buffer, gl.TRIANGLES, 6 * w.segments);
+    ctx.backend.draw(ctx, prog, w.buffer, { mode: gl.TRIANGLES, count: 6 * w.segments });
   } else {
-    bindGeometry(gl, prog, g.buffer);
-    drawBufferInfo(gl, g.buffer, gl.LINES, g.arrays.count);
+    ctx.backend.draw(ctx, prog, g.buffer, { mode: gl.LINES, count: g.arrays.count });
   }
   if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
   if (prev) gl.useProgram(prev.program);
+  ctx.prog = prev;
 }
 const _res2 = [0, 0];
 
 /** Draw a filled gizmo's triangles through the flat program under M. */
 function _drawTris(gl, ctx, g, M, color, texture, depth) {
   if (!g.arrays.count) return;
-  const prog = flatProgram(gl);
+  const prog = ctx.backend.imageProgram(ctx);
   if (!prog) return;
   const prev = ctx.prog;
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
   if (depth === false && wasDepth) gl.disable(gl.DEPTH_TEST);
   gl.useProgram(prog.program);
-  bindGeometry(gl, prog, g.buffer);
+  ctx.prog = prog;
   const s = prog.uniformSetters;
   s.uModelViewProjectionMatrix(M ? mat4Mul(_M, ctx.PV, M) : ctx.PV);
   s.uColor(color || WHITE);
@@ -209,9 +208,10 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
   if (texture) s.uTexture(texture);
   else { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null); }   // never sample the current target by accident
 
-  drawBufferInfo(gl, g.buffer, gl.TRIANGLES, g.arrays.count);
+  ctx.backend.draw(ctx, prog, g.buffer, { mode: gl.TRIANGLES, count: g.arrays.count });
   if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
   if (prev) gl.useProgram(prev.program);
+  ctx.prog = prev;
 }
 
 // ── Scene gizmos ─────────────────────────────────────────────────────────
@@ -558,12 +558,11 @@ function _rigHud(gl, ctx, helm, o) {
   const ce = Math.cos(el), se = Math.sin(el);
   _rigCam.eye[0] = _RIG_D * ce * Math.sin(az); _rigCam.eye[1] = _RIG_D * se; _rigCam.eye[2] = _RIG_D * ce * Math.cos(az);
 
-  const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-  const vp = _viewport(gl);
-  const vx = vp[0], vy = vp[1], vw = vp[2], vh = vp[3];
+  const vp = ctx.backend.setViewport(ctx);
+  const outer = ctx.backend.bindTarget(ctx, entry.fbo);
+  const vh = vp[3];
   _V.set(ctx.V); _P2.set(ctx.P);
   const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
-  bindFramebufferInfo(gl, entry.fbo);
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST);
@@ -574,8 +573,8 @@ function _rigHud(gl, ctx, helm, o) {
   _drawLines(gl, ctx, g, null, null, true, o.width);
   installCamera(ctx, _V, _P2);
   if (!wasDepth) gl.disable(gl.DEPTH_TEST);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
-  gl.viewport(vx, vy, vw, vh);
+  ctx.backend.bindTarget(ctx, outer);
+  ctx.backend.setViewport(ctx, vp);
   image(gl, entry.fbo.color, { x: (o.x ?? 0) * s, y: vh - ((o.y ?? 0) + size) * s, width: px, height: px, tint: o.tint, blend: 'NORMAL' });
 }
 

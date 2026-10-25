@@ -13,23 +13,30 @@
  * ```
  *
  * @details
+ * The entry *is* `idiom`'s context record, extended: the layer's bookkeeping —
+ * its targets, pipe pairs, fullscreen geometry, declared names, texture sizes —
+ * and the bridge's own live on one object, so a verb takes one argument and a
+ * dispose frees both halves. The backend `idiom` calls is made here, once per
+ * context, from the gl this registry is keyed by.
+ *
  * Every bridge call takes gl first and finds its state here: the installed
  * camera (V, P, PV and the per-draw scratch), the view bag a host-less
- * application reads, the bound program, the cached fullscreen geometry, the
- * internal programs, the pipe caches and the targets to release. The entry is
- * created lazily on first use and released by dispose(gl). A host attached at init (or passed per call as { host }) is where setCamera
- * writes the view bag and where gizmo label anchors go. Without one the
- * bridge keeps its own view bag, reachable through viewOf(gl).
+ * application reads, the bound program, the internal programs, the pipe caches
+ * and the targets to release. The entry is created lazily on first use and
+ * released by dispose(gl). A host attached at init (or passed per call as
+ * { host }) is where setCamera writes the view bag and where gizmo label
+ * anchors go. Without one the bridge keeps its own view bag, reachable through
+ * viewOf(gl).
  */
 
 'use strict';
 
 import { WEBGL } from '@nakednous/tree';
 import { createView } from '@nakednous/host';
+import { createContext, disposeContext } from '@nakednous/idiom';
+import { createBackend } from './backend.js';
 
 const _registry = new WeakMap();
-
-const _identity = (m) => { m.fill(0); m[0] = m[5] = m[10] = m[15] = 1; return m; };
 
 /**
  * A canvas sized for the display: `width × height` logical pixels on the page,
@@ -125,32 +132,23 @@ export function init(gl, opts) {
 export function contextOf(gl, opts) {
   let ctx = _registry.get(gl);
   if (ctx) return ctx;
-  ctx = {
-    gl,
-    host: null,
-    ndcZMin: WEBGL,
-    V: _identity(new Float32Array(16)),
-    P: _identity(new Float32Array(16)),
-    PV: _identity(new Float32Array(16)),
-    MV: new Float32Array(16),          // per-draw scratch
-    MVP: new Float32Array(16),
-    N: new Float32Array(9),
-    view: createView({ ndcZMin: WEBGL }),   // the host-less view bag
-    prog: null,                        // the program bind() installed
-    declared: new WeakMap(),           // programInfo → which transforms it declares
-    programs: {},                      // the internal programs, compiled lazily
-    quad: null,                        // the fullscreen geometry
-    sizes: new WeakMap(),              // texture → [width, height], for uTexelSize
-    pipes: {},                         // key → { ping, pong }
-    targets: new Set(),                // every renderTarget made here
-    gizmos: {},                        // name → { arrays, buffer, capacity, wide }, the line pipe's caches
-    rigs: new WeakMap(),               // helm → { fbo, size }, the rig HUD overload's targets
-    hud: null,                         // the camera saved by beginHUD, while active
-    pickTarget: null,                  // pick's cached 1×1 target
-    readbacks: null,                   // { list, pool, polling }, readPixel's pending fences and PBOs
-    textures: null,                    // every texture made here
-    raf: (opts && opts.raf) || null,   // the readback poll's requestAnimationFrame, overridable
-  };
+  const backend = createBackend(gl);
+  ctx = createContext(backend);                 // idiom's record: targets, pipes, quad, sizes, camera, prog
+  ctx.gl = gl;
+  ctx.ndcZMin = backend.ndcZMin;
+  ctx.host = null;
+  ctx.view = createView({ ndcZMin: WEBGL });    // the host-less view bag
+  ctx.declared = new WeakMap();                 // programInfo → which transforms it declares
+  ctx.programs = {};                            // the line pipe's internal programs, compiled lazily
+  ctx.gizmos = {};                              // name → { arrays, buffer, capacity, wide }, the line pipe's caches
+  ctx.rigs = new WeakMap();                     // helm → { fbo, size }, the rig HUD overload's targets
+  ctx.hud = null;                               // the camera saved by beginHUD, while active
+  ctx.pickTarget = null;                        // pick's cached 1×1 target
+  ctx.readbacks = null;                         // { list, pool, polling }, readPixel's pending fences and PBOs
+  ctx.textures = null;                          // every texture made here
+  ctx.floatExt = undefined;                     // the float-colour extension, asked once
+  ctx.floatLinearExt = undefined;               // and the one a linear 32F read needs
+  ctx.raf = (opts && opts.raf) || null;         // the readback poll's requestAnimationFrame, overridable
   _registry.set(gl, ctx);
   return ctx;
 }
@@ -244,17 +242,8 @@ export function viewOf(gl) {
 export function dispose(gl) {
   const ctx = _registry.get(gl);
   if (!ctx) return;
-  for (const t of [...ctx.targets]) { if (typeof t.dispose === 'function') t.dispose(); }
-  ctx.targets.clear();
+  disposeContext(ctx);          // the layer's targets and pipes, then the backend's own objects
   ctx.pickTarget = null;
-  ctx.pipes = {};
-  if (ctx.textures && typeof gl.deleteTexture === 'function') for (const t of ctx.textures) gl.deleteTexture(t);
-  ctx.textures = null;
-  if (ctx.readbacks) {
-    for (const r of ctx.readbacks.list) { if (typeof gl.deleteSync === 'function') gl.deleteSync(r.sync); r.reject(new Error('[webgl.tree] readPixel: the context was disposed.')); }
-    for (const b of ctx.readbacks.pool) if (typeof gl.deleteBuffer === 'function') gl.deleteBuffer(b);
-    ctx.readbacks = null;
-  }
   for (const k of Object.keys(ctx.programs)) {
     const p = ctx.programs[k];
     if (p && p.program && typeof gl.deleteProgram === 'function') gl.deleteProgram(p.program);
@@ -264,10 +253,5 @@ export function dispose(gl) {
     if (g.buffer && typeof gl.deleteBuffer === 'function') for (const a of Object.values(g.buffer.attribs)) gl.deleteBuffer(a.buffer);
   }
   ctx.gizmos = {};
-  if (ctx.quad) {
-    for (const a of Object.values(ctx.quad.attribs || {})) { if (a.buffer && typeof gl.deleteBuffer === 'function') gl.deleteBuffer(a.buffer); }
-    if (ctx.quad.indices && typeof gl.deleteBuffer === 'function') gl.deleteBuffer(ctx.quad.indices);
-    ctx.quad = null;
-  }
   _registry.delete(gl);
 }

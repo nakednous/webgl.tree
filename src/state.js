@@ -27,18 +27,8 @@
 
 'use strict';
 
-import { bindFramebufferInfo } from 'twgl.js';
-import { renderTarget } from './target.js';
-import { filter } from './pass.js';
-
-const _vp = [0, 0, 0, 0];
-const _clear = [0, 0, 0, 0];
-
-const _viewport = (gl) => {
-  const v = gl.getParameter(gl.VIEWPORT);
-  _vp[0] = v[0]; _vp[1] = v[1]; _vp[2] = v[2]; _vp[3] = v[3];
-  return _vp;
-};
+import { state as stateOf } from '@nakednous/idiom';
+import { contextOf } from './context.js';
 
 /**
  * A pair of render targets holding one value across frames: `.read` is the side
@@ -87,104 +77,5 @@ const _viewport = (gl) => {
  * image(gl, mean.read.color)
  */
 export function state(gl, opts) {
-  const o = opts || {};
-  const clear = o.clear || _clear;
-  // one colour texture per side: renderTarget's sampling and format options only
-  const spec = { width: o.width, height: o.height, format: o.format, float: o.float, minMag: o.minMag, wrap: o.wrap };
-  const A = renderTarget(gl, spec);
-  const B = renderTarget(gl, spec);
-
-  let read = A, write = B, count = 0;
-
-  const pair = {
-    /**
-     * Run a fullscreen pass from the read side into the write side, then swap.
-     * A program that did not bind — `program(gl, frag)` returns null on a compile
-     * error — draws nothing, and then neither the pair nor the count moves: the
-     * frame is not advanced by a pass that did not run.
-     * @param {object} prog  A pass program from program(gl, frag).
-     * @param {object} [uniforms]  The pass's bag, by name.
-     * @returns {object} The state.
-     */
-    pass(prog, uniforms) {
-      const outer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-      _viewport(gl);
-      bindFramebufferInfo(gl, write);                 // twgl's verb: it sets the viewport too
-      const ran = filter(gl, prog, uniforms, read.color);   // the input is the read side, by declaration
-      if (ran) {                                      // a pass that did not run is not one:
-        const t = read; read = write; write = t;      // the pair and the count stay where they were
-        count += 1;
-      }
-      gl.bindFramebuffer(gl.FRAMEBUFFER, outer);
-      gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
-      return pair;
-    },
-    /**
-     * Exchange the two sides on your own terms — what a pass that draws geometry
-     * into the state calls after binding `.write` itself. The count is a pass's,
-     * so this leaves it alone.
-     * @returns {object} The state.
-     */
-    swap() {
-      const t = read; read = write; write = t;
-      return pair;
-    },
-    /**
-     * Clear both sides to the state's own colour and zero the count — what
-     * `state()` itself runs as it makes the pair, so a state always starts
-     * defined, and what a figure's own reset calls when the value is a value *of*
-     * something that has changed. The context's clear colour and its bound target
-     * are its own again afterwards.
-     * @returns {object} The state.
-     */
-    reset() {
-      const outer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-      const prior = gl.getParameter(gl.COLOR_CLEAR_VALUE);
-      _viewport(gl);
-      gl.clearColor(clear[0], clear[1], clear[2], clear[3]);
-      for (const t of [A, B]) { bindFramebufferInfo(gl, t); gl.clear(gl.COLOR_BUFFER_BIT); }
-      gl.clearColor(prior[0], prior[1], prior[2], prior[3]);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, outer);
-      gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
-      count = 0;
-      return pair;
-    },
-    /**
-     * Resize both sides, zero the count and clear them — the frames a mean was
-     * taken of were taken at another size, and reallocated storage is as
-     * undefined as new storage: the pair starts defined for the same reason a
-     * fresh state does.
-     * @param {number} width
-     * @param {number} height
-     * @returns {object} The state.
-     */
-    resize(width, height) {
-      A.resize(width, height);
-      B.resize(width, height);
-      pair.reset();          // zeroes the count too
-      return pair;
-    },
-    /**
-     * Delete both sides' attachments and framebuffers.
-     * @returns {object} The state.
-     */
-    dispose() {
-      A.dispose();
-      B.dispose();
-      return pair;
-    },
-  };
-
-  // read, write and count are the verb's: the swap is pass's, and a count that
-  // could be assigned beside the pair is exactly the drift this verb prevents
-  Object.defineProperties(pair, {
-    read: { get: () => read, enumerable: true },
-    write: { get: () => write, enumerable: true },
-    count: { get: () => count, enumerable: true },
-  });
-
-  // a defined start: the pair is cleared as it is made, so the first pass reads a
-  // history that exists (zero) rather than storage the driver has not written
-  pair.reset();
-  return pair;
+  return stateOf(contextOf(gl), opts);
 }

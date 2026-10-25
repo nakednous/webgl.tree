@@ -34,111 +34,7 @@
 
 'use strict';
 
-import { createTexture, setTextureFromElement } from 'twgl.js';
 import { contextOf } from './context.js';
-
-const _sizeOf = (s) => {
-  if (!s) return null;
-  const w = s.videoWidth || s.naturalWidth || s.width || 0, h = s.videoHeight || s.naturalHeight || s.height || 0;
-  return w && h ? [w, h] : null;
-};
-const _isPixels = (s) => !!(s && s.data && typeof s.width === 'number' && typeof s.height === 'number' && !s.getContext);
-const _isBitmap = (s) => typeof ImageBitmap !== 'undefined' && s instanceof ImageBitmap;
-
-// UNPACK_FLIP_Y_WEBGL has no effect on an ImageBitmap; a canvas holding the same
-// pixels is flipped like any element. One scratch canvas, resized to the bitmap.
-let _scratch = null;
-function _viaCanvas(bitmap) {
-  const w = bitmap.width, h = bitmap.height;
-  if (!_scratch) _scratch = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : document.createElement('canvas');
-  if (_scratch.width !== w || _scratch.height !== h) { _scratch.width = w; _scratch.height = h; }
-  const g = _scratch.getContext('2d');
-  g.clearRect(0, 0, w, h);
-  g.drawImage(bitmap, 0, 0);
-  return _scratch;
-}
-
-function _opts(gl, o) {
-  const mip = o.mipmaps === true;
-  return {
-    min: mip ? gl.LINEAR_MIPMAP_LINEAR : (o.minMag || gl.LINEAR),
-    mag: o.minMag || gl.LINEAR,
-    wrap: o.wrap || gl.CLAMP_TO_EDGE,
-    auto: mip,
-  };
-}
-
-// The internal format and upload type a pixel source asks for. A Float32Array
-// holds radiance, which is a 32F format; everything else is a byte, and would
-// clamp. twgl would otherwise reach texImage2D as (RGBA, FLOAT) — an invalid
-// combination — so both have to be stated here. WebGL2's table pairs each float
-// format with one type (32F with FLOAT, 16F with HALF_FLOAT), and
-// `opts.internalFormat` / `opts.type` override both where twgl cannot infer a
-// type (a Uint16Array of half-floats). `opts.format` picks the channels — a
-// density volume is one channel, so it states gl.RED and gets R8.
-const _CHANNELS = (gl, format) =>
-  format === gl.RED ? 1 : format === gl.RG ? 2 : format === gl.RGB ? 3 : 4;
-
-function _formatOf(gl, data, o) {
-  const format = o.format || gl.RGBA;
-  const ch = _CHANNELS(gl, format);
-  const float = data instanceof Float32Array;
-  const half = o.type === gl.HALF_FLOAT;
-  const B8 = [gl.R8, gl.RG8, gl.RGB8, gl.RGBA8];
-  const F32 = [gl.R32F, gl.RG32F, gl.RGB32F, gl.RGBA32F];
-  const F16 = [gl.R16F, gl.RG16F, gl.RGB16F, gl.RGBA16F];
-  const internalFormat = o.internalFormat || (float ? F32[ch - 1] : half ? F16[ch - 1] : B8[ch - 1]);
-  const type = o.type ||
-    (F32.indexOf(internalFormat) >= 0 ? gl.FLOAT :
-      F16.indexOf(internalFormat) >= 0 ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE);
-  return { internalFormat, format, type, channels: ch };
-}
-
-// One scratch typed array per source type, resized as needed: a caller never
-// sees the flip, and a repeated upload allocates once.
-let _scratch8 = null, _scratch32 = null;
-function _flippedRows(data, width, height, channels, slices) {
-  const out = data instanceof Float32Array
-    ? (_scratch32 && _scratch32.length === data.length ? _scratch32 : (_scratch32 = new Float32Array(data.length)))
-    : (_scratch8 && _scratch8.length === data.length ? _scratch8 : (_scratch8 = new Uint8Array(data.length)));
-  const row = width * channels;              // a texel is `channels` values wide
-  const slice = row * height;
-  for (let s = 0; s < slices; s++) {
-    for (let y = 0; y < height; y++) {
-      const from = s * slice + y * row;
-      const part = data.subarray ? data.subarray(from, from + row) : data.slice(from, from + row);
-      out.set(part, s * slice + (height - 1 - y) * row);   // rows within each slice, never slices
-    }
-  }
-  return out;
-}
-
-// The pixel path of texture(): the format is resolved, the rows are flipped
-// when asked, and the size is registered for filter's uTexelSize.
-function _pixelTexture(gl, ctx, source, o) {
-  const spec = _opts(gl, o);
-  const format = _formatOf(gl, source.data, o);
-  const layers = typeof source.layers === 'number' ? source.layers : 0;
-  const depth = layers || (typeof source.depth === 'number' ? source.depth : 0);
-  if (depth) {                                 // a volume, or an array of 2D slices
-    spec.target = layers ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_3D;
-    spec.depth = depth;
-  }
-  spec.internalFormat = format.internalFormat;
-  spec.format = format.format;
-  spec.type = format.type;
-  spec.src = o.flip ? _flippedRows(source.data, source.width, source.height, format.channels, depth || 1) : source.data;
-  spec.width = source.width;
-  spec.height = source.height;
-  spec.flipY = 0;
-  if (spec.type === gl.FLOAT) {
-    if (spec.min === gl.LINEAR && ctx.floatLinearExt === undefined) {
-      ctx.floatLinearExt = gl.getExtension('OES_texture_float_linear') || false;
-      if (!ctx.floatLinearExt) console.error('[webgl.tree] texture: OES_texture_float_linear is unavailable; a gl.FLOAT texture sampled linearly reads black — use gl.HALF_FLOAT or minMag: gl.NEAREST.');
-    }
-  }
-  return createTexture(gl, spec);
-}
 
 /**
  * Create a texture from an element, a bitmap or raw pixels.
@@ -209,23 +105,7 @@ function _pixelTexture(gl, ctx, source, o) {
  */
 export function texture(gl, source, opts) {
   const ctx = contextOf(gl);
-  const o = opts || {};
-  if (_isPixels(source)) {
-    const tex = _pixelTexture(gl, ctx, source, o);
-    ctx.sizes.set(tex, [source.width, source.height]);
-    if (!ctx.textures) ctx.textures = new Set();
-    ctx.textures.add(tex);
-    return tex;
-  }
-  const spec = _opts(gl, o);
-  spec.src = _isBitmap(source) ? _viaCanvas(source) : source;
-  spec.flipY = 1;
-  const tex = createTexture(gl, spec);
-  const size = _sizeOf(source);
-  if (size) ctx.sizes.set(tex, size);
-  if (!ctx.textures) ctx.textures = new Set();
-  ctx.textures.add(tex);
-  return tex;
+  return ctx.backend.createTexture(ctx, source, opts);
 }
 
 /**
@@ -265,10 +145,7 @@ export function texture(gl, source, opts) {
  */
 export function upload(gl, tex, source) {
   const ctx = contextOf(gl);
-  setTextureFromElement(gl, tex, _isBitmap(source) ? _viaCanvas(source) : source, { flipY: 1, auto: false });
-  const size = _sizeOf(source);
-  if (size) ctx.sizes.set(tex, size);
-  return tex;
+  return ctx.backend.uploadTexture(ctx, tex, source);
 }
 
 /**
@@ -321,18 +198,5 @@ export function upload(gl, tex, source) {
  */
 export function cubemap(gl, faces, opts) {
   const ctx = contextOf(gl);
-  const o = opts || {};
-  const spec = _opts(gl, o);
-  // the faces go up now, in GL's order and unflipped — twgl would load element faces
-  // asynchronously behind a one-pixel placeholder, so a first frame would sample that
-  const tex = createTexture(gl, { target: gl.TEXTURE_CUBE_MAP, min: spec.min, mag: spec.mag, wrap: gl.CLAMP_TO_EDGE, auto: false });
-  const flip = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
-  gl.bindTexture(gl.TEXTURE_CUBE_MAP, tex);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-  for (let i = 0; i < 6; i++) gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, faces[i]);
-  if (spec.auto) gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip);
-  if (!ctx.textures) ctx.textures = new Set();
-  ctx.textures.add(tex);
-  return tex;
+  return ctx.backend.createCubemap(ctx, faces, opts);
 }

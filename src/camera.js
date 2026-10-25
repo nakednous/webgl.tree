@@ -21,7 +21,7 @@
 
 'use strict';
 
-import { cameraView, cameraProj, mat4Mul } from '@nakednous/tree';
+import { cameraView, cameraProj } from '@nakednous/tree';
 import { contextOf } from './context.js';
 
 const _V = new Float32Array(16);
@@ -38,8 +38,7 @@ const _isMat4 = (m) => m != null && typeof m === 'object' && typeof m.length ===
  * @param {ArrayLike<number>} P
  */
 export function installCamera(ctx, V, P) {
-  for (let i = 0; i < 16; i++) { ctx.V[i] = V[i]; ctx.P[i] = P[i]; }
-  mat4Mul(ctx.PV, ctx.P, ctx.V);
+  ctx.backend.setCamera(ctx, V, P);
 }
 
 /**

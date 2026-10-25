@@ -1,19 +1,25 @@
 /**
- * @file Internal programs — the pass-through vertex stage and the flat program.
+ * @file Internal programs — the pass-through vertex stage, the flat texture
+ * program and the line pipe's two stages, with the geometry binding they share.
  * @module webgl.tree/programs
  * @license AGPL-3.0-only
  *
- * Nothing here is exported by the package: a hero binds its own shaders.
- * These are the programs the verbs cannot do without, compiled lazily per
- * context and reachable only through them — the NDC pass-through vertex
- * stage program(frag) attaches, and the flat colour / texture program behind
- * image, pane and the pick pass.
+ * Nothing here is exported by the package: a hero binds its own shaders. These
+ * are the sources the verbs cannot do without — the NDC pass-through vertex
+ * stage `program(gl, frag)` attaches, the flat colour / texture program behind
+ * `image`, `pane` and the pick pass, and the line pipe's two. The backend
+ * compiles and caches them per context; this module is what they are written in
+ * and the two calls every draw needs.
+ *
+ * @details
+ * `bindGeometry` binds a geometry to a program and disables what the program
+ * declares and the geometry lacks; `samplersOf` names a program's samplers, read
+ * once per program. Both take `gl` first, as the bridge's own calls do.
  */
 
 'use strict';
 
-import { createProgramInfo, setBuffersAndAttributes } from 'twgl.js';
-import { contextOf } from './context.js';
+import { setBuffersAndAttributes } from 'twgl.js';
 
 /** The fullscreen pass's vertex stage: aPosition through in NDC, aTexCoord as vTexCoord. */
 export const PASS_VERT = `#version 300 es
@@ -25,7 +31,8 @@ void main() {
   gl_Position = aPosition;
 }`;
 
-const FLAT_VERT = `#version 300 es
+/** The flat program's vertex stage: the covering quad under a matrix, aTexCoord as vTexCoord. */
+export const FLAT_VERT = `#version 300 es
 in vec4 aPosition;
 in vec2 aTexCoord;
 uniform mat4 uModelViewProjectionMatrix;
@@ -35,7 +42,8 @@ void main() {
   gl_Position = uModelViewProjectionMatrix * aPosition;
 }`;
 
-const FLAT_FRAG = `#version 300 es
+/** The flat fragment stage: a texture times a tint, or the tint alone. */
+export const FLAT_FRAG = `#version 300 es
 precision highp float;
 in vec2 vTexCoord;
 uniform vec4 uColor;
@@ -46,7 +54,8 @@ void main() {
   outColor = uUseTexture ? texture(uTexture, vTexCoord) * uColor : uColor;
 }`;
 
-const LINE_VERT = `#version 300 es
+/** The line pipe's vertex stage: a per-vertex colour under uPV · uModel. */
+export const LINE_VERT = `#version 300 es
 in vec3 aPosition;
 in vec4 aColor;
 uniform mat4 uPV;
@@ -57,7 +66,8 @@ void main() {
   gl_Position = uPV * uModel * vec4(aPosition, 1.0);
 }`;
 
-const LINE_FRAG = `#version 300 es
+/** The line pipe's fragment stage: a per-vertex colour, or uColor. */
+export const LINE_FRAG = `#version 300 es
 precision highp float;
 in vec4 vColor;
 uniform vec4 uColor;
@@ -67,12 +77,33 @@ void main() {
   outColor = uUseColor ? vColor : uColor;
 }`;
 
-/**
- * The flat colour / texture program of a context: uColor, uTexture,
- * uUseTexture, uModelViewProjectionMatrix.
- * @param {WebGL2RenderingContext} gl
- * @returns {object} A twgl programInfo.
- */
+/** The wide line's vertex stage: each segment as a quad expanded in window space. */
+export const WIDE_VERT = `#version 300 es
+in vec3 aA;
+in vec3 aB;
+in float aT;
+in float aSide;
+in vec4 aColor;
+uniform mat4 uPV;
+uniform mat4 uModel;
+uniform vec2 uViewport;
+uniform float uWidth;
+out vec4 vColor;
+void main() {
+  vColor = aColor;
+  vec4 cA = uPV * uModel * vec4(aA, 1.0);
+  vec4 cB = uPV * uModel * vec4(aB, 1.0);
+  vec2 halfVp = uViewport * 0.5;   // 'half' is reserved in GLSL ES 3.00
+  vec2 sA = cA.xy / cA.w * halfVp;
+  vec2 sB = cB.xy / cB.w * halfVp;
+  vec2 d = sB - sA;
+  float l = length(d);
+  d = l > 0.0 ? d / l : vec2(1.0, 0.0);
+  vec2 n = vec2(-d.y, d.x) * (uWidth * 0.5 * aSide);
+  vec4 c = aT < 0.5 ? cA : cB;
+  gl_Position = c + vec4(n / halfVp * c.w, 0.0, 0.0);
+}`;
+
 /**
  * Disable every attribute the program declares and the buffers lack. Attribute
  * arrays are context state that outlives a draw: an attribute a mesh does not
@@ -109,60 +140,39 @@ export function bindGeometry(gl, prog, buffer) {
   disableMissingAttributes(gl, prog, buffer);
 }
 
-export function flatProgram(gl) {
-  const ctx = contextOf(gl);
-  if (!ctx.programs.flat) ctx.programs.flat = createProgramInfo(gl, [FLAT_VERT, FLAT_FRAG]);
-  return ctx.programs.flat;
-}
+// The sampler uniforms a program declares, read once per program and kept on it
+// under a private key. `filter` binds the pass's input to each of them that the
+// bag leaves unset — the same rule by which it already fills uResolution and
+// uTexelSize only where a stage declares them.
+const SAMPLERS = Symbol('webgl.tree.samplers');
+const _SAMPLER_TYPES = ['SAMPLER_2D', 'SAMPLER_3D', 'SAMPLER_CUBE', 'SAMPLER_2D_SHADOW', 'SAMPLER_CUBE_SHADOW',
+  'SAMPLER_2D_ARRAY', 'SAMPLER_2D_ARRAY_SHADOW', 'INT_SAMPLER_2D', 'INT_SAMPLER_3D', 'INT_SAMPLER_CUBE',
+  'INT_SAMPLER_2D_ARRAY', 'UNSIGNED_INT_SAMPLER_2D', 'UNSIGNED_INT_SAMPLER_3D', 'UNSIGNED_INT_SAMPLER_CUBE',
+  'UNSIGNED_INT_SAMPLER_2D_ARRAY'];
 
-const WIDE_VERT = `#version 300 es
-in vec3 aA;
-in vec3 aB;
-in float aT;
-in float aSide;
-in vec4 aColor;
-uniform mat4 uPV;
-uniform mat4 uModel;
-uniform vec2 uViewport;
-uniform float uWidth;
-out vec4 vColor;
-void main() {
-  vColor = aColor;
-  vec4 cA = uPV * uModel * vec4(aA, 1.0);
-  vec4 cB = uPV * uModel * vec4(aB, 1.0);
-  vec2 halfVp = uViewport * 0.5;   // 'half' is reserved in GLSL ES 3.00
-  vec2 sA = cA.xy / cA.w * halfVp;
-  vec2 sB = cB.xy / cB.w * halfVp;
-  vec2 d = sB - sA;
-  float l = length(d);
-  d = l > 0.0 ? d / l : vec2(1.0, 0.0);
-  vec2 n = vec2(-d.y, d.x) * (uWidth * 0.5 * aSide);
-  vec4 c = aT < 0.5 ? cA : cB;
-  gl_Position = c + vec4(n / halfVp * c.w, 0.0, 0.0);
-}`;
-
-/**
- * The wide line program of a context (experimental): each segment as a
- * quad expanded in window space by uWidth pixels — aA, aB the endpoints,
- * aT which one, aSide the side, optional aColor; uPV, uModel, uViewport,
- * uColor.
- * @param {WebGL2RenderingContext} gl
- * @returns {object} A twgl programInfo.
- */
-export function wideLineProgram(gl) {
-  const ctx = contextOf(gl);
-  if (!ctx.programs.wide) ctx.programs.wide = createProgramInfo(gl, [WIDE_VERT, LINE_FRAG]);
-  return ctx.programs.wide;
+/** Whether a GL uniform type is one of the sampler types. @ignore */
+function _isSampler(gl, type) {
+  for (let i = 0; i < _SAMPLER_TYPES.length; i++) if (gl[_SAMPLER_TYPES[i]] === type) return true;
+  return false;
 }
 
 /**
- * The line pipe's program of a context: aPosition, optional aColor (read
- * when uUseColor), uPV, uModel, uColor.
+ * The names of a program's sampler uniforms, in declaration order, cached on
+ * the program. An array of samplers contributes its base name, the key twgl's
+ * setters use.
  * @param {WebGL2RenderingContext} gl
- * @returns {object} A twgl programInfo.
+ * @param {object} prog  A programInfo.
+ * @returns {string[]} @ignore
  */
-export function lineProgram(gl) {
-  const ctx = contextOf(gl);
-  if (!ctx.programs.line) ctx.programs.line = createProgramInfo(gl, [LINE_VERT, LINE_FRAG]);
-  return ctx.programs.line;
+export function samplersOf(gl, prog) {
+  let names = prog[SAMPLERS];
+  if (names) return names;
+  names = [];
+  const n = gl.getProgramParameter(prog.program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++) {
+    const info = gl.getActiveUniform(prog.program, i);
+    if (info && _isSampler(gl, info.type)) names.push(info.name.replace(/\[0\]$/, ''));
+  }
+  Object.defineProperty(prog, SAMPLERS, { value: names, configurable: true });
+  return names;
 }

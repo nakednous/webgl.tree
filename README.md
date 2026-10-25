@@ -170,7 +170,18 @@ twgl sets the viewport on bind and every bridge call reads it back.
 ```bash
 npm test                                          # node:test — the pure parts against a gl stub
 npm run build                                     # rollup → dist/index.js, twgl.js external
+npm run docs                                      # the API site; every doclet's example is mounted there
+npm run density                                   # every example at densities 1 and 2 — the crossing's gate
 ```
+
+`npm run density` is the browser gate for the crossing a review at density 1 cannot see: a rect given in
+page pixels draws into a corner at 1/density once `createCanvas` scales the buffer, and a canvas that never
+took the density at all is stretched by the compositor. It mounts each example over the current build in
+`tools/density/`'s own headless Chromium — one pass at each density — and fails on any rect whose numbers
+did not move, and on any canvas whose buffer is not its page size times the density. `DENSITY_ONLY=<text>`
+and `DENSITY_LIMIT=<n>` narrow the run to the figure being fixed, and a run that judges nothing — a browser
+without WebGL2 — fails rather than passing quietly. `npm run docs` comes first: the examples
+are served from `site/`, models and all.
 
 ---
 

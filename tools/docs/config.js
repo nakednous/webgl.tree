@@ -55,6 +55,8 @@ export const packages = {
   '@nakednous/ui':   'https://github.com/nakednous/ui',
   'twgl.js':         'https://twgljs.org/',
   'webgl.tree':      'https://github.com/nakednous/webgl.tree',
+  // the layer's repository is private, so its public address is the package page
+  '@nakednous/idiom': 'https://www.npmjs.com/package/@nakednous/idiom',
 };
 
 /** The address of a package named in prose, or null. */
@@ -104,6 +106,7 @@ export const paths = {
   deps: {                       // the builds the ES build was made against
     '@nakednous/tree': 'node_modules/@nakednous/tree/dist/index.js',
     '@nakednous/host': 'node_modules/@nakednous/host/dist/index.js',
+    '@nakednous/idiom': 'node_modules/@nakednous/idiom/dist/index.js',
   },
   static: 'tools/docs/static',  // copied verbatim into site/ (assets/)
   site:   'site',
@@ -113,7 +116,7 @@ export const paths = {
 export const site = {
   bundle: 'webgl.tree.js',
   module: 'webgl.tree.esm.js',
-  deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js' },
+  deps:   { '@nakednous/tree': 'tree.js', '@nakednous/host': 'host.js', '@nakednous/idiom': 'idiom.js' },
   style:  'assets/style.css',
   favicon32:  'favicon-32.png',      // the p5.tree cube, cropped square
   favicon128: 'favicon-128.png',

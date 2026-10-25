@@ -49,11 +49,15 @@ function frame() {
 ```
 
 `tree` holds the math — matrices, quaternions, camera states, visibility; `host` holds the canvas
-host — handles, tracks, orbit, devices, media. For ES modules, `npm install webgl.tree twgl.js`
+host — handles, tracks, orbit, devices, media. The composite verbs — targets, passes, the `pipe`
+chain, `state`, the draw policy — are the bridges' shared layer,
+[`@nakednous/idiom`](https://www.npmjs.com/package/@nakednous/idiom), which the bridge re-exports
+under the names below. For ES modules, `npm install webgl.tree twgl.js`
 and `import { setCamera, axes, tree } from 'webgl.tree'`; the ES build keeps twgl.js,
-[`@nakednous/tree`](https://github.com/nakednous/tree) and
-[`@nakednous/host`](https://github.com/nakednous/host) external, so a bundler or an import map
-resolves them.
+[`@nakednous/tree`](https://github.com/nakednous/tree),
+[`@nakednous/host`](https://github.com/nakednous/host) and
+[`@nakednous/idiom`](https://www.npmjs.com/package/@nakednous/idiom) external, so a bundler or an
+import map resolves them.
 
 ---
 
@@ -72,12 +76,17 @@ the GPU API. Its WebGPU twin, `webgpu.tree`, realizes the same surface.
       │
       ├── @nakednous/tree     ← math, spaces, animation, visibility, gizmo generators
       │
+      ├── @nakednous/idiom    ← the composites both bridges share, over a backend
+      │
       └── twgl                ← peer dependency, external to the bundle
 ```
 
 [`@nakednous/ui`](https://github.com/nakednous/ui) is an optional peer of the application, not a
 dependency of the bridge: a panel writes its `u*` names through a target sink, and [`bind`][bind]
-reads them. Dependency direction is strict: `{ tree, host } ← webgl.tree`; nothing flows back.
+reads them. Dependency direction is strict: `{ tree, host, idiom } ← webgl.tree`; nothing flows
+back. The layer supplies the composites and calls a backend; this package supplies that backend —
+`src/backend.js`, twgl's ceremony behind the layer's twenty-three members and four conventions — and
+the raw verbs a hero writes itself.
 
 **What it takes from twgl.** The ceremony, and nothing else:
 [`twgl.createProgramInfo`][twgl.createProgramInfo] ·
@@ -102,9 +111,11 @@ generators away on its own.
 ## The surface
 
 Every export is a free function taking `gl` first; per-context state lives in a registry keyed
-by `gl`, created on first use and released by [`dispose(gl)`][dispose]. Options object last. The
+by `gl`, created on first use and released by [`dispose(gl)`][dispose] — the record is the layer's,
+extended with what only the bridge needs. Options object last. The
 [API site](https://jpcharalambosh.co/webgl.tree/) documents every name below, one page per
-module — the links go there.
+module — the links go there; a composite's page documents the verb, its implementation lives in
+`@nakednous/idiom`.
 
 | call | what it does |
 |---|---|
@@ -161,6 +172,7 @@ twgl sets the viewport on bind and every bridge call reads it back.
 | label anchors | tree → bridge → host | [`helmRig`][helmRig]'s `identify` anchors go to `host.labels` as one-frame labels |
 | uniforms bag | [ui](https://github.com/nakednous/ui) → bridge | a panel's target writes `u*` names; [`bind(gl, prog, bag)`][bind] reads them |
 | camera state | tree ↔ host ↔ bridge | plain data: a track, a helm, the orbit write it; the bridge only reads it |
+| the layer | bridge → `@nakednous/idiom` | the backend's twenty-three members and four conventions; every composite verb takes the context record, never `gl` |
 | id program | application → bridge | [`pick`][pick]'s `opts.program` for a displaced surface; `paint` sets its `uColor` |
 
 ---

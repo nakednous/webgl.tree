@@ -1,13 +1,14 @@
 ## ES modules
 
-The ES build, `dist/index.js`, keeps twgl.js, `@nakednous/tree` and `@nakednous/host` external,
-so each loads once beside the application's own imports. With a bundler, install all four:
+The ES build, `dist/index.js`, keeps twgl.js, `@nakednous/tree`, `@nakednous/host` and
+`@nakednous/idiom` external, so each loads once beside the application's own imports. With a bundler,
+install all five:
 
 ```bash
-npm install webgl.tree twgl.js @nakednous/tree @nakednous/host
+npm install webgl.tree twgl.js @nakednous/tree @nakednous/host @nakednous/idiom
 ```
 
-Without one, an import map resolves the four names:
+Without one, an import map resolves the five names:
 
 ```html
 <script type="importmap">
@@ -15,14 +16,17 @@ Without one, an import map resolves the four names:
   "twgl.js": "https://cdn.jsdelivr.net/npm/twgl.js@7/dist/7.x/twgl-full.module.js",
   "webgl.tree": "https://cdn.jsdelivr.net/npm/webgl.tree/dist/index.js",
   "@nakednous/tree": "https://cdn.jsdelivr.net/npm/@nakednous/tree/dist/index.js",
-  "@nakednous/host": "https://cdn.jsdelivr.net/npm/@nakednous/host/dist/index.js"
+  "@nakednous/host": "https://cdn.jsdelivr.net/npm/@nakednous/host/dist/index.js",
+  "@nakednous/idiom": "https://cdn.jsdelivr.net/npm/@nakednous/idiom/dist/index.js"
 } }
 </script>
 ```
 
 The `tree` and `host` namespaces webgl.tree exports are `@nakednous/tree` and `@nakednous/host`;
 importing either package directly gives the same module, and with it the lower-level functions the
-API pages leave out. The demo below runs as a module script under that map.
+API pages leave out. `@nakednous/idiom` is the composites' layer — targets, passes, `pipe`, `state`,
+the draw policy — which the bridge re-exports under the names its pages document; it is internal to
+the bridges and no application imports it. The demo below runs as a module script under that map.
 
 <!-- caption: A camera state circling the axes, one turn every 6.3 seconds — as a module. -->
 ```js

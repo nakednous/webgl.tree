@@ -91,10 +91,11 @@ function assets() {
     ['.density-esm.js', 'dist/index.js'],
     ['.density-tree.js', 'node_modules/@nakednous/tree/dist/index.js'],
     ['.density-host.js', 'node_modules/@nakednous/host/dist/index.js'],
+    ['.density-idiom.js', 'node_modules/@nakednous/idiom/dist/index.js'],
   ];
   for (const [to, from] of pairs) copyFileSync(at(from), join(site, to));
   writeFileSync(join(site, '.density-shim.js'), SHIM);
-  return ['-twgl', '-lib', '-esm', '-tree', '-host'].map((s) => join(site, `.density${s}.js`))
+  return ['-twgl', '-lib', '-esm', '-tree', '-host', '-idiom'].map((s) => join(site, `.density${s}.js`))
     .concat(join(site, '.density-twgl.module.js'), join(site, '.density-shim.js'));
 }
 
@@ -165,6 +166,7 @@ async function main() {
           'webgl.tree': './.density-shim.js',
           '@nakednous/tree': './.density-tree.js',
           '@nakednous/host': './.density-host.js',
+          '@nakednous/idiom': './.density-idiom.js',
         },
       }));
       written.push(join(site, file));

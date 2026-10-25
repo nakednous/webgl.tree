@@ -205,14 +205,22 @@ export function targetSpecs(gl, opts) {
   return { attachments, kinds, multisample, samples, names: names || [], color: hasColor, depthTexture: hasDepth && depthTexture, float, float32 };
 }
 
-/** The options `targetSpecs` takes, from the spec `idiom` states. @ignore */
+/**
+ * The options `targetSpecs` takes, from the spec `idiom` states. The public
+ * shape's two meanings are kept apart: `{ depth: true }` is a depth texture
+ * alone, and the default — no option — is a colour target with a depth-stencil
+ * renderbuffer, which the spec's `'renderbuffer'` states. Reading the default
+ * as `depth: true` would take the colour attachment away.
+ * @ignore
+ */
 function _optsFromSpec(spec) {
   const byFormat = spec.perColor && spec.names.length > 0;
+  const depth = spec.depth;                    // 'none' | 'renderbuffer' | 'texture'
   return {
     width: spec.width,
     height: spec.height,
-    depth: spec.depth !== 'none',
-    depthTexture: spec.depth === 'texture',
+    depth: depth === 'none' ? false : (depth === 'texture' && !spec.color ? true : undefined),
+    depthTexture: depth === 'texture' && !!spec.color,
     color: spec.color ? (byFormat ? spec.perColor : (spec.names.length ? spec.names.slice() : undefined)) : false,
     format: spec.format,
     float: spec.float,

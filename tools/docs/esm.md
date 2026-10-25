@@ -26,12 +26,9 @@ API pages leave out. The demo below runs as a module script under that map.
 
 <!-- caption: A camera state circling the axes, one turn every 6.3 seconds — as a module. -->
 ```js
-import { setCamera, axes, tree } from 'webgl.tree'
+import { createCanvas, setCamera, axes, tree } from 'webgl.tree'
 
-const canvas = document.body.appendChild(document.createElement('canvas'))
-canvas.width = 400
-canvas.height = 300
-const gl = canvas.getContext('webgl2')
+const gl = createCanvas(400, 300)   // the canvas of every example on these pages
 const cam = tree.createCamera({ eye: [0, 107, 215] })
 
 function frame(ms) {

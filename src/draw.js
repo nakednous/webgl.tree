@@ -31,6 +31,7 @@
 import { setUniforms } from 'twgl.js';
 import { buffer as bufferOf, draw as drawOf, install } from '@nakednous/idiom';
 import { contextOf } from './context.js';
+import { invalidateUniforms } from './backend.js';
 
 /** The transform names a program may declare, in the order the bridge fills them. */
 export const TRANSFORMS = ['uModelMatrix', 'uViewMatrix', 'uModelViewMatrix', 'uProjectionMatrix', 'uModelViewProjectionMatrix', 'uNormalMatrix'];
@@ -126,7 +127,9 @@ export function bind(gl, prog, uniforms) {
   if (!prog || !prog.program) { console.error('[webgl.tree] bind: `prog` must be a twgl programInfo.'); return null; }
   gl.useProgram(prog.program);
   ctx.prog = prog;
-  if (uniforms) setUniforms(prog, uniforms);
+  // the bag goes through the thin layer, so the backend's record of what the
+  // program holds is stale from here on
+  if (uniforms) { invalidateUniforms(prog); setUniforms(prog, uniforms); }
   return prog;
 }
 
@@ -366,15 +369,17 @@ export function draw(gl, obj, M, opts) {
 }
 
 /**
- * Draw n instances of geometry; the vertex stage reads gl_InstanceID.
+ * Draw n instances of geometry; the vertex stage reads gl_InstanceID. The
+ * repeated-geometry path: one geometry, one install, one draw call — a field
+ * of one mesh beside the objects a scene draws one at a time.
  * @param {WebGL2RenderingContext} gl
  * @param {object} obj  A twgl bufferInfo.
  * @param {number} n  Instance count.
  * @param {ArrayLike<number>} [M]  A model mat4; omitted for identity.
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]
  * @example
- * <caption>Five yellow cubes in a row from one call; the vertex shader spaces them by gl_InstanceID.</caption>
- * const { createCanvas, setCamera, bind, drawInstanced, tree } = webglTree
+ * <caption>A field of ten yellow cubes from one call, spaced by gl_InstanceID, and a magenta cube drawn beside it under the same camera — the camera is installed once for both.</caption>
+ * const { createCanvas, setCamera, bind, draw, drawInstanced, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  *
@@ -383,10 +388,13 @@ export function draw(gl, obj, M, opts) {
  * in vec3 aNormal;
  * uniform mat4 uModelViewProjectionMatrix;
  * uniform mat3 uNormalMatrix;
+ * uniform float uSpread;              // 1 for the field, 0 for a single draw
  * out vec3 vNormal;
  * void main() {
  *   vNormal = uNormalMatrix * aNormal;
- *   vec4 offset = vec4(float(gl_InstanceID - 2) * 70.0, 0.0, 0.0, 0.0);
+ *   float col = float(gl_InstanceID % 5) - 2.0;
+ *   float row = float(gl_InstanceID / 5) - 0.5;
+ *   vec4 offset = uSpread * vec4(col * 70.0, row * 70.0, 0.0, 0.0);
  *   gl_Position = uModelViewProjectionMatrix * (aPosition + offset);
  * }`, `#version 300 es
  * precision highp float;
@@ -399,13 +407,16 @@ export function draw(gl, obj, M, opts) {
  * }`])
  * const cube = twgl.primitives.createCubeVertices(50)
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
+ * const M = tree.mat4()
  *
  * gl.enable(gl.DEPTH_TEST)
  * gl.clearColor(0.075, 0.553, 0.459, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [99, 131, 263] }))
- * bind(gl, prog, { uColor: [1, 0.82, 0.4] })
- * drawInstanced(gl, box, 5)
+ * bind(gl, prog, { uColor: [1, 0.82, 0.4], uSpread: 1 })
+ * drawInstanced(gl, box, 10)                                  // the field: one install, one call
+ * bind(gl, prog, { uColor: [1, 0.31, 0.85], uSpread: 0 })
+ * draw(gl, box, tree.mat4FromTRS(M, 0, -110, 0, 0, 0, 0, 1, 1, 1, 1))   // one object, the usual path
  */
 export function drawInstanced(gl, obj, n, M, opts) {
   if (M != null && !_isMat4(M)) { opts = M; M = null; }

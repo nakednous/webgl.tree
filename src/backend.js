@@ -230,6 +230,70 @@ function _optsFromSpec(spec) {
   };
 }
 
+// ── The values a program already holds ───────────────────────────────────
+// A numeric uniform whose value did not change is not uploaded again: the draw
+// policy writes the six declared transforms on every call, and two of them —
+// `uViewMatrix` and `uProjectionMatrix` — are pass-scope, identical for every
+// object of a pass. GL keeps a program's uniform state until something writes
+// it, so the second write of the same value is pure cost.
+//
+// The record is per program, and cleared by `bind`, which uploads the
+// application's own bag through twgl beside this member's path. A sampler, a
+// texture and anything else non-numeric is never memoised. The limit: a uniform
+// written by the application's own `gl.uniform*` call is outside both paths, so
+// a figure that writes one that way must go through `bind` or re-establish it —
+// `bind` and this member are where the reference documents a value going in.
+
+const _held = new WeakMap();
+
+const _isNumeric = (v) => typeof v === 'number'
+  || (v != null && typeof v === 'object' && typeof v.length === 'number'
+    && (ArrayBuffer.isView(v) || (Array.isArray(v) && typeof v[0] === 'number')));
+
+/**
+ * Whether the program already holds this value, recording it either way.
+ * @param {object} prog  A twgl programInfo.
+ * @param {string} name  The uniform's name.
+ * @param {number|ArrayLike<number>} v  The value about to be uploaded.
+ * @returns {boolean} True when the value is the one last uploaded under `name`.
+ * @ignore
+ */
+function _holds(prog, name, v) {
+  let memo = _held.get(prog);
+  if (!memo) { memo = new Map(); _held.set(prog, memo); }
+  const scalar = typeof v === 'number';
+  const n = scalar ? 1 : v.length;
+  let slot = memo.get(name);
+  if (!slot || slot.scalar !== scalar || slot.data.length !== n) {
+    slot = { scalar, data: new Float64Array(n) };          // once per name per program
+    memo.set(name, slot);
+    if (scalar) slot.data[0] = v;
+    else for (let i = 0; i < n; i++) slot.data[i] = v[i];
+    return false;
+  }
+  const held = slot.data;
+  let same = true;
+  if (scalar) {
+    same = held[0] === v;
+    held[0] = v;
+  } else {
+    for (let i = 0; i < n; i++) {
+      if (held[i] !== v[i]) { same = false; held[i] = v[i]; }
+    }
+  }
+  return same;
+}
+
+/**
+ * Forget the values a program holds — what `bind` calls, because it uploads the
+ * application's bag through the thin layer, out of this member's sight.
+ * @param {object} prog  A twgl programInfo.
+ * @ignore
+ */
+export function invalidateUniforms(prog) {
+  _held.delete(prog);
+}
+
 // ── The backend ──────────────────────────────────────────────────────────
 
 /**
@@ -434,11 +498,29 @@ export function createBackend(gl) {
     /**
      * Upload a bag by name, binding the program first: twgl's setters upload to
      * whatever program is current, and a value applies to the draw that follows.
+     *
+     * A numeric value the program already holds is **not** uploaded again — a
+     * pass-scope matrix is the same for every object of a pass, and GL keeps it
+     * per program until something writes it. Samplers and every non-numeric
+     * value still travel on each call: a texture unit is context state, not
+     * program state. `bind` uploads the application's own bag beside this
+     * member, so it clears the record (`invalidateUniforms`).
      */
     setUniforms(ctx, prog, values) {
-      if (!prog || !prog.program) return;
+      if (!prog || !prog.program) return prog;
       gl.useProgram(prog.program);
-      if (values) setUniforms(prog, values);
+      if (!values) return prog;
+      const setters = prog.uniformSetters || {};
+      let rest = null;
+      for (const name in values) {
+        const v = values[name];
+        const setter = setters[name];
+        if (!setter) continue;                              // not this program's name
+        if (!_isNumeric(v)) { (rest || (rest = {}))[name] = v; continue; }
+        if (!_holds(prog, name, v)) setter(v);
+      }
+      if (rest) setUniforms(prog, rest);                     // twgl's own path for textures and the rest
+      return prog;
     },
 
     // ── draws ────────────────────────────────────────────────────────────

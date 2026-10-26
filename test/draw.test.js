@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mat4Mul, mat3NormalFromMat4 } from '@nakednous/tree';
-import { setCamera, buffer } from '../src/index.js';
+import { setCamera, buffer, bind } from '../src/index.js';
 import { contextOf } from '../src/context.js';
 import { declaredTransforms, uploadTransforms, TRANSFORMS } from '../src/draw.js';
 import { disableMissingAttributes } from '../src/programs.js';
@@ -67,6 +67,46 @@ test('uploadTransforms: with no M the view and PV are uploaded as they are', () 
   uploadTransforms(ctx, prog, null);
   assert.deepEqual(prog.got.uModelViewMatrix, Array.from(V));
   assert.deepEqual(prog.got.uModelViewProjectionMatrix, Array.from(ctx.PV));
+});
+
+test('uploadTransforms: a value the program already holds is not uploaded again', () => {
+  const V = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-5,1]);
+  const P = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,-1,-1, 0,0,-2,0]);
+  const M = new Float32Array([2,0,0,0, 0,2,0,0, 0,0,2,0, 1,0,0,1]);
+  const M2 = new Float32Array([4,0,0,0, 0,4,0,0, 0,0,4,0, 3,0,0,1]);
+
+  let calls = [];
+  const counted = (names) => {
+    const setters = {};
+    for (const n of names) setters[n] = () => calls.push(n);
+    return { program: {}, uniformSetters: setters };
+  };
+
+  const gl = createGL();
+  const ctx = contextOf(gl);
+  setCamera(gl, V, P);
+  const prog = counted(TRANSFORMS);
+
+  uploadTransforms(ctx, prog, M);
+  assert.deepEqual(calls.slice().sort(), TRANSFORMS.slice().sort());   // the first draw sends all six
+  calls = [];
+  uploadTransforms(ctx, prog, M);
+  assert.deepEqual(calls, []);                                       // the same values: nothing travels
+
+  uploadTransforms(ctx, prog, M2);
+  // the model matrix, its two products and the normal changed; V and P are the pass's
+  assert.deepEqual(calls.sort(), ['uModelMatrix', 'uModelViewMatrix', 'uModelViewProjectionMatrix', 'uNormalMatrix']);
+
+  calls = [];
+  bind(gl, prog, { uLightMatrix: M });                                // the application's own bag, outside the backend
+  uploadTransforms(ctx, prog, M2);
+  assert.deepEqual(calls.slice().sort(), TRANSFORMS.slice().sort());   // the record is cleared by a bind with a bag
+
+  calls = [];
+  setCamera(gl, V, P.map((v, i) => i === 0 ? 3 : v));                 // a new projection is a new pass scope
+  uploadTransforms(ctx, prog, M2);
+  // only what a new projection changes: P, and the product it leads
+  assert.deepEqual(calls.sort(), ['uModelViewProjectionMatrix', 'uProjectionMatrix']);
 });
 
 test('buffer: the arrays shape under the bridge\'s attribute names; other keys pass through; joints unnormalised', () => {

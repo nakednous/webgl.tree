@@ -636,12 +636,14 @@ export function createBackend(gl) {
 
     // ── picking ──────────────────────────────────────────────────────────
     /**
-     * Read one pixel of a target back asynchronously: into a pooled PBO, fenced,
-     * and polled on the bridge's own frame loop — alive only while reads are
-     * pending. The target is resolved first, and the binding and the viewport it
-     * found are its own again afterwards.
+     * Read a block of a target back asynchronously: into a pooled PBO, fenced, and
+     * polled on the bridge's own frame loop — alive only while reads are pending.
+     * The target is resolved first, and the binding and the viewport it found are
+     * its own again afterwards. `opts.sync` reads at once instead, into client
+     * memory, and the promise is already settled; the layer's `pick` asks for it
+     * while the target it drew is still bound, which is where a stall is wanted.
      */
-    readPixels(ctx, target, x, y) {
+    readPixels(ctx, target, x, y, width, height, opts) {
       const rb = _pending(ctx);
       const prev = gl.getParameter(gl.FRAMEBUFFER_BINDING);
       const vp = gl.getParameter(gl.VIEWPORT);
@@ -650,17 +652,26 @@ export function createBackend(gl) {
       const fbo = target && typeof target.resolve === 'function' ? target.resolve().resolved : target;
       if (fbo && fbo.framebuffer !== undefined) bindFramebufferInfo(gl, fbo);
       else gl.bindFramebuffer(gl.FRAMEBUFFER, fbo || null);
+      const w = Math.max(1, width | 0), h = Math.max(1, height | 0);
+      const bytes = w * h * 4;
+      if (opts && opts.sync) {                        // client memory, the caller's stall
+        const out = new Uint8Array(bytes);
+        gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, out);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, prev);
+        gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
+        return Promise.resolve(out);
+      }
       const pbo = rb.pool.pop() || gl.createBuffer();
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
-      gl.bufferData(gl.PIXEL_PACK_BUFFER, 4, gl.STREAM_READ);
-      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+      gl.bufferData(gl.PIXEL_PACK_BUFFER, bytes, gl.STREAM_READ);
+      gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
       const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
       gl.flush();
       gl.bindFramebuffer(gl.FRAMEBUFFER, prev);
       gl.viewport(_vp[0], _vp[1], _vp[2], _vp[3]);
       return new Promise((resolve, reject) => {
-        rb.list.push({ sync, pbo, out: new Uint8Array(4), resolve, reject });
+        rb.list.push({ sync, pbo, out: new Uint8Array(bytes), resolve, reject });
         _poll(ctx);
       });
     },

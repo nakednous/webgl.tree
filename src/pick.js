@@ -29,16 +29,9 @@
 
 'use strict';
 
-import { mat4Pick, idToRgba, rgbaToId } from '@nakednous/tree';
+import { pick as pickOf, readPixel as readPixelOf } from '@nakednous/idiom';
 import { contextOf } from './context.js';
-import { installCamera } from './camera.js';
-import { renderTarget } from './target.js';
 import { canvasViewport } from './space.js';
-
-const _rgba = [0, 0, 0, 1];
-const _Ppick = new Float32Array(16);
-const _V = new Float32Array(16);
-const _P = new Float32Array(16);
 
 /**
  * Read one pixel of a target back asynchronously.
@@ -77,8 +70,7 @@ const _P = new Float32Array(16);
  * requestAnimationFrame(frame)
  */
 export function readPixel(gl, fbo, x, y) {
-  const ctx = contextOf(gl);
-  return ctx.backend.readPixels(ctx, fbo, x, y);   // a PBO, a fence, and the bridge's own frame loop
+  return readPixelOf(contextOf(gl), fbo, x, y);   // a PBO, a fence, and the bridge's own frame loop
 }
 
 /**
@@ -150,45 +142,7 @@ export function readPixel(gl, fbo, x, y) {
  * requestAnimationFrame(frame)
  */
 export function pick(gl, x, y, drawFn, opts) {
-  const ctx = contextOf(gl);
+  // the coordinates are a pointer's, so the viewport they are in is this bridge's space mapping
   const o = opts || {};
-  if (!ctx.pickTarget) ctx.pickTarget = renderTarget(gl, { width: 1, height: 1 });
-  const target = ctx.pickTarget;
-  const vp = ctx.backend.setViewport(ctx);
-  const prevFbo = ctx.backend.bindTarget(ctx);
-  const pvp = o.vp || canvasViewport(gl);
-  _V.set(ctx.V); _P.set(ctx.P);
-  _Ppick.set(ctx.P);
-  mat4Pick(_Ppick, x, y, pvp);
-  const prevProg = ctx.prog;
-  const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
-  const prog = o.program || ctx.backend.imageProgram(ctx);
-
-  ctx.backend.bindTarget(ctx, target);
-  gl.clearColor(0, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.DEPTH_TEST);
-  installCamera(ctx, ctx.V, _Ppick);
-  gl.useProgram(prog.program);
-  ctx.prog = prog;
-  // the id program's sampler sits on unit 0, which may still hold the target's own texture: a feedback loop drops every draw
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  if (prog.uniformSetters.uUseTexture) prog.uniformSetters.uUseTexture(false);
-  const paint = (id) => { if (prog.uniformSetters.uColor) prog.uniformSetters.uColor(idToRgba(_rgba, id)); };
-  let syncId = -1;
-  try {
-    drawFn(paint);
-    if (o.sync) { gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, _px); syncId = rgbaToId(_px[0], _px[1], _px[2]); }
-  } finally {
-    installCamera(ctx, _V, _P);
-    if (!wasDepth) gl.disable(gl.DEPTH_TEST);
-    if (prevProg) gl.useProgram(prevProg.program);
-    ctx.prog = prevProg;
-    ctx.backend.bindTarget(ctx, prevFbo);
-    ctx.backend.setViewport(ctx, vp);
-  }
-  if (syncId >= 0) return Promise.resolve(syncId);
-  return readPixel(gl, target, 0, 0).then((px) => rgbaToId(px[0], px[1], px[2]));
+  return pickOf(contextOf(gl), x, y, drawFn, { ...o, vp: o.vp || canvasViewport(gl) });
 }
-const _px = new Uint8Array(4);

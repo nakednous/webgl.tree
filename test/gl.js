@@ -14,9 +14,11 @@ const tagged = (name, obj) => { obj[Symbol.toStringTag] = name; return obj; };
 
 export function createGL({ width = 640, height = 480 } = {}) {
   const log = [];
+  let vertexArrays = 0;
   const gl = {
     drawingBufferWidth: width, drawingBufferHeight: height,
     log,
+    get vertexArrays() { return vertexArrays; },
     TRIANGLES: 4, DEPTH_TEST: 2929, BLEND: 3042, COLOR_BUFFER_BIT: 16384, DEPTH_BUFFER_BIT: 256,
     RGBA: 6408, RGBA8: 32856, RGBA16F: 34842, RGBA32F: 34836, HALF_FLOAT: 5131, UNSIGNED_BYTE: 5121,
     DEPTH_COMPONENT: 6402, DEPTH_COMPONENT24: 33190, UNSIGNED_INT: 5125, DEPTH_STENCIL: 34041,
@@ -31,6 +33,11 @@ export function createGL({ width = 640, height = 480 } = {}) {
     deleteBuffer(b) { log.push(['deleteBuffer', b]); },
     getExtension() { return {}; },
     disableVertexAttribArray(location) { log.push(['disableVertexAttribArray', location]); },
+    enableVertexAttribArray(location) { log.push(['enableVertexAttribArray', location]); },
+    vertexAttribPointer(location) { log.push(['vertexAttribPointer', location]); },
+    createVertexArray() { const v = tagged('WebGLVertexArrayObject', { id: ++vertexArrays }); log.push(['createVertexArray', v.id]); return v; },
+    bindVertexArray(v) { gl.boundVertexArray = v || null; log.push(['bindVertexArray', v ? v.id : null]); },
+    deleteVertexArray(v) { log.push(['deleteVertexArray', v ? v.id : null]); },
     createBuffer() { const b = tagged('WebGLBuffer', { id: ++gl.buffers }); log.push(['createBuffer', b.id]); return b; },
     bindBuffer(target, b) { gl.bound = b; },
     bufferData(target, data) { if (gl.bound) gl.bound.size = data.byteLength; log.push(['bufferData', gl.bound ? gl.bound.id : null, data.length]); },
@@ -38,6 +45,7 @@ export function createGL({ width = 640, height = 480 } = {}) {
     useProgram(p) { gl.program = p; },
     drawArrays() { log.push(['drawArrays']); },
     drawElements() { log.push(['drawElements']); },
+    drawElementsInstanced() { log.push(['drawElementsInstanced']); },
     isEnabled(cap) { return cap === gl.DEPTH_TEST ? !!gl.depthTest : false; },
     enable(cap) { if (cap === gl.DEPTH_TEST) gl.depthTest = true; },
     disable(cap) { if (cap === gl.DEPTH_TEST) gl.depthTest = false; },

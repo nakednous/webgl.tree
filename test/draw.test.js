@@ -138,6 +138,41 @@ test('buffer: the arrays shape under the bridge\'s attribute names; other keys p
   assert.equal(raw.numElements, 3);
 });
 
+test('a program and a geometry keep one vertex array: the next draw binds it instead of walking the attributes', () => {
+  globalThis.WebGLBuffer ??= class WebGLBuffer {};
+  const gl = createGL();
+  const ctx = contextOf(gl);
+  const geometry = {
+    attribs: { aPosition: { buffer: gl.createBuffer(), numComponents: 3 } },
+    indices: gl.createBuffer(),
+    numElements: 3,
+    elementType: gl.UNSIGNED_SHORT ?? gl.UNSIGNED_INT,
+  };
+  let walked = 0;                                           // the attribute walk, counted where twgl makes it
+  const setter = () => { walked++; };
+  setter.location = 0;
+  const prog = { program: {}, attribSetters: { aPosition: setter }, uniformSetters: {} };
+  const arrays = () => gl.log.filter((e) => e[0] === 'createVertexArray').length;
+
+  ctx.backend.draw(ctx, prog, geometry);
+  const first = walked;
+  assert.equal(first, 1);                                   // the first draw binds the attributes
+  assert.equal(arrays(), 1);
+
+  ctx.backend.draw(ctx, prog, geometry);
+  ctx.backend.drawInstanced(ctx, prog, geometry, 4);
+  assert.equal(walked, first);                              // neither walks them again
+  assert.equal(arrays(), 1);                                // one array for the pair, not one a draw
+
+  // the rebuild path replaces the buffers, so the array goes with them
+  gl.log.length = 0;
+  ctx.backend.updateBuffer(ctx, geometry, { aPosition: { numComponents: 3, data: new Float32Array(9) }, aNormal: { numComponents: 3, data: new Float32Array(9) } });
+  assert.ok(gl.log.some((e) => e[0] === 'deleteVertexArray'));
+  ctx.backend.draw(ctx, prog, geometry);
+  assert.equal(walked, first + 1);                          // a fresh array for the rebuilt geometry
+  assert.equal(arrays(), 1);
+});
+
 test('disableMissingAttributes: what the program declares and the buffers lack is disabled; a vertex array object is left alone', () => {
   const gl = createGL();
   const prog = { attribSetters: { aPosition: { location: 0 }, aNormal: { location: 1 }, aTarget0: { location: 2 }, aTarget1: { location: 5 } } };

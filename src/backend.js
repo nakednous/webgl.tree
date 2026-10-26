@@ -14,6 +14,11 @@
  * ceremony lives here and nowhere else: twgl's programs, buffers, framebuffers,
  * textures, uniforms, draws and the readback's PBO fence.
  *
+ * Three things the backend keeps so a draw need not repeat itself: what each
+ * program already holds (numeric uniforms, skipped when unchanged), the vertex
+ * array a program and a geometry share (twgl's, made on first use), and the
+ * sizes of the textures it made.
+ *
  * The record is the backend's own for a target — twgl's framebufferInfo,
  * extended — and `idiom` decorates it. `bindTarget` takes either that record
  * (`{ framebuffer }`), the raw binding a previous call returned, or `SCREEN`
@@ -30,7 +35,7 @@ import { WEBGL, mat4Mul } from '@nakednous/tree';
 import {
   createProgramInfo, createBufferInfoFromArrays, setAttribInfoBufferFromArray,
   setUniforms, drawBufferInfo, createFramebufferInfo, resizeFramebufferInfo,
-  bindFramebufferInfo, createTexture, setTextureFromElement,
+  bindFramebufferInfo, createTexture, setTextureFromElement, createVertexArrayInfo,
 } from 'twgl.js';
 import {
   PASS_VERT, FLAT_VERT, FLAT_FRAG, LINE_VERT, LINE_FRAG, WIDE_VERT,
@@ -294,6 +299,40 @@ export function invalidateUniforms(prog) {
   _held.delete(prog);
 }
 
+// ── The vertex arrays a program and a geometry already agree on ───────────
+// Binding a geometry walks its attributes — a `vertexAttribPointer` each — and
+// disables what the program declares and the geometry lacks. twgl has the cache
+// for it (a vertex array object over one program and one geometry); this keeps
+// one entry per pair, so the second node of a program over the same geometry
+// binds one object instead. The entry dies when the geometry's buffers are
+// rebuilt, which is `updateBuffer`'s rebuild path — an in-place `writeBuffer`
+// leaves every pointer it recorded valid, so a stream keeps its array.
+
+const _arrays = new WeakMap();
+
+/** The vertex array a program and a geometry share, made on first use. @ignore */
+function _arrayFor(gl, prog, geometry) {
+  if (!geometry || !geometry.attribs || geometry.vertexArrayObject) return null;
+  let byProgram = _arrays.get(geometry);
+  if (!byProgram) { byProgram = new Map(); _arrays.set(geometry, byProgram); }
+  let va = byProgram.get(prog);
+  if (!va) { va = createVertexArrayInfo(gl, [prog], geometry); byProgram.set(prog, va); }
+  return va;
+}
+
+/**
+ * Forget a geometry's vertex arrays — the buffers they point at are gone.
+ * @param {WebGL2RenderingContext} gl
+ * @param {object} geometry  A twgl bufferInfo.
+ * @ignore
+ */
+export function forgetVertexArrays(gl, geometry) {
+  const byProgram = _arrays.get(geometry);
+  if (!byProgram) return;
+  for (const va of byProgram.values()) if (va.vertexArrayObject && gl.deleteVertexArray) gl.deleteVertexArray(va.vertexArrayObject);
+  _arrays.delete(geometry);
+}
+
 // ── The backend ──────────────────────────────────────────────────────────
 
 /**
@@ -530,21 +569,26 @@ export function createBackend(gl) {
       mat4Mul(ctx.PV, ctx.P, ctx.V);
     },
 
-    /** Bind a geometry to the program a bind left bound and draw it. */
+    /**
+     * Bind a geometry to the program a bind left bound and draw it — through the
+     * vertex array the pair already shares, where there is one.
+     */
     draw(ctx, prog, geometry, opts) {
       if (!prog || !prog.program) return null;
-      bindGeometry(gl, prog, geometry);
+      const va = _arrayFor(gl, prog, geometry);
+      bindGeometry(gl, prog, va || geometry);
       const o = opts || {};
-      drawBufferInfo(gl, geometry, o.mode, o.count, o.offset);
+      drawBufferInfo(gl, va || geometry, o.mode, o.count, o.offset);
       return geometry;
     },
 
     /** The same, with an instance count. */
     drawInstanced(ctx, prog, geometry, count, opts) {
       if (!prog || !prog.program) return null;
-      bindGeometry(gl, prog, geometry);
+      const va = _arrayFor(gl, prog, geometry);
+      bindGeometry(gl, prog, va || geometry);
       const o = opts || {};
-      drawBufferInfo(gl, geometry, o.mode, o.count, o.offset, count);
+      drawBufferInfo(gl, va || geometry, o.mode, o.count, o.offset, count);
       return geometry;
     },
 
@@ -559,6 +603,7 @@ export function createBackend(gl) {
       const keys = Object.keys(arrays);
       const same = !geometry.vertexArrayObject && keys.every((k) => (k === 'indices' ? !!geometry.indices : !!(geometry.attribs && geometry.attribs[k])));
       if (!same) {
+        forgetVertexArrays(gl, geometry);                     // the pointers go with the buffers
         for (const a of Object.values(geometry.attribs || {})) if (a.buffer) gl.deleteBuffer(a.buffer);
         if (geometry.indices) gl.deleteBuffer(geometry.indices);
         Object.assign(geometry, createBufferInfoFromArrays(gl, arrays));
@@ -708,6 +753,7 @@ export function createBackend(gl) {
     /** Free what the backend made: the fullscreen geometry, the flat program, textures, pending reads. */
     dispose(ctx) {
       if (ctx.quad) {
+        forgetVertexArrays(gl, ctx.quad);
         for (const a of Object.values(ctx.quad.attribs || {})) if (a.buffer) gl.deleteBuffer(a.buffer);
         if (ctx.quad.indices) gl.deleteBuffer(ctx.quad.indices);
         ctx.quad = null;

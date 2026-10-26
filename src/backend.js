@@ -789,8 +789,11 @@ export function createBackend(gl) {
       return ctx.programs.wide;
     },
 
-    /** A cube map from six sources in GL's face order (+X, −X, +Y, −Y, +Z, −Z), unflipped. */
-    createCubemap(ctx, faces, opts) {
+    /**
+     * A cube map from six sources in the cube's order (+X, −X, +Y, −Y, +Z, −Z),
+     * unflipped — the interface's member, the layer's `cubemap` reaching it.
+     */
+    createCubeTexture(ctx, faces, opts) {
       const o = opts || {};
       const spec = _optsOf(gl, o);
       // the faces go up now, in GL's order and unflipped — twgl would load element faces
@@ -804,6 +807,8 @@ export function createBackend(gl) {
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip);
       if (!ctx.textures) ctx.textures = new Set();
       ctx.textures.add(tex);
+      const size = _sizeOf(faces[0]);
+      if (size) ctx.sizes.set(tex, size);          // a face's texel, for uTexelSize over a cube
       return tex;
     },
   };

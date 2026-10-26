@@ -26,6 +26,11 @@
  * and never passes through upload. So image, pane, filter and the pick pass
  * carry no flip switch, and a pane's default uvs read a texture upright.
  *
+ * The three verbs are the layer's (`idiom`'s `texture`, `upload` and `cubemap`,
+ * §7 #123): it states the cube's face order and records each texture's size for
+ * `uTexelSize`; the creation is the backend's, and the orientation rule above is
+ * the backend's own statement.
+ *
  * The format follows the source: a Float32Array is RGBA32F with type FLOAT —
  * radiance, unclamped, what a tone operator needs — and any other array a byte
  * per channel. `internalFormat` and `type` override both where twgl cannot
@@ -34,6 +39,7 @@
 
 'use strict';
 
+import { texture as textureOf, upload as uploadOf, cubemap as cubemapOf } from '@nakednous/idiom';
 import { contextOf } from './context.js';
 
 /**
@@ -104,8 +110,7 @@ import { contextOf } from './context.js';
  * })
  */
 export function texture(gl, source, opts) {
-  const ctx = contextOf(gl);
-  return ctx.backend.createTexture(ctx, source, opts);
+  return textureOf(contextOf(gl), source, opts);
 }
 
 /**
@@ -144,8 +149,7 @@ export function texture(gl, source, opts) {
  * requestAnimationFrame(frame)
  */
 export function upload(gl, tex, source) {
-  const ctx = contextOf(gl);
-  return ctx.backend.uploadTexture(ctx, tex, source);
+  return uploadOf(contextOf(gl), tex, source);
 }
 
 /**
@@ -197,6 +201,5 @@ export function upload(gl, tex, source) {
  * draw(gl, box)
  */
 export function cubemap(gl, faces, opts) {
-  const ctx = contextOf(gl);
-  return ctx.backend.createCubemap(ctx, faces, opts);
+  return cubemapOf(contextOf(gl), faces, opts);
 }

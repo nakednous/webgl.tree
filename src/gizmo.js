@@ -12,6 +12,7 @@
  * axes(gl, opts) · grid(gl, opts) · hermite(gl, p0, t0, p1, t1, opts)
  * viewFrustum(gl, opts) · trackPath(gl, track, opts) · helmRig(gl, helm, opts) · handleLocus(gl, h, opts)
  * pane(gl, p0, p1, p2, p3, opts)                       // a textured or flat quad
+ * lines(gl, segments, opts)                            // the caller's own batch, one call
  * beginHUD(gl) · cross(gl, opts) · bullsEye(gl, opts) · endHUD(gl)   // { x, y } in px, y down
  * ```
  *
@@ -28,12 +29,18 @@
  * generators untouched. Colour is semantic where the generator writes a
  * palette (axes, the helm rig), else opts.color (default white). A gizmo
  * binds its own program and restores the one bound before it.
+ *
+ * `lines` is the same pipe for geometry the caller writes: ten numbers a
+ * segment into a cache of its own, one draw, the same width policy, and alpha
+ * blending over what is drawn already. `helmRig`'s `identify` is the pipe's
+ * label seam: the layer hands each anchor out in world space under the host's
+ * label layer, which is the only thing this bridge supplies for it.
  */
 
 'use strict';
 
 import {
-  createArrays, growArrays, capacityOf,
+  capacityOf,
   axesLines, gridLines, crossLines, bullsEyeLines, frustumLines, frustumCorners, hermiteLines,
   pathLines, helmRigLines, locusLines, paneTris,
   mat4Ortho, mat4Mul, mat4MulPoint, mat4FromTRS, pixelRatio, createCamera, cameraEye, cameraView, cameraProj,
@@ -41,8 +48,8 @@ import {
 } from '@nakednous/tree';
 import { helmBasis } from '@nakednous/host';
 import {
-  beginHUD as beginHUDOf, drawLines as drawLinesOf, drawPane as drawPaneOf,
-  endHUD as endHUDOf, expand as expandOf, fill as fillOf,
+  NORMAL, beginHUD as beginHUDOf, drawLines as drawLinesOf, drawPane as drawPaneOf,
+  endHUD as endHUDOf, expand as expandOf, fill as fillOf, gizmo as gizmoOf,
 } from '@nakednous/idiom';
 import { contextOf, viewOf } from './context.js';
 import { installCamera } from './camera.js';
@@ -61,23 +68,6 @@ const _p = [0, 0, 0];                 // a point
 const _c24 = new Float64Array(24);    // frustum corners
 const _cam = createCamera();          // a track's evaluated state
 const _rigCam = createCamera({ fov: null, halfHeight: 90, near: 0.1, far: 960 });
-
-/** The gizmo names the pipe caches, one buffer each per context. */
-const _keyed = (ctx, name, opts) => {
-  let g = ctx.gizmos[name];
-  if (!g) {
-    g = { arrays: createArrays(64, opts), buffer: null, capacity: 0, wide: null };
-    ctx.gizmos[name] = g;
-  }
-  return g;
-};
-
-const _arraysOf = (g) => {
-  const a = { aPosition: g.arrays.position };
-  if (g.arrays.color) a.aColor = g.arrays.color;
-  if (g.arrays.texcoord) a.aTexCoord = g.arrays.texcoord;
-  return a;
-};
 
 /**
  * Run a generator into a gizmo's cached arrays, growing them when the count
@@ -114,8 +104,22 @@ export function expand(gl, g) {
  * the backend's own. `canvasViewport` is screen space, in logical pixels, and is
  * the HUD's; a wide line measured against it comes out `dpr` times its width.
  */
-function _drawLines(gl, ctx, g, M, color, depth, width) {
-  return drawLinesOf(ctx, g, { M, color, depth, width, dpr: canvasScale(gl) });
+function _drawLines(gl, ctx, g, M, color, depth, width, identify) {
+  return drawLinesOf(ctx, g, { M, color, depth, width, dpr: canvasScale(gl), identify });
+}
+
+/**
+ * The sink the pipe hands a labelled item to: the host's label layer, a frame
+ * label a re-set, the class this bridge's own. One sink a context, so a rig
+ * drawn every frame allocates nothing.
+ * @ignore
+ */
+function _sinkOf(ctx) {
+  const host = ctx.host;
+  if (!host || !host.labels) return null;
+  return ctx.labelSink || (ctx.labelSink = (id, text, x, y, z) => {
+    host.labels.set(id, text, x, y, z, { frame: true, class: 'helm-rig' });
+  });
 }
 
 /** Draw a filled gizmo's triangles through the backend's flat program. */
@@ -152,7 +156,7 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
  */
 export function axes(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
-  const g = _keyed(ctx, 'axes', { color: true });
+  const g = gizmoOf(ctx, 'axes', { color: true });
   fill(gl, g, (a) => axesLines(a, o));
   _drawLines(gl, ctx, g, o.M, null, o.depth, o.width);
 }
@@ -179,7 +183,7 @@ export function axes(gl, opts) {
  */
 export function grid(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
-  const g = _keyed(ctx, 'grid');
+  const g = gizmoOf(ctx, 'grid');
   fill(gl, g, (a) => gridLines(a, o));
   _drawLines(gl, ctx, g, o.M, o.color, o.depth, o.width);
 }
@@ -207,7 +211,7 @@ export function grid(gl, opts) {
  */
 export function hermite(gl, p0, t0, p1, t1, opts) {
   const ctx = contextOf(gl), o = opts || {};
-  const g = _keyed(ctx, 'hermite');
+  const g = gizmoOf(ctx, 'hermite');
   fill(gl, g, (a) => hermiteLines(a, p0, t0, p1, t1, o));
   _drawLines(gl, ctx, g, o.M, o.color, o.depth, o.width);
 }
@@ -250,7 +254,7 @@ export function hermite(gl, p0, t0, p1, t1, opts) {
  */
 export function pane(gl, p0, p1, p2, p3, opts) {
   const ctx = contextOf(gl), o = opts || {};
-  const g = _keyed(ctx, 'pane', { texcoord: true });
+  const g = gizmoOf(ctx, 'pane', { texcoord: true });
   fill(gl, g, (a) => paneTris(a, p0, p1, p2, p3, o));
   _drawTris(gl, ctx, g, o.M, o.color, o.texture || null, o.depth);
 }
@@ -307,7 +311,7 @@ export function viewFrustum(gl, opts) {
       if ((bits & NEAR) && o.nearTexture) pane(gl, _corner(_q0, 3), _corner(_q1, 2), _corner(_q2, 1), _corner(_q3, 0), { texture: o.nearTexture, depth: o.depth });
     }
   }
-  const g = _keyed(ctx, 'frustum');
+  const g = gizmoOf(ctx, 'frustum');
   fill(gl, g, (a) => frustumLines(a, cam, { aspect, ndcZMin: ctx.ndcZMin, bits, color: o.color }));
   _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (o.viewer === null) return;
@@ -325,7 +329,7 @@ function _poseMarker(gl, kf, i, track, o) {
 /** The default marker of a camera track: a triad the size of near, the apex lines and the near rectangle, at the keyframe's real lens. */
 function _cameraMarker(gl, kf, i, track, o) {
   const ctx = contextOf(gl);
-  const g = _keyed(ctx, 'marker');
+  const g = gizmoOf(ctx, 'marker');
   fill(gl, g, (a) => frustumLines(a, kf, { aspect: _aspect(gl, o), ndcZMin: ctx.ndcZMin, bits: NEAR | APEX, color: o.color }));
   _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   axes(gl, { M: track.mat4Eye(_E, i, 0), size: typeof kf.near === 'number' ? kf.near : 0.1, bits: X | Y | _Z, depth: o.depth });
@@ -364,7 +368,7 @@ export function trackPath(gl, track, opts) {
   const ctx = contextOf(gl), o = opts || {};
   if (!track || !Array.isArray(track.keyframes)) return;
   const bits = o.bits ?? PATH;
-  const g = _keyed(ctx, 'path');
+  const g = gizmoOf(ctx, 'path');
   fill(gl, g, (a) => pathLines(a, track, { bits: bits & ~HANDLES, samples: o.samples, target: o.target, tangentScale: o.tangentScale, centerSize: o.centerSize, color: o.color }));
   _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   const isCamera = typeof track.sampleEye === 'function';
@@ -390,7 +394,8 @@ let _rigSeq = 0;
  * resolved `from`; { x, y, size, tilt } renders it into a small cached
  * target through its own orthographic camera and composites it at (x, y)
  * in HUD pixels (y down) with `tint` — the corner readout of a camera fly.
- * With `identify`, each channel's lane goes to the host's labels.
+ * With `identify`, each channel's lane goes to the host's label layer: the
+ * layer resolves the anchors and their ids, and this bridge wires the sink.
  * @param {WebGL2RenderingContext} gl
  * @param {object} helm  A PoseHelm.
  * @param {{ M?:ArrayLike<number>, size?:number, bits?:number, identify?:boolean, depth?:boolean,
@@ -435,17 +440,19 @@ export function helmRig(gl, helm, opts) {
     _R[12] = _R[13] = _R[14] = 0; _R[15] = 1;
     M = M ? mat4Mul(_M, M, _R) : _R;
   }
-  const g = _keyed(ctx, 'helmRig', { color: true, labels: true });
+  const g = _rigCache(ctx, helm);
   fill(gl, g, (a) => helmRigLines(a, helm, { size: o.size, bits: o.bits, identify: o.identify === true }));
-  _drawLines(gl, ctx, g, M, null, o.depth, o.width);
-  const host = ctx.host;
-  if (o.identify === true && host && g.arrays.labels.length) {
-    const id = helm._rigId || (helm._rigId = ++_rigSeq);
-    g.arrays.labels.forEach((l, i) => {
-      if (M) mat4MulPoint(_p, M, l.x, l.y, l.z); else { _p[0] = l.x; _p[1] = l.y; _p[2] = l.z; }
-      host.labels.set('helmRig' + id + ':' + i, l.text, _p[0], _p[1], _p[2], { frame: true, class: 'helm-rig' });
-    });
-  }
+  _drawLines(gl, ctx, g, M, null, o.depth, o.width, o.identify === true ? _sinkOf(ctx) : null);
+}
+
+/**
+ * The rig's cache: one a helm, so the lanes' label ids — the cache's name and
+ * the label's index — belong to the helm that drew them.
+ * @ignore
+ */
+function _rigCache(ctx, helm) {
+  const id = helm._rigId || (helm._rigId = ++_rigSeq);
+  return gizmoOf(ctx, 'helmRig' + id, { color: true, labels: true });
 }
 
 function _rigHud(gl, ctx, helm, o) {
@@ -477,7 +484,7 @@ function _rigHud(gl, ctx, helm, o) {
   gl.enable(gl.DEPTH_TEST);
   cameraView(_E, _rigCam);
   installCamera(ctx, _E, cameraProj(_P, _rigCam, 1, ctx.ndcZMin));
-  const g = _keyed(ctx, 'helmRig', { color: true, labels: true });
+  const g = _rigCache(ctx, helm);
   fill(gl, g, (a) => helmRigLines(a, helm, { size: 100, bits: o.bits }));
   _drawLines(gl, ctx, g, null, null, true, o.width);
   installCamera(ctx, _V, _P2);
@@ -546,7 +553,7 @@ export function handleLocus(gl, h, opts) {
   if (!h || !h._constraint) return;
   const bits = o.bits ?? (HANDLE | AIM | LOCUS);
   h.value(_p, { report: POINT });
-  const g = _keyed(ctx, 'locus');
+  const g = gizmoOf(ctx, 'locus');
   fill(gl, g, (a) => locusLines(a, h._constraint, { bits: bits & (AIM | LOCUS | RING), mat4View: ctx.V, point: _p, color: o.color }));
   _drawLines(gl, ctx, g, null, o.color, o.depth, o.width);
   if (bits & HANDLE) {
@@ -555,9 +562,87 @@ export function handleLocus(gl, h, opts) {
     const r = (o.size ?? h._grabPx ?? 12) * pixelRatio(ctx.P, height, eyeZ, ctx.ndcZMin);
     _du[0] = V[0]; _du[1] = V[4]; _du[2] = V[8];      // the camera's right
     _dv[0] = V[1]; _dv[1] = V[5]; _dv[2] = V[9];      // the camera's up
-    const d = _keyed(ctx, 'dot');
+    const d = gizmoOf(ctx, 'dot');
     fill(gl, d, (a) => _disc(a, _p[0], _p[1], _p[2], r, _du, _dv));
     _drawTris(gl, ctx, d, null, o.dotColor || o.color, null, o.depth);
+  }
+}
+
+// ── The caller's own lines ──────────────────────────────────────────────
+
+/**
+ * Write `n` segments of ten numbers into a cache's arrays, and answer the
+ * vertices the batch needs — the generator contract `fill` takes.
+ * @ignore
+ */
+function _writeSegments(a, segments, n) {
+  const pos = a.position.data, col = a.color.data;
+  const m = Math.min(n, (pos.length / 6) | 0);          // a segment is two vertices
+  for (let i = 0; i < m; i++) {
+    const s = 10 * i, p = 6 * i, c = 8 * i;
+    pos[p] = segments[s]; pos[p + 1] = segments[s + 1]; pos[p + 2] = segments[s + 2];
+    pos[p + 3] = segments[s + 3]; pos[p + 4] = segments[s + 4]; pos[p + 5] = segments[s + 5];
+    col[c] = col[c + 4] = segments[s + 6];
+    col[c + 1] = col[c + 5] = segments[s + 7];
+    col[c + 2] = col[c + 6] = segments[s + 8];
+    col[c + 3] = col[c + 7] = segments[s + 9];
+  }
+  a.count = 2 * m;
+  return 2 * n;
+}
+
+/**
+ * A batch of coloured segments — the caller's own geometry, rebuilt a frame —
+ * drawn in one call under `opts.M`: ten numbers a segment, its two endpoints
+ * and its colour.
+ * @details The batch goes into a cache of the pipe's, one a context: the
+ * geometry is rebuilt when the batch outgrows it and written in place
+ * otherwise, so a figure that rewrites one array a frame allocates nothing.
+ * `width` counts logical pixels as every gizmo's does — the bridge's density
+ * carries it to device pixels, and above one each segment expands into a quad,
+ * so a batch states its width in page pixels and never in device ones. The
+ * colour's alpha blends over what is drawn already, and the blend state and the
+ * depth test the call found are restored after it.
+ * @param {WebGL2RenderingContext} gl
+ * @param {ArrayLike<number>} segments  The batch: `x0 y0 z0 x1 y1 z1 r g b a` a segment.
+ * @param {{ count?:number, M?:ArrayLike<number>, width?:number, depth?:boolean }} [opts]
+ *        `count` segments are drawn; the array's own length is the default.
+ * @example
+ * <caption>A ring rebuilt every frame into the same array, drawn in one call a frame — at a width of three logical pixels, so each segment is a quad.</caption>
+ * const { createCanvas, setCamera, lines, tree } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const cam = tree.createCamera({ eye: [164, 186, 243] })
+ * const N = 64
+ * const batch = new Float32Array(10 * N)
+ *
+ * function frame() {
+ *   for (let i = 0; i < N; i++) {
+ *     const a = 2 * Math.PI * i / N, b = 2 * Math.PI * (i + 1) / N, o = 10 * i
+ *     batch[o] = 100 * Math.cos(a); batch[o + 1] = 100 * Math.sin(a); batch[o + 2] = 0
+ *     batch[o + 3] = 100 * Math.cos(b); batch[o + 4] = 100 * Math.sin(b); batch[o + 5] = 0
+ *     batch[o + 6] = 1; batch[o + 7] = 0.82; batch[o + 8] = 0.4; batch[o + 9] = 1
+ *   }
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   setCamera(gl, cam)
+ *   lines(gl, batch, { width: 3 })
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+export function lines(gl, segments, opts) {
+  const ctx = contextOf(gl), o = opts || {};
+  if (!segments) return;
+  const n = o.count === undefined ? ((segments.length / 10) | 0) : Math.max(0, o.count | 0);
+  const g = gizmoOf(ctx, 'lines', { color: true });
+  fill(gl, g, (a) => _writeSegments(a, segments, n));
+  const prior = ctx.backend.setState(ctx, { blend: NORMAL });
+  try {
+    _drawLines(gl, ctx, g, o.M, null, o.depth, o.width);
+  } finally {
+    ctx.backend.setState(ctx, prior);
   }
 }
 
@@ -637,7 +722,7 @@ function _inHud(gl, ctx, draw) {
  */
 export function cross(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
-  const g = _keyed(ctx, 'cross');
+  const g = gizmoOf(ctx, 'cross');
   fill(gl, g, (a) => crossLines(a, o));
   _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false, o.width));
 }
@@ -660,7 +745,7 @@ export function cross(gl, opts) {
  */
 export function bullsEye(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
-  const g = _keyed(ctx, 'bullsEye');
+  const g = gizmoOf(ctx, 'bullsEye');
   fill(gl, g, (a) => bullsEyeLines(a, o));
   _inHud(gl, ctx, () => _drawLines(gl, ctx, g, null, o.color, false, o.width));
 }

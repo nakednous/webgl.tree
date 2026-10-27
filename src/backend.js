@@ -891,6 +891,8 @@ export function createBackend(gl) {
      * that was bound is bound again after. The uniforms go through `setUniforms`,
      * the one upload path, so the record it keeps of what each program holds stays
      * true: a pane writes the flat program's model matrix, which `image` writes too.
+     * A spec that carries `labels` hands each of them to its `identify` sink —
+     * resolved by the layer, which states the anchors and the ids.
      */
     drawGizmo(ctx, kind, geometry, spec) {
       const s = spec || {};
@@ -923,6 +925,12 @@ export function createBackend(gl) {
         backend.setUniforms(ctx, prog, _lineBag);
       }
       const answer = backend.draw(ctx, prog, geometry, { mode: pane || wide ? gl.TRIANGLES : gl.LINES, count: s.count });
+      if (s.identify && s.labels) {
+        for (let i = 0; i < s.labels.length; i++) {
+          const l = s.labels[i];
+          s.identify(l.id, l.text, l.x, l.y, l.z);
+        }
+      }
       backend.setState(ctx, prior);
       if (prev) gl.useProgram(prev.program);
       ctx.prog = prev;

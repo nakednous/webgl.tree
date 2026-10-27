@@ -26,8 +26,8 @@
  * and never passes through upload. So image, pane, filter and the pick pass
  * carry no flip switch, and a pane's default uvs read a texture upright.
  *
- * The three verbs are the layer's (`idiom`'s `texture`, `upload` and `cubemap`,
- * §7 #123): it states the cube's face order and records each texture's size for
+ * The three verbs are the layer's (`idiom`'s `texture`, `upload` and `cubemap`):
+ * it states the cube's face order and records each texture's size for
  * `uTexelSize`; the creation is the backend's, and the orientation rule above is
  * the backend's own statement.
  *

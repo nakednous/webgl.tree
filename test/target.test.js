@@ -6,10 +6,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SCREEN } from '../src/index.js';
+import { contextOf } from '../src/context.js';
 import { targetSpecs } from '../src/target.js';
 import { createGL } from './gl.js';
 
 const gl = createGL();
+
+test('a target\'s creation leaves no texture bound, and a clear restarts the depth too', () => {
+  // A target's own texture, left on unit 0 by its creation, makes every draw into
+  // that target a feedback loop — GL refuses the draw. And a clear that leaves the
+  // depth as it was makes a target reusable only once: the 1 x 1 pick target is
+  // drawn into under a depth test, so a second pick read the first one's depth.
+  const gl = createGL();
+  const ctx = contextOf(gl);
+  ctx.backend.createTarget(ctx, { width: 8, height: 8 });
+  assert.equal(gl.boundTexture, null, 'the creation unbinds its own texture');
+  ctx.backend.clear(ctx, [0, 0, 0, 1]);
+  const clear = gl.log.filter((e) => e[0] === 'clear').pop();
+  assert.equal(clear[1], gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, 'colour and depth');
+});
 
 test('targetSpecs: the default is one RGBA8 texture and a depth-stencil renderbuffer', () => {
   const s = targetSpecs(gl);

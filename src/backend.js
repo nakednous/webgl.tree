@@ -450,6 +450,12 @@ export function createBackend(gl) {
         for (const f of ms ? [fbo, ms] : [fbo]) { gl.bindFramebuffer(gl.FRAMEBUFFER, f.framebuffer); gl.drawBuffers(all); }
       }
       gl.bindFramebuffer(gl.FRAMEBUFFER, prev);
+      // a target's creation leaves its own textures unbound: the last one twgl made
+      // is still on unit 0, and a draw into this target would then sample a texture
+      // attached to it — GL calls that a feedback loop and refuses the draw. It is
+      // the pick's 1 x 1 target, made once while a sampler is bound, that shows it
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, null);
 
       // the sampleable side; for a multisampled target, draws go to ms and resolve() fills these textures
       const resolved = ms ? { framebuffer: fbo.framebuffer, attachments: fbo.attachments, width, height } : fbo;
@@ -541,7 +547,11 @@ export function createBackend(gl) {
       const prior = gl.getParameter(gl.COLOR_CLEAR_VALUE);
       const c = color || [0, 0, 0, 1];
       gl.clearColor(c[0], c[1], c[2], c[3]);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      // colour and depth, as a pass's loadOp clears both on the twin: a clear
+      // restarts the attachment, and a target whose depth is left as it was holds
+      // whatever the last draw wrote — the 1 x 1 pick target is drawn into under a
+      // depth test, so a pick is right only on its first use otherwise
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       if (prior) gl.clearColor(prior[0], prior[1], prior[2], prior[3]);
     },
 

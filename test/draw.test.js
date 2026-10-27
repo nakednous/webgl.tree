@@ -21,6 +21,44 @@ function fakeProgram(names) {
   return { program: {}, uniformSetters: setters, got };
 }
 
+test('a draw releases the vertex array it bound, so no later upload lands in it', () => {
+  // A vertex array records the element buffer bound while it is current. A draw
+  // leaves its array bound, so a geometry made afterwards would write its own
+  // indices into the previous draw's array — the next draw through it then reads
+  // another geometry's indices, and GL refuses it (Insufficient buffer size).
+  const gl = createGL();
+  const ctx = contextOf(gl);
+  const prog = { program: {} };
+  const indexed = (offset) => buffer(gl, {
+    position: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0].map((v, i) => v + offset)),
+    indices: new Uint32Array([0, 1, 2]),
+  });
+
+  // every buffer a later call binds, with the vertex array bound at that moment
+  const binds = [];
+  const bindBuffer = gl.bindBuffer;
+  gl.bindBuffer = (target, buffer) => {
+    binds.push([target, gl.boundVertexArray ? gl.boundVertexArray.id : null]);
+    return bindBuffer(target, buffer);
+  };
+  const bindVertexArray = gl.bindVertexArray;
+  gl.bindVertexArray = (vao) => { gl.vrows = (gl.vrows || []); gl.vrows.push(vao ? vao.id : null); return bindVertexArray(vao); };
+
+  const first = indexed(0);
+  ctx.backend.draw(ctx, prog, first);
+  assert.ok(gl.boundVertexArray, 'the draw leaves its array bound');
+  binds.length = 0;
+
+  indexed(1);                                        // a second geometry, indices and all
+  assert.deepEqual(binds.filter(([target]) => target === gl.ELEMENT_ARRAY_BUFFER).map(([, vao]) => vao), [null],
+    'the element buffer is bound with no vertex array current');
+
+  // and the first draw still goes through its own array
+  binds.length = 0;
+  ctx.backend.draw(ctx, prog, first);
+  assert.equal(gl.boundVertexArray.id, 1, 'its own array, not the one made after it');
+});
+
 test('declaredTransforms: reads the six names off the setters, nothing else', () => {
   assert.deepEqual(declaredTransforms({}), { model: false, view: false, mv: false, proj: false, mvp: false, normal: false, any: false });
   const d = declaredTransforms({ uModelViewMatrix: () => {}, uProjectionMatrix: () => {}, uLightMatrix: () => {} });

@@ -317,13 +317,32 @@ export function invalidateUniforms(prog) {
 
 const _arrays = new WeakMap();
 
+// Whose vertex array is bound. A draw leaves its array bound, and a vertex array
+// records the element buffer bound while it is current — so an upload that binds a
+// buffer then would land in the array of a geometry that has nothing to do with it,
+// and the next draw through it reads another geometry's indices. Every route that
+// binds a buffer releases it first; a draw states it.
+let _vao = null;
+
+/** Release the vertex array a draw left bound, if any. @ignore */
+function _releaseVAO(gl) {
+  if (_vao) {
+    gl.bindVertexArray(null);
+    _vao = null;
+  }
+}
+
 /** The vertex array a program and a geometry share, made on first use. @ignore */
 function _arrayFor(gl, prog, geometry) {
   if (!geometry || !geometry.attribs || geometry.vertexArrayObject) return null;
   let byProgram = _arrays.get(geometry);
   if (!byProgram) { byProgram = new Map(); _arrays.set(geometry, byProgram); }
   let va = byProgram.get(prog);
-  if (!va) { va = createVertexArrayInfo(gl, [prog], geometry); byProgram.set(prog, va); }
+  if (!va) {
+    _releaseVAO(gl);                       // twgl binds the new array, then none
+    va = createVertexArrayInfo(gl, [prog], geometry);
+    byProgram.set(prog, va);
+  }
   return va;
 }
 
@@ -583,7 +602,9 @@ export function createBackend(gl) {
     draw(ctx, prog, geometry, opts) {
       if (!prog || !prog.program) return null;
       const va = _arrayFor(gl, prog, geometry);
+      if (!va) _releaseVAO(gl);            // a geometry's pointers are the default array's
       bindGeometry(gl, prog, va || geometry);
+      _vao = va ? va.vertexArrayObject : null;
       const o = opts || {};
       drawBufferInfo(gl, va || geometry, o.mode, o.count, o.offset);
       return geometry;
@@ -593,7 +614,9 @@ export function createBackend(gl) {
     drawInstanced(ctx, prog, geometry, count, opts) {
       if (!prog || !prog.program) return null;
       const va = _arrayFor(gl, prog, geometry);
+      if (!va) _releaseVAO(gl);
       bindGeometry(gl, prog, va || geometry);
+      _vao = va ? va.vertexArrayObject : null;
       const o = opts || {};
       drawBufferInfo(gl, va || geometry, o.mode, o.count, o.offset, count);
       return geometry;
@@ -602,11 +625,13 @@ export function createBackend(gl) {
     // ── buffers ──────────────────────────────────────────────────────────
     /** A geometry from the arrays shape, under the names the layer resolved. */
     createBuffer(ctx, arrays, opts) {
+      _releaseVAO(gl);                     // the upload would be recorded into the array a draw left bound
       return createBufferInfoFromArrays(gl, arrays);
     },
 
     /** Refresh a geometry from its arrays shape; a changed attribute set is rebuilt. */
     updateBuffer(ctx, geometry, arrays, opts) {
+      _releaseVAO(gl);
       const keys = Object.keys(arrays);
       const same = !geometry.vertexArrayObject && keys.every((k) => (k === 'indices' ? !!geometry.indices : !!(geometry.attribs && geometry.attribs[k])));
       if (!same) {
@@ -625,6 +650,7 @@ export function createBackend(gl) {
      * skipped, and a count that outgrew the buffer is `updateBuffer`'s business.
      */
     writeBuffer(ctx, geometry, arrays) {
+      _releaseVAO(gl);
       for (const key in arrays) {
         const a = arrays[key];
         const data = a && typeof a === 'object' && a.data !== undefined ? a.data : a;

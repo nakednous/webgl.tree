@@ -40,7 +40,10 @@ import {
   X, Y, _Z, _X, _Y, Z, NEAR, FAR, BODY, APEX, PATH, HANDLES, HANDLE, AIM, LOCUS, RING, POINT, WEBGL,
 } from '@nakednous/tree';
 import { helmBasis } from '@nakednous/host';
-import { buffer as bufferOf, writeBuffer as writeBufferOf } from '@nakednous/idiom';
+import {
+  beginHUD as beginHUDOf, drawLines as drawLinesOf, drawPane as drawPaneOf,
+  endHUD as endHUDOf, expand as expandOf, fill as fillOf,
+} from '@nakednous/idiom';
 import { contextOf, viewOf } from './context.js';
 import { installCamera } from './camera.js';
 import { renderTarget } from './target.js';
@@ -86,17 +89,7 @@ const _arraysOf = (g) => {
  * @ignore
  */
 export function fill(gl, g, gen) {
-  const ctx = contextOf(gl);
-  let n = gen(g.arrays);
-  if (n > capacityOf(g.arrays)) { growArrays(g.arrays, n); gen(g.arrays); }
-  if (!g.buffer || g.capacity !== capacityOf(g.arrays)) {
-    if (g.buffer) for (const a of Object.values(g.buffer.attribs)) gl.deleteBuffer(a.buffer);
-    g.buffer = bufferOf(ctx, _arraysOf(g));         // the layer's geometry, over the backend's buffers
-    g.capacity = capacityOf(g.arrays);
-  } else if (g.arrays.count > 0) {
-    writeBufferOf(ctx, g.buffer, _arraysOf(g));     // in place: the arrays a frame refilled
-  }
-  return g.arrays.count;
+  return fillOf(contextOf(gl), g, gen);
 }
 
 /**
@@ -110,108 +103,18 @@ export function fill(gl, g, gen) {
  * @ignore
  */
 export function expand(gl, g) {
-  const ctx = contextOf(gl);
-  const segs = (g.arrays.count / 2) | 0;
-  let w = g.wide;
-  if (!w || w.capacity < segs) {
-    const cap = Math.max(segs, w ? w.capacity * 2 : 16);
-    w = {
-      A: new Float32Array(12 * cap), B: new Float32Array(12 * cap), T: new Float32Array(4 * cap), S: new Float32Array(4 * cap),
-      color: g.arrays.color ? new Float32Array(16 * cap) : null, indices: new Uint32Array(6 * cap),
-      buffer: null, capacity: cap, segments: 0, specs: null, moves: null,
-    };
-    for (let i = 0; i < cap; i++) {
-      const v = 4 * i;
-      w.T[v] = 0; w.T[v + 1] = 0; w.T[v + 2] = 1; w.T[v + 3] = 1;
-      w.S[v] = -1; w.S[v + 1] = 1; w.S[v + 2] = -1; w.S[v + 3] = 1;
-      const k = 6 * i;
-      w.indices[k] = v; w.indices[k + 1] = v + 1; w.indices[k + 2] = v + 2;
-      w.indices[k + 3] = v + 1; w.indices[k + 4] = v + 3; w.indices[k + 5] = v + 2;
-    }
-    if (g.wide && g.wide.buffer) for (const a of Object.values(g.wide.buffer.attribs)) gl.deleteBuffer(a.buffer);
-    g.wide = w;
-  }
-  const p = g.arrays.position.data, c = g.arrays.color ? g.arrays.color.data : null;
-  for (let i = 0; i < segs; i++) {
-    const a = 6 * i, b = a + 3;
-    for (let v = 0; v < 4; v++) {
-      const o = 12 * i + 3 * v;
-      w.A[o] = p[a]; w.A[o + 1] = p[a + 1]; w.A[o + 2] = p[a + 2];
-      w.B[o] = p[b]; w.B[o + 1] = p[b + 1]; w.B[o + 2] = p[b + 2];
-      if (c) {
-        const src = v < 2 ? 4 * (2 * i) : 4 * (2 * i + 1), dst = 16 * i + 4 * v;
-        w.color[dst] = c[src]; w.color[dst + 1] = c[src + 1]; w.color[dst + 2] = c[src + 2]; w.color[dst + 3] = c[src + 3];
-      }
-    }
-  }
-  w.segments = segs;
-  // one spec set per cache, built with it: a warm frame re-uploads and allocates nothing
-  if (!w.specs) {
-    w.specs = {
-      aA: { numComponents: 3, data: w.A }, aB: { numComponents: 3, data: w.B },
-      aT: { numComponents: 1, data: w.T }, aSide: { numComponents: 1, data: w.S },
-      indices: { numComponents: 3, data: w.indices },
-    };
-    if (w.color) w.specs.aColor = { numComponents: 4, data: w.color };
-    w.moves = { aA: w.specs.aA, aB: w.specs.aB };
-    if (w.color) w.moves.aColor = w.specs.aColor;
-  }
-  if (!w.buffer) w.buffer = bufferOf(ctx, w.specs);
-  else if (segs > 0) writeBufferOf(ctx, w.buffer, w.moves);
-  return w;
+  expandOf(contextOf(gl), g);
+  return g.wide;                     // the cache the layer filled, as this verb has always answered
 }
 
-/** Draw a filled gizmo's lines under M: raw gl.LINES, or the expanded quads once the width in device pixels exceeds 1; uColor unless the arrays carry colour. */
+/** Draw a filled gizmo's lines under M — the layer's policy, this bridge's density and viewport. */
 function _drawLines(gl, ctx, g, M, color, depth, width) {
-  if (!g.arrays.count) return;
-  const px = (typeof width === 'number' ? width : 1) * canvasScale(gl);   // logical pixels → device pixels
-  const wide = px > 1;
-  const prog = wide ? ctx.backend.wideLineProgram(ctx) : ctx.backend.lineProgram(ctx);
-  if (!prog) return;
-  const prev = ctx.prog;
-  const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
-  if (depth === false && wasDepth) gl.disable(gl.DEPTH_TEST);
-  gl.useProgram(prog.program);
-  ctx.prog = prog;
-  const s = prog.uniformSetters;
-  s.uPV(ctx.PV); s.uModel(M || IDENTITY); s.uColor(color || WHITE);
-  s.uUseColor(!!g.arrays.color);
-  if (wide) {
-    const w = expand(gl, g);
-    const vp = ctx.backend.setViewport(ctx);
-    _res2[0] = vp[2]; _res2[1] = vp[3];
-    s.uViewport(_res2); s.uWidth(px);
-    ctx.backend.draw(ctx, prog, w.buffer, { mode: gl.TRIANGLES, count: 6 * w.segments });
-  } else {
-    ctx.backend.draw(ctx, prog, g.buffer, { mode: gl.LINES, count: g.arrays.count });
-  }
-  if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
-  if (prev) gl.useProgram(prev.program);
-  ctx.prog = prev;
+  return drawLinesOf(ctx, g, { M, color, depth, width, dpr: canvasScale(gl), vp: canvasViewport(gl) });
 }
-const _res2 = [0, 0];
 
-/** Draw a filled gizmo's triangles through the flat program under M. */
+/** Draw a filled gizmo's triangles through the backend's flat program. */
 function _drawTris(gl, ctx, g, M, color, texture, depth) {
-  if (!g.arrays.count) return;
-  const prog = ctx.backend.imageProgram(ctx);
-  if (!prog) return;
-  const prev = ctx.prog;
-  const wasDepth = gl.isEnabled(gl.DEPTH_TEST);
-  if (depth === false && wasDepth) gl.disable(gl.DEPTH_TEST);
-  gl.useProgram(prog.program);
-  ctx.prog = prog;
-  const s = prog.uniformSetters;
-  s.uModelViewProjectionMatrix(M ? mat4Mul(_M, ctx.PV, M) : ctx.PV);
-  s.uColor(color || WHITE);
-  s.uUseTexture(!!texture);
-  if (texture) s.uTexture(texture);
-  else { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null); }   // never sample the current target by accident
-
-  ctx.backend.draw(ctx, prog, g.buffer, { mode: gl.TRIANGLES, count: g.arrays.count });
-  if (depth === false && wasDepth) gl.enable(gl.DEPTH_TEST);
-  if (prev) gl.useProgram(prev.program);
-  ctx.prog = prev;
+  return drawPaneOf(ctx, g, { M, color, texture, depth });
 }
 
 // ── Scene gizmos ─────────────────────────────────────────────────────────
@@ -677,12 +580,7 @@ export function handleLocus(gl, h, opts) {
  * endHUD(gl)
  */
 export function beginHUD(gl) {
-  const ctx = contextOf(gl);
-  if (ctx.hud) return;
-  const vp = canvasViewport(gl);
-  ctx.hud = { V: new Float32Array(ctx.V), P: new Float32Array(ctx.P), depth: gl.isEnabled(gl.DEPTH_TEST) };
-  if (ctx.hud.depth) gl.disable(gl.DEPTH_TEST);
-  installCamera(ctx, IDENTITY, mat4Ortho(_P, vp[0], vp[0] + vp[2], vp[1], vp[1] + vp[3], -1, 1, ctx.ndcZMin));
+  return beginHUDOf(contextOf(gl), { vp: canvasViewport(gl) });
 }
 
 /**
@@ -704,19 +602,14 @@ export function beginHUD(gl) {
  * axes(gl, { size: 100 })
  */
 export function endHUD(gl) {
-  const ctx = contextOf(gl);
-  if (!ctx.hud) return;
-  installCamera(ctx, ctx.hud.V, ctx.hud.P);
-  if (ctx.hud.depth) gl.enable(gl.DEPTH_TEST);
-  ctx.hud = null;
+  return endHUDOf(contextOf(gl));
 }
 
 /** Run a HUD gizmo inside beginHUD / endHUD unless HUD mode is already on. */
 function _inHud(gl, ctx, draw) {
   const wrap = !ctx.hud;
-  if (wrap) beginHUD(gl);
-  draw();
-  if (wrap) endHUD(gl);
+  if (wrap) beginHUDOf(ctx, { vp: canvasViewport(gl) });
+  try { draw(); } finally { if (wrap) endHUDOf(ctx); }
 }
 
 /**

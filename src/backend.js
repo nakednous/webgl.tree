@@ -249,6 +249,13 @@ function _optsFromSpec(spec) {
 // a figure that writes one that way must go through `bind` or re-establish it —
 // `bind` and this member are where the reference documents a value going in.
 
+// The gizmos' draw: the flat program's product, the line programs' colour, and
+// the wide line's viewport — module scratch, so a draw allocates nothing.
+const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+const WHITE = [1, 1, 1, 1];
+const _MVP = new Float32Array(16);
+const _res2 = [0, 0];
+
 const _held = new WeakMap();
 
 const _isNumeric = (v) => typeof v === 'number'
@@ -821,6 +828,51 @@ export function createBackend(gl) {
       const size = _sizeOf(faces[0]);
       if (size) ctx.sizes.set(tex, size);          // a face's texel, for uTexelSize over a cube
       return tex;
+    },
+
+    // ── the gizmos' draws ────────────────────────────────────────────────
+    /**
+     * Draw a gizmo geometry — the layer's semantic spec translated into this
+     * API's uniforms, topology and state. `'line'` and `'wide'` run the line and
+     * wide-line programs over `uPV`/`uModel`/`uColor`/`uUseColor`, the wide one
+     * also `uViewport`/`uWidth`; `'pane'` runs the flat program over a textured or
+     * flat quad. The depth test is off for a spec that says so, and the program
+     * that was bound is bound again after.
+     */
+    drawGizmo(ctx, kind, geometry, spec) {
+      const s = spec || {};
+      const pane = kind === 'pane';
+      const wide = kind === 'wide';
+      const prog = pane ? backend.imageProgram(ctx) : (wide ? backend.wideLineProgram(ctx) : backend.lineProgram(ctx));
+      if (!prog || !geometry) return null;
+      const prev = ctx.prog;
+      const prior = backend.setState(ctx, s.depth === false ? { depth: false } : undefined);
+      gl.useProgram(prog.program);
+      ctx.prog = prog;
+      const set = prog.uniformSetters;
+      if (pane) {
+        set.uModelViewProjectionMatrix(s.M ? mat4Mul(_MVP, ctx.PV, s.M) : ctx.PV);
+        set.uColor(s.color || WHITE);
+        set.uUseTexture(!!s.texture);
+        if (s.texture) set.uTexture(s.texture);
+        else { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null); }   // never sample the bound target by accident
+      } else {
+        set.uPV(ctx.PV);
+        set.uModel(s.M || IDENTITY);
+        set.uColor(s.color || WHITE);
+        set.uUseColor(!!s.useColor);
+        if (wide) {
+          const vp = s.vp || backend.setViewport(ctx);
+          _res2[0] = vp[2]; _res2[1] = vp[3];
+          set.uViewport(_res2);
+          set.uWidth(s.width || 1);
+        }
+      }
+      const answer = backend.draw(ctx, prog, geometry, { mode: pane || wide ? gl.TRIANGLES : gl.LINES, count: s.count });
+      backend.setState(ctx, prior);
+      if (prev) gl.useProgram(prev.program);
+      ctx.prog = prev;
+      return answer;
     },
   };
 

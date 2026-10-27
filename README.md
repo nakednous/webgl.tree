@@ -85,7 +85,7 @@ the GPU API. Its WebGPU twin, `webgpu.tree`, realizes the same surface.
 dependency of the bridge: a panel writes its `u*` names through a target sink, and [`bind`][bind]
 reads them. Dependency direction is strict: `{ tree, host, idiom } ← webgl.tree`; nothing flows
 back. The layer supplies the composites and calls a backend; this package supplies that backend —
-`src/backend.js`, twgl's ceremony behind the layer's twenty-three members and four conventions — and
+`src/backend.js`, twgl's ceremony behind the layer's twenty-five members and four conventions — and
 the raw verbs a hero writes itself.
 
 **What it takes from twgl.** The ceremony, and nothing else:
@@ -172,7 +172,7 @@ twgl sets the viewport on bind and every bridge call reads it back.
 | label anchors | tree → bridge → host | [`helmRig`][helmRig]'s `identify` anchors go to `host.labels` as one-frame labels |
 | uniforms bag | [ui](https://github.com/nakednous/ui) → bridge | a panel's target writes `u*` names; [`bind(gl, prog, bag)`][bind] reads them |
 | camera state | tree ↔ host ↔ bridge | plain data: a track, a helm, the orbit write it; the bridge only reads it |
-| the layer | bridge → `@nakednous/idiom` | the backend's twenty-three members and four conventions; every composite verb takes the context record, never `gl` |
+| the layer | bridge → `@nakednous/idiom` | the backend's twenty-five members and four conventions; every composite verb takes the context record, never `gl` |
 | id program | application → bridge | [`pick`][pick]'s `opts.program` for a displaced surface; `paint` sets its `uColor` |
 
 ---

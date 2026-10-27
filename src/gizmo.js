@@ -107,9 +107,15 @@ export function expand(gl, g) {
   return g.wide;                     // the cache the layer filled, as this verb has always answered
 }
 
-/** Draw a filled gizmo's lines under M — the layer's policy, this bridge's density and viewport. */
+/**
+ * Draw a filled gizmo's lines under M — the layer's policy, this bridge's density.
+ * @details The width is stated in logical pixels and travels as device pixels, so
+ * the viewport the quads are expanded against is the pass's, in device pixels —
+ * the backend's own. `canvasViewport` is screen space, in logical pixels, and is
+ * the HUD's; a wide line measured against it comes out `dpr` times its width.
+ */
 function _drawLines(gl, ctx, g, M, color, depth, width) {
-  return drawLinesOf(ctx, g, { M, color, depth, width, dpr: canvasScale(gl), vp: canvasViewport(gl) });
+  return drawLinesOf(ctx, g, { M, color, depth, width, dpr: canvasScale(gl) });
 }
 
 /** Draw a filled gizmo's triangles through the backend's flat program. */

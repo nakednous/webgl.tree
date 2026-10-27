@@ -21,6 +21,21 @@ function fakeProgram(names) {
   return { program: {}, uniformSetters: setters, got };
 }
 
+test('the uniform record forgets a name that travels twgl\'s own path', () => {
+  // The record skips a numeric value that did not change. A boolean or a texture
+  // goes twgl's way, which the record cannot see — so a later 0 would be skipped
+  // over a 1 still on the program: the flat program's uUseTexture travels exactly
+  // so, written true by image and 0 by a pane's draw.
+  const gl = createGL();
+  const ctx = contextOf(gl);
+  const uploads = [];
+  const prog = { program: {}, uniformSetters: { uUseTexture: (v) => uploads.push(v) } };
+  ctx.backend.setUniforms(ctx, prog, { uUseTexture: 0 });
+  ctx.backend.setUniforms(ctx, prog, { uUseTexture: true });
+  ctx.backend.setUniforms(ctx, prog, { uUseTexture: 0 });
+  assert.deepEqual(uploads, [0, true, 0], 'the third write goes through');
+});
+
 test('a draw releases the vertex array it bound, so no later upload lands in it', () => {
   // A vertex array records the element buffer bound while it is current. A draw
   // leaves its array bound, so a geometry made afterwards would write its own

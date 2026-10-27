@@ -359,6 +359,13 @@ export function forgetVertexArrays(gl, geometry) {
   _arrays.delete(geometry);
 }
 
+// The bags a gizmo's draw fills: one a kind, written whole each call so a name
+// the other kind carries is never left behind. They go through `setUniforms`, the
+// reference's one upload path, so the record it keeps stays true — a gizmo writes
+// the same uniform a pass or `image` does (a pane's program is the flat one).
+const _paneBag = { uModelViewProjectionMatrix: null, uColor: null, uUseTexture: 0, uTexture: null };
+const _lineBag = { uPV: null, uModel: null, uColor: null, uUseColor: 0, uViewport: null, uWidth: 1 };
+
 // ── The backend ──────────────────────────────────────────────────────────
 
 /**
@@ -584,7 +591,15 @@ export function createBackend(gl) {
         if (!_isNumeric(v)) { (rest || (rest = {}))[name] = v; continue; }
         if (!_holds(prog, name, v)) setter(v);
       }
-      if (rest) setUniforms(prog, rest);                     // twgl's own path for textures and the rest
+      if (rest) {
+        // twgl's own path for textures and the rest: a name that travels it can
+        // change what the program holds without the record seeing it — and a
+        // boolean is one of them, so a later 0 would be skipped over a 1 still
+        // there. The record forgets those names, so the next write goes through.
+        const memo = _held.get(prog);
+        if (memo) for (const name in rest) memo.delete(name);
+        setUniforms(prog, rest);
+      }
       return prog;
     },
 
@@ -863,7 +878,9 @@ export function createBackend(gl) {
      * wide-line programs over `uPV`/`uModel`/`uColor`/`uUseColor`, the wide one
      * also `uViewport`/`uWidth`; `'pane'` runs the flat program over a textured or
      * flat quad. The depth test is off for a spec that says so, and the program
-     * that was bound is bound again after.
+     * that was bound is bound again after. The uniforms go through `setUniforms`,
+     * the one upload path, so the record it keeps of what each program holds stays
+     * true: a pane writes the flat program's model matrix, which `image` writes too.
      */
     drawGizmo(ctx, kind, geometry, spec) {
       const s = spec || {};
@@ -875,24 +892,25 @@ export function createBackend(gl) {
       const prior = backend.setState(ctx, s.depth === false ? { depth: false } : undefined);
       gl.useProgram(prog.program);
       ctx.prog = prog;
-      const set = prog.uniformSetters;
       if (pane) {
-        set.uModelViewProjectionMatrix(s.M ? mat4Mul(_MVP, ctx.PV, s.M) : ctx.PV);
-        set.uColor(s.color || WHITE);
-        set.uUseTexture(!!s.texture);
-        if (s.texture) set.uTexture(s.texture);
-        else { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null); }   // never sample the bound target by accident
+        _paneBag.uModelViewProjectionMatrix = s.M ? mat4Mul(_MVP, ctx.PV, s.M) : ctx.PV;
+        _paneBag.uColor = s.color || WHITE;
+        _paneBag.uUseTexture = s.texture ? 1 : 0;
+        _paneBag.uTexture = s.texture || null;
+        if (!s.texture) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null); }   // never sample the bound target by accident
+        backend.setUniforms(ctx, prog, _paneBag);
       } else {
-        set.uPV(ctx.PV);
-        set.uModel(s.M || IDENTITY);
-        set.uColor(s.color || WHITE);
-        set.uUseColor(!!s.useColor);
+        _lineBag.uPV = ctx.PV;
+        _lineBag.uModel = s.M || IDENTITY;
+        _lineBag.uColor = s.color || WHITE;
+        _lineBag.uUseColor = s.useColor ? 1 : 0;
         if (wide) {
           const vp = s.vp || backend.setViewport(ctx);
           _res2[0] = vp[2]; _res2[1] = vp[3];
-          set.uViewport(_res2);
-          set.uWidth(s.width || 1);
+          _lineBag.uViewport = _res2;
+          _lineBag.uWidth = s.width || 1;
         }
+        backend.setUniforms(ctx, prog, _lineBag);
       }
       const answer = backend.draw(ctx, prog, geometry, { mode: pane || wide ? gl.TRIANGLES : gl.LINES, count: s.count });
       backend.setState(ctx, prior);

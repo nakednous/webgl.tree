@@ -30,11 +30,9 @@
  * palette (axes, the helm rig), else opts.color (default white). A gizmo
  * binds its own program and restores the one bound before it.
  *
- * `lines` is the same pipe for geometry the caller writes: ten numbers a
- * segment into a cache of its own, one draw, the same width policy, and alpha
- * blending over what is drawn already. `helmRig`'s `identify` is the pipe's
- * label seam: the layer hands each anchor out in world space under the host's
- * label layer, which is the only thing this bridge supplies for it.
+ * `lines` draws the caller's own batch through the same pipe. `helmRig`'s
+ * `identify` is the pipe's label seam: the layer takes each anchor to world
+ * space, and this bridge wires it to `host.labels`.
  */
 
 'use strict';
@@ -572,7 +570,7 @@ export function handleLocus(gl, h, opts) {
 
 /**
  * Write `n` segments of ten numbers into a cache's arrays, and answer the
- * vertices the batch needs — the generator contract `fill` takes.
+ * vertices `fill` wants.
  * @ignore
  */
 function _writeSegments(a, segments, n) {
@@ -595,14 +593,11 @@ function _writeSegments(a, segments, n) {
  * A batch of coloured segments — the caller's own geometry, rebuilt a frame —
  * drawn in one call under `opts.M`: ten numbers a segment, its two endpoints
  * and its colour.
- * @details The batch goes into a cache of the pipe's, one a context: the
- * geometry is rebuilt when the batch outgrows it and written in place
- * otherwise, so a figure that rewrites one array a frame allocates nothing.
- * `width` counts logical pixels as every gizmo's does — the bridge's density
- * carries it to device pixels, and above one each segment expands into a quad,
- * so a batch states its width in page pixels and never in device ones. The
- * colour's alpha blends over what is drawn already, and the blend state and the
- * depth test the call found are restored after it.
+ * @details One cache a context: the geometry is rebuilt when the batch outgrows
+ * it and written in place otherwise, so a figure that rewrites one array a frame
+ * allocates nothing. `width` counts logical pixels — the bridge's density carries
+ * it to device pixels, and above one each segment expands into a quad. The
+ * colour's alpha blends; the blend and depth state the call found are restored.
  * @param {WebGL2RenderingContext} gl
  * @param {ArrayLike<number>} segments  The batch: `x0 y0 z0 x1 y1 z1 r g b a` a segment.
  * @param {{ count?:number, M?:ArrayLike<number>, width?:number, depth?:boolean }} [opts]

@@ -755,8 +755,17 @@ export function createBackend(gl) {
       return tex;
     },
 
-    /** Refresh a texture from an element — a video or camera frame each frame. */
+    /** Refresh a texture from an element — a video or camera frame each frame — or from the pixel source `createTexture` takes. */
     uploadTexture(ctx, tex, source) {
+      if (_isPixels(source)) {                    // the same pixel source createTexture takes
+        const format = _formatOf(gl, source.data, {});
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, source.width, source.height,
+                         format.format, format.type, source.data);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        ctx.sizes.set(tex, [source.width, source.height]);
+        return tex;
+      }
       setTextureFromElement(gl, tex, _isBitmap(source) ? _viaCanvas(source) : source, { flipY: 1, auto: false });
       const size = _sizeOf(source);
       if (size) ctx.sizes.set(tex, size);

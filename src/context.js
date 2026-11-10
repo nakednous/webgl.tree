@@ -243,6 +243,8 @@ export function dispose(gl) {
   const ctx = _registry.get(gl);
   if (!ctx) return;
   disposeContext(ctx);          // the layer's targets and pipes, then the backend's own objects
+  for (const slot of ctx.queries || []) slot.dispose();
+  ctx.queries = null;
   ctx.pickTarget = null;
   for (const k of Object.keys(ctx.programs)) {
     const p = ctx.programs[k];

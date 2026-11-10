@@ -7,7 +7,7 @@
 
 // twgl tells a context object by its WebGL type tag, and only where the global
 // class exists at all — neither is true in node, so the stub stands both up.
-for (const name of ['WebGLTexture', 'WebGLFramebuffer', 'WebGLRenderbuffer', 'WebGLBuffer', 'WebGLProgram', 'WebGLVertexArrayObject']) {
+for (const name of ['WebGLTexture', 'WebGLFramebuffer', 'WebGLRenderbuffer', 'WebGLBuffer', 'WebGLProgram', 'WebGLVertexArrayObject', 'WebGLQuery']) {
   if (typeof globalThis[name] === 'undefined') globalThis[name] = class {};
 }
 const tagged = (name, obj) => { obj[Symbol.toStringTag] = name; return obj; };
@@ -33,6 +33,17 @@ export function createGL({ width = 640, height = 480 } = {}) {
     blendFunc(src, dst) { gl.blend = [src, dst]; log.push(['blendFunc', src, dst]); },
     blendFuncSeparate(src, dst, srcA, dstA) { gl.blend = [src, dst, srcA, dstA]; log.push(['blendFuncSeparate', src, dst, srcA, dstA]); },
     depthFunc(f) { log.push(['depthFunc', f]); },
+    createQuery() { const q = tagged('WebGLQuery', { id: ++gl.queries, landed: false, result: true }); gl.madeQueries.push(q); log.push(['createQuery', q.id]); return q; },
+    deleteQuery(q) { log.push(['deleteQuery', q ? q.id : null]); },
+    beginQuery(target, q) { gl.activeQuery = q; if (q) q.target = target; log.push(['beginQuery', target, q ? q.id : null]); },
+    endQuery(target) { const q = gl.activeQuery; gl.activeQuery = null; if (q) q.ended = true; log.push(['endQuery', target, q ? q.id : null]); },
+    getQueryParameter(q, pname) {
+      if (pname === gl.QUERY_RESULT_AVAILABLE) return !!(q && q.landed);
+      if (pname === gl.QUERY_RESULT) return q ? q.result : 0;
+      return 0;
+    },
+    /** Land every ended query with a verdict — the test's hand on the GPU's clock. */
+    landQueries(verdict = true) { for (const q of gl.madeQueries) if (q.ended) { q.landed = true; q.result = verdict; } },
     deleteProgram(p) { log.push(['deleteProgram', p]); },
     deleteBuffer(b) { log.push(['deleteBuffer', b]); },
     getExtension() { return {}; },
@@ -91,6 +102,9 @@ export function createGL({ width = 640, height = 480 } = {}) {
       return null;
     },
     clears: [], framebuffers: 0, textures: 0, renderbuffers: 0, boundFramebuffer: null,
+    queries: 0, madeQueries: [], activeQuery: null,
+    ANY_SAMPLES_PASSED: 35887, ANY_SAMPLES_PASSED_CONSERVATIVE: 36202,
+    QUERY_RESULT: 34918, QUERY_RESULT_AVAILABLE: 34919,
     clearColorValue: [0, 0, 0, 0], viewport4: [0, 0, width, height], depthTest: false,
     // program inspection — samplersOf's side: a program object → its uniforms
     activeUniforms: new WeakMap(),

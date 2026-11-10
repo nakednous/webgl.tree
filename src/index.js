@@ -39,6 +39,7 @@ export { program, fullscreen, filter, image, pipe, releasePipe, RED, GREEN, BLUE
 export { state } from './state.js';
 export { axes, grid, hermite, lines, pane, viewFrustum, trackPath, helmRig, handleLocus, beginHUD, endHUD, cross, bullsEye } from './gizmo.js';
 export { readPixel, pick } from './pick.js';
+export { query } from './query.js';
 export { texture, upload, cubemap } from './texture.js';
 export { decodeRGBE, encodeRGBE, loadHDR } from './hdr.js';   // decodeRGBE / encodeRGBE are host's, re-exported
 export { mapLocation, mapDirection, unproject, fragCoord, pixelRatio, mat4Viewport } from './space.js';

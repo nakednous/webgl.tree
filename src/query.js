@@ -63,24 +63,39 @@ import { contextOf } from './context.js';
  *          verdict that landed, `true` until one does. latency: how many asks the
  *          last verdict took to land. pending: how many are in flight.
  * @example
- * <caption>Ask once a frame whether the bound is hidden; draw on the answer an earlier frame left.</caption>
- * const { createCanvas, query, setCamera, axes, tree } = webglTree
+ * <caption>A cube slides behind a wall; the verdict is asked against the wall's depth, and the cube draws on the frame before's answer.</caption>
+ * const { createCanvas, bind, buffer, draw, query, setCamera, tree } = webglTree
  *
- * const gl = createCanvas(320, 200)
- * const cam = tree.createCamera({ eye: [200, 160, 260] })
+ * const gl = createCanvas(400, 300)
+ * const prog = twgl.createProgramInfo(gl, [`#version 300 es
+ * in vec4 aPosition;
+ * uniform mat4 uModelViewProjectionMatrix;
+ * void main() { gl_Position = uModelViewProjectionMatrix * aPosition; }`, `#version 300 es
+ * precision highp float;
+ * uniform vec3 uColor;
+ * out vec4 outColor;
+ * void main() { outColor = vec4(uColor, 1.0); }`])
+ * const unit = buffer(gl, twgl.primitives.createCubeVertices(1))     // one unit cube, scaled by each matrix
+ * const cam = tree.createCamera({ eye: [0, 120, 420] })
+ * const wall = tree.mat4FromTRS(tree.mat4(), 0, 0, -260, 0, 0, 0, 1, 220, 160, 4)
+ * const M = tree.mat4()
  * const verdict = query(gl, { pool: 4 })
  *
- * function frame() {
+ * function frame(ms) {
+ *   tree.mat4FromTRS(M, 0, 0, -260 + 180 * Math.cos(ms / 1400), 0, 0, 0, 1, 55, 55, 55)
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.075, 0.553, 0.459, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   if (verdict.value) axes(gl, { size: 100 })           // an earlier frame's answer
- *   gl.colorMask(false, false, false, false)             // ask without painting,
- *   gl.depthMask(false)                                  // or leaving a mark in depth
- *   verdict.ask(() => axes(gl, { size: 100 }), { conservative: true })
+ *   bind(gl, prog, { uColor: [0.5, 0.55, 0.6] })
+ *   draw(gl, unit, wall)                                           // the occluder, before the question
+ *   bind(gl, prog, { uColor: [1, 0.82, 0.4] })
+ *   gl.colorMask(false, false, false, false)                       // ask without painting,
+ *   gl.depthMask(false)                                            // or leaving a mark in depth
+ *   verdict.ask(() => draw(gl, unit, M))                           // this frame's question
  *   gl.colorMask(true, true, true, true)
  *   gl.depthMask(true)
+ *   if (verdict.value) draw(gl, unit, M)                           // the answer an earlier frame left
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

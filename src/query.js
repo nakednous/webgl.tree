@@ -24,6 +24,23 @@
  * The verdict is conservative by default: `value` reads `true` until one lands, so
  * a caller that draws on it never drops a visible bound on the strength of a
  * question that has not been answered yet.
+ *
+ * The calls beneath it are the ES 3.0 ones: a query object per question,
+ * glBeginQuery/glEndQuery around the bound's own draw, and glGetQueryObjectuiv
+ * polled until QUERY_RESULT_AVAILABLE — [glBeginQuery][bg] (its page carries
+ * glEndQuery), [glGenQueries][gq], [glGetQueryObjectuiv][gqq] · and the API
+ * surface as WebGL 2 exposes it: [createQuery][cq] · [beginQuery][bq] ·
+ * [endQuery][eq] · [getQueryParameter][gqp]. ANY_SAMPLES_PASSED_CONSERVATIVE is
+ * core in ES 3.0; WebGL 2 forbids making a result available in the frame that
+ * asked, which is what `latency` reports rather than assumes.
+ *
+ * [bg]: https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBeginQuery.xhtml
+ * [gq]: https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glGenQueries.xhtml
+ * [gqq]: https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glGetQueryObjectuiv.xhtml
+ * [cq]: https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/createQuery
+ * [bq]: https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/beginQuery
+ * [eq]: https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/endQuery
+ * [gqp]: https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter
  */
 
 'use strict';

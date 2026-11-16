@@ -2,23 +2,12 @@
 
 [`@nakednous/tree`](https://github.com/nakednous/tree) and
 [`@nakednous/host`](https://github.com/nakednous/host) on raw WebGL2 through
-[twgl](https://twgljs.org/): a camera install that uploads only the transforms a program declares,
-render targets in every shape, fullscreen filter passes and the ping-pong pipe, a line pipe that
-draws the core's gizmo arrays, HUD mode, asynchronous colour-id scene picking, textures under one
-orientation. No engine, no scene graph — twgl's own verbs stay yours.
-
-[`webgl.tree`][webgl.tree] is an experimental implementation of the visual-computing notebook's
-pseudo-code design, expected to rest on its foundations:
-[`@nakednous/tree`](https://github.com/nakednous/tree)'s math, twgl's calls, and only what the
-notebook's archetype columns write by hand and the notation leaves out. A hero that ports line for
-line confirms a piece of the notation; one that cannot is where the notation changes.
-
-> **Status: 0.0.x.** The surface below is shipped. The gizmo `width` mode counts canvas pixels —
-> the native hairline below one device pixel, a screen-space quad above it — and the site's
-> `lines` figure runs it at a width of three.
->
-> Twin: [`webgpu.tree`](https://jpcharalambosh.co/webgpu.tree/) realizes the same surface on raw
-> WebGPU, plus compute ([source](https://github.com/nakednous/webgpu.tree)).
+[twgl](https://twgljs.org/), with the composites on
+[`@nakednous/idiom`](https://www.npmjs.com/package/@nakednous/idiom). The same bridge surface as its
+WebGPU twin, [`webgpu.tree`](https://jpcharalambosh.co/webgpu.tree/): a camera install that uploads
+only the transforms a program declares, render targets in every shape, fullscreen filter passes and
+the ping-pong pipe, a line pipe and HUD, asynchronous colour-ID picking, and textures under one
+orientation. No engine, no scene graph — the GL calls are yours.
 
 Repo · [nakednous/webgl.tree](https://github.com/nakednous/webgl.tree) — the source and the issues.
 API site · [jpcharalambosh.co/webgl.tree](https://jpcharalambosh.co/webgl.tree/).

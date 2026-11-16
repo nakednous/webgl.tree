@@ -13,8 +13,12 @@ pseudo-code design, expected to rest on its foundations:
 notebook's archetype columns write by hand and the notation leaves out. A hero that ports line for
 line confirms a piece of the notation; one that cannot is where the notation changes.
 
-> **Status: 0.0.x.** The surface below is shipped; the gizmo `width` mode is the one piece still
-> unproven.
+> **Status: 0.0.x.** The surface below is shipped. The gizmo `width` mode counts canvas pixels —
+> the native hairline below one device pixel, a screen-space quad above it — and the site's
+> `lines` figure runs it at a width of three.
+>
+> Twin: [`webgpu.tree`](https://jpcharalambosh.co/webgpu.tree/) realizes the same surface on raw
+> WebGPU, plus compute ([source](https://github.com/nakednous/webgpu.tree)).
 
 Repo · [nakednous/webgl.tree](https://github.com/nakednous/webgl.tree) — the source and the issues.
 API site · [jpcharalambosh.co/webgl.tree](https://jpcharalambosh.co/webgl.tree/).
@@ -64,7 +68,8 @@ import map resolves them.
 ## Architecture
 
 [`webgl.tree`][webgl.tree] is the bridge layer of an engine-free stack — the one place that touches
-the GPU API. Its WebGPU twin, `webgpu.tree`, realizes the same surface.
+the GPU API. Its WebGPU twin, [`webgpu.tree`](https://jpcharalambosh.co/webgpu.tree/), realizes the same
+surface ([source](https://github.com/nakednous/webgpu.tree)).
 
 ```
   application  (imports twgl itself — createProgramInfo, createBufferInfoFromArrays, …)

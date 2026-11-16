@@ -52,7 +52,7 @@ import { contextOf } from './context.js';
  *        exists to prevent — and `pass(prog, uniforms)` · `swap()` · `reset()` ·
  *        `resize(w, h)` · `dispose()`.
  * @example
- * <caption>A value across frames: each pass folds a jittered sample into the mean its read side carries, so the frames converge as the count grows.</caption>
+ * <caption>A value across frames: one pass a frame, each folding a jittered sample into the mean its read side carries — the image converges as the count grows.</caption>
  * const { createCanvas, image, program, state } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -60,21 +60,45 @@ import { contextOf } from './context.js';
  * const accum = program(gl, `#version 300 es
  * precision highp float;
  * uniform sampler2D uScene;   // the mean so far — the state's read side
+ * uniform vec2 uJitter;       // this frame's sample position inside the pixel
  * uniform float uWeight;      // 1 / (n + 1): the sample's own weight
+ * uniform vec2 uPixel;        // one figure pixel, in uv
  * in vec2 vTexCoord;
  * out vec4 outColor;
  * void main() {
- *   vec3 estimate = mix(vec3(0.09, 0.11, 0.16), vec3(0.94, 0.76, 0.31),
- *                       step(0.5, fract(vTexCoord.x * 40.0)));
+ *   vec2 at = (floor(gl_FragCoord.xy) + uJitter) * uPixel;
+ *   vec2 q = vec2(at.x * 1.5, at.y) - vec2(0.75, 0.5);   // a disc, aspect-corrected
+ *   float r = length(q);
+ *   float figure = step(r, 0.3) * step(0.5, fract(r * r * 900.0));   // a zone plate
+ *   vec3 estimate = mix(vec3(0.10, 0.12, 0.17), vec3(0.93, 0.76, 0.31), figure);
  *   outColor = vec4(mix(texture(uScene, vTexCoord).rgb, estimate, uWeight), 1.0);
  * }`)
  *
  * // float, not 8-bit: the increment shrinks with the count and an 8-bit target
- * // would quantize it away; NEAREST, because the state is read at its own texel
- * const mean = state(gl, { width: 256, height: 192, format: gl.FLOAT, minMag: gl.NEAREST })
+ * // would quantize it away; LINEAR, because the display scales the state up to
+ * // a denser drawing buffer
+ * const mean = state(gl, { width: 400, height: 300, format: gl.FLOAT, minMag: gl.LINEAR })
  *
- * for (let n = 0; n < 8; n++) mean.pass(accum, { uWeight: 1 / (mean.count + 1) })
- * image(gl, mean.read.color)
+ * const R2 = [0.7548776662466927, 0.5698402909980532]   // one offset a frame
+ * const out = document.body.appendChild(document.createElement('div'))
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#d8dee9;font:13px ui-monospace,monospace'
+ * const reset = document.body.appendChild(document.createElement('button'))
+ * reset.textContent = 'reset'
+ * reset.style.cssText = 'position:absolute;right:8px;top:8px'
+ * reset.onclick = () => mean.reset()
+ *
+ * function frame() {
+ *   const n = mean.count
+ *   mean.pass(accum, {
+ *     uJitter: [(n * R2[0]) % 1, (n * R2[1]) % 1],
+ *     uWeight: 1 / (n + 1),
+ *     uPixel: [1 / mean.read.width, 1 / mean.read.height],
+ *   })
+ *   image(gl, mean.read.color)
+ *   out.textContent = 'n = ' + n
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
  */
 export function state(gl, opts) {
   return stateOf(contextOf(gl), opts);

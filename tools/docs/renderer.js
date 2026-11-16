@@ -234,7 +234,7 @@ const themeControl = (extra = '') => `
         </div>
       </div>`;
 
-function shell({ title, active, body, nav, pkg, examples }) {
+function shell({ title, active, body, nav, pkg, examples, pager = '' }) {
   const cm = examples ? `
   <link rel="stylesheet" href="${codemirror.css}">
   ${codemirror.js.map((u) => `<script src="${u}"></script>`).join('\n  ')}` : '';
@@ -276,7 +276,7 @@ function shell({ title, active, body, nav, pkg, examples }) {
     </div>
   </nav>
   <main>
-${body}
+${body}${pager}
     <footer>${esc(pkg.name)} v${esc(pkg.version)} · ${esc(pkg.license ?? '')}</footer>
   </main>
 </body>
@@ -350,7 +350,18 @@ export function render(parsed, { pkg, readme, esm }) {
     body: `    <article class="readme">${marked.parse(resolveLinks(readme, table, prefer))}</article>\n${esmSection(esm)}`,
   }));
 
-  for (const m of modules) {
+  const pagerOf = (i) => {
+    const back = i > 0 ? nav[i - 1] : null;
+    const fwd = i < nav.length - 1 ? nav[i + 1] : null;
+    if (!back && !fwd) return '';
+    return `
+    <nav class="pager" aria-label="Previous and next page">
+      ${back ? `<a class="back" href="${back.href}">← ${esc(back.label)}</a>` : '<span></span>'}
+      ${fwd ? `<a class="fwd" href="${fwd.href}">${esc(fwd.label)} →</a>` : '<span></span>'}
+    </nav>`;
+  };
+
+  modules.forEach((m, i) => {
     const list = byModule.get(m.name);
     // Owners in order of first appearance.
     const owners = [...new Set(list.map((d) => d.owner))];
@@ -362,11 +373,11 @@ export function render(parsed, { pkg, readme, esm }) {
     </header>
     ${owners.map((o) => ownerSection(o, list.filter((d) => d.owner === o), table, m.name)).join('')}`;
     pages.set(pageOf(m.name), shell({
-      title: m.name, active: pageOf(m.name), nav, pkg,
+      title: m.name, active: pageOf(m.name), nav, pkg, pager: pagerOf(i),
       examples: list.some((d) => d.examples.length > 0),
       body,
     }));
-  }
+  });
 
   return pages;
 }

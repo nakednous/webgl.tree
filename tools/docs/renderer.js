@@ -12,7 +12,7 @@
 
 import { Marked } from 'marked';
 import { splitFences, linkTable, pageOf, anchorOf } from './validator.js';
-import { twgl, codemirror, site, namespaces, twglRefUrl, twglRefText, packageRefUrl } from './config.js';
+import { twgl, site, namespaces, twglRefUrl, twglRefText, packageRefUrl } from './config.js';
 
 const LINK_RE = /\{@link\s+([^}\s]+)\s*\}/g;
 // A backticked identifier in prose — `setCamera`, `update()`,
@@ -234,13 +234,12 @@ const themeControl = (extra = '') => `
         </div>
       </div>`;
 
-function shell({ title, active, body, nav, pkg, examples, pager = '' }) {
-  const cm = examples ? `
-  <link rel="stylesheet" href="${codemirror.css}">
-  ${codemirror.js.map((u) => `<script src="${u}"></script>`).join('\n  ')}` : '';
+function shell({ title, active, body, nav, pkg, editor, pager = '' }) {
   const imports = { 'twgl.js': twgl.module, 'webgl.tree': `./${site.module}` };
   for (const [name, file] of Object.entries(site.deps)) imports[name] = `./${file}`;
-  const cfg = { twgl: twgl.url, lib: `./${site.bundle}`, imports, index: site.index };
+  const cfg = { twgl: twgl.url, lib: `./${site.bundle}`, imports, index: site.index, editor };
+  // A JSON data block, not code: `<` is escaped so a value can never close the element.
+  const config = JSON.stringify(cfg).replace(/</g, '\\u003c');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -250,9 +249,9 @@ function shell({ title, active, body, nav, pkg, examples, pager = '' }) {
   <title>${esc(title)} — ${esc(pkg.name)}</title>
   <link rel="icon" sizes="32x32" href="${site.favicon32}">
   <link rel="icon" sizes="128x128" href="${site.favicon128}">
-  <link rel="stylesheet" href="${site.style}">${cm}
-  <script>window.webglTreeDocs = ${JSON.stringify(cfg)};</script>
-  <script src="${site.runner}" defer></script>
+  <link rel="stylesheet" href="${site.style}">
+  <script type="application/json" id="docs-config">${config}</script>
+  <script type="module" src="${site.runner}"></script>
   <script src="${site.search}" defer></script>
   <script src="${site.chrome}" defer></script>
 </head>
@@ -325,10 +324,11 @@ function searchIndex(doclets) {
 
 /**
  * @param {{ modules, doclets }} parsed
- * @param {{ pkg: Object, readme: string, esm: string }} ctx
+ * @param {{ pkg: Object, readme: string, esm: string, editor: string }} ctx
+ *        editor: the site-local URL of the editor bundle the page's config names.
  * @returns {Map<string, string>} filename → HTML
  */
-export function render(parsed, { pkg, readme, esm }) {
+export function render(parsed, { pkg, readme, esm, editor }) {
   const table = linkTable(parsed);
   table.ambiguous = ambiguousNames(parsed.doclets);
   const prefer = indexOwners(parsed.doclets, table.ambiguous);
@@ -346,7 +346,7 @@ export function render(parsed, { pkg, readme, esm }) {
   pages.set(site.index, JSON.stringify(searchIndex(parsed.doclets)));
 
   pages.set('index.html', shell({
-    title: 'README', active: 'index.html', nav, pkg, examples: true,
+    title: 'README', active: 'index.html', nav, pkg, editor,
     body: `    <article class="readme">${marked.parse(resolveLinks(readme, table, prefer))}</article>\n${esmSection(esm)}`,
   }));
 
@@ -373,9 +373,7 @@ export function render(parsed, { pkg, readme, esm }) {
     </header>
     ${owners.map((o) => ownerSection(o, list.filter((d) => d.owner === o), table, m.name)).join('')}`;
     pages.set(pageOf(m.name), shell({
-      title: m.name, active: pageOf(m.name), nav, pkg, pager: pagerOf(i),
-      examples: list.some((d) => d.examples.length > 0),
-      body,
+      title: m.name, active: pageOf(m.name), nav, pkg, editor, pager: pagerOf(i), body,
     }));
   });
 

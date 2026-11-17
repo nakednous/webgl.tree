@@ -2,24 +2,29 @@
  * @file Sidebar search — filters the API index as you type.
  * @license AGPL-3.0-only
  *
- * Classic deferred script on every page. Loads the generator's index
- * (`window.webglTreeDocs.index`, one entry per function and constant: name,
- * owner, page#anchor, first sentence) once, on the first keystroke, and
- * matches the typed text against name and owner as a plain substring. The
- * results replace the module list while the field is non-empty; Enter opens
- * the first result, Esc clears.
+ * Classic deferred script on every page. The page's configuration is its
+ * `application/json` block `#docs-config`; its `index` — one entry per function
+ * and constant: name, owner, page#anchor, first sentence — is fetched once, on
+ * the first keystroke, and the typed text is matched against name and owner as a
+ * plain substring. The results replace the module list while the field is
+ * non-empty; Enter opens the first result, Esc clears.
  */
 (function () {
   'use strict';
   var field   = document.querySelector('.sidebar .search');
   var modules = document.querySelector('.sidebar .modules');
   var results = document.querySelector('.sidebar .results');
-  if (!field || !modules || !results) return;
+  var block   = document.getElementById('docs-config');
+  if (!field || !modules || !results || !block) return;
+
+  var config = null;
+  try { config = JSON.parse(block.textContent); } catch (e) { return; }
+  if (!config || !config.index) return;
 
   var index = null, loading = null;
   function load() {
     if (index) return Promise.resolve(index);
-    loading = loading || fetch(window.webglTreeDocs.index).then(function (r) { return r.json(); })
+    loading = loading || fetch(config.index).then(function (r) { return r.json(); })
       .then(function (list) { index = list; return list; });
     return loading;
   }

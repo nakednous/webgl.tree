@@ -1,0 +1,10 @@
+{
+  "name": "webgl.tree-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The API site's editor dependency: @nakednous/api-docs and nothing else.",
+  "dependencies": {
+    "@nakednous/api-docs": "file:../../../api-docs"
+  }
+}

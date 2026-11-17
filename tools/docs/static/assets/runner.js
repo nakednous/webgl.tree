@@ -3,14 +3,18 @@
  * `@example`, with a viewport-driven iframe lifecycle.
  * @license AGPL-3.0-only
  *
- * Classic deferred script on every page; no-op where there are no examples.
- * Config arrives in `window.webglTreeDocs` ({ twgl, lib, imports, index });
- * markup is the renderer's `figure.example` (`textarea.source`,
- * `[data-stage]`, `[data-run]`, `[data-reset]`, and `data-mode="module"` on
- * the ES modules demo).
+ * ES module on every page; no-op where there are no examples. The page's
+ * configuration is the `application/json` block `#docs-config`
+ * ({ twgl, lib, imports, index, editor }); the markup is the renderer's
+ * `figure.example` (`textarea.source`, `[data-stage]`, `[data-run]`,
+ * `[data-reset]`, and `data-mode="module"` on the ES modules demo).
  *
- * - Editor: CodeMirror 5 over the source textarea; the bare textarea is the
- *   fallback when CodeMirror is absent.
+ * - Editor: the package's `mountEditor` over the source textarea, imported with
+ *   a dynamic `import()` on a page that has one — a page without examples never
+ *   asks for the bundle. Until the mount succeeds the textarea is the carrier:
+ *   Run and Reset work from it, an edit made while the import is in flight is
+ *   kept, and a failed import or mount leaves the textarea in place and marks
+ *   the figure `data-editor="fallback"`.
  * - Canvas: a same-origin `srcdoc` iframe, unsandboxed (the examples are the
  *   site's own code; the runner reaches into each frame to release its WebGL
  *   context, and WebHID needs the page's origin). An example loads pinned
@@ -29,26 +33,30 @@
  *   contexts (~16).
  */
 
-(function () {
-  'use strict';
+const LIVE_MAX = 8;
+const NEAR     = '300px 0px';   // mount when the figure is within this margin of the viewport
+const FAR      = '1500px 0px';  // unmount once it is beyond this margin
+const STAGE_BG = '#0a0a0e';     // fixed stage — never the page theme
 
-  const cfg     = window.webglTreeDocs;
-  const figures = document.querySelectorAll('figure.example');
-  if (!cfg || !figures.length) return;
+const attr = (s) => String(s).replace(/"/g, '&quot;');
 
-  const LIVE_MAX = 8;
-  const NEAR     = '300px 0px';   // mount when the figure is within this margin of the viewport
-  const FAR      = '1500px 0px';  // unmount once it is beyond this margin
-  const STAGE_BG = '#0a0a0e';     // fixed stage — never the page theme
+/** The page's configuration: read once from the JSON block, or null. */
+function readConfig() {
+  const block = document.getElementById('docs-config');
+  if (!block) return null;
+  try {
+    return JSON.parse(block.textContent);
+  } catch (_) {
+    return null;
+  }
+}
 
-  const attr = (s) => String(s).replace(/"/g, '&quot;');
-
-  /** The iframe document: pinned twgl and the bundle, or the import map, then the example. */
-  function srcdoc(code, module) {
-    const head = module
-      ? `<script type="importmap">${JSON.stringify({ imports: cfg.imports })}</script>`
-      : `<script src="${attr(cfg.twgl)}"></script>\n<script src="${attr(cfg.lib)}"></script>`;
-    return `<!doctype html>
+/** The iframe document: pinned twgl and the bundle, or the import map, then the example. */
+function srcdoc(cfg, code, module) {
+  const head = module
+    ? `<script type="importmap">${JSON.stringify({ imports: cfg.imports })}</script>`
+    : `<script src="${attr(cfg.twgl)}"></script>\n<script src="${attr(cfg.lib)}"></script>`;
+  return `<!doctype html>
 <html><head><meta charset="utf-8">
 <style>html,body{margin:0;overflow:hidden;background:${STAGE_BG}}canvas{display:block}</style>
 ${head}
@@ -57,29 +65,21 @@ ${head}
 ${code.replace(/<\/(script)/gi, '<\\/$1')}
 </script>
 </body></html>`;
-  }
+}
 
-  /** Release the example's WebGL context, then drop the frame. */
-  function dispose(frame) {
-    try {
-      const canvas = frame.contentWindow.document.querySelector('canvas');
-      const gl = canvas && canvas.getContext('webgl2');
-      if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext();
-    } catch (_) { /* the frame's document is already gone — removal has to do */ }
-    frame.remove();
-  }
+/** Release the example's WebGL context, then drop the frame. */
+function dispose(frame) {
+  try {
+    const canvas = frame.contentWindow.document.querySelector('canvas');
+    const gl = canvas && canvas.getContext('webgl2');
+    if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext();
+  } catch (_) { /* the frame's document is already gone — removal has to do */ }
+  frame.remove();
+}
 
-  function editorOf(textarea, run) {
-    if (!window.CodeMirror) return null;
-    return window.CodeMirror.fromTextArea(textarea, {
-      mode:           'javascript',
-      lineNumbers:    true,
-      indentUnit:     2,
-      tabSize:        2,
-      viewportMargin: Infinity,   // render every line — the box grows to fit the sketch
-      extraKeys:      { 'Ctrl-Enter': run, 'Cmd-Enter': run },
-    });
-  }
+function start(cfg) {
+  const figures = document.querySelectorAll('figure.example');
+  if (!figures.length) return;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
     f.className = 'sketch';
     f.title     = r.title;
     f.setAttribute('allow', 'hid' in navigator ? 'hid; camera' : 'camera');   // a browser without WebHID warns on the name
-    f.srcdoc = srcdoc(code(r), r.module);
+    f.srcdoc = srcdoc(cfg, code(r), r.module);
     r.stage.replaceChildren(f);
     r.frame = f;
     live.push(r);
@@ -128,6 +128,31 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
     }
   }, { rootMargin: FAR });
 
+  // ── The editor, where there is one to mount ───────────────────────────────
+
+  /**
+   * Import the bundle once and mount every box. The textarea has been carrying
+   * Run and Reset until now: the import is started after the wiring, and its
+   * failure is the fallback, not an unhandled rejection.
+   */
+  async function mountEditors() {
+    let mountEditor;
+    try {
+      ({ mountEditor } = await import(new URL(cfg.editor, document.baseURI).href));
+    } catch (_) {
+      for (const r of runners.values()) r.figure.dataset.editor = 'fallback';
+      return;
+    }
+    for (const r of runners.values()) {
+      try {
+        r.editor = mountEditor(r.textarea, { value: r.source, onRun: () => mount(r), wrap: false });
+      } catch (_) {
+        r.editor = null;
+        r.figure.dataset.editor = 'fallback';
+      }
+    }
+  }
+
   // ── Wire every example ────────────────────────────────────────────────────
 
   for (const figure of figures) {
@@ -144,14 +169,18 @@ ${code.replace(/<\/(script)/gi, '<\\/$1')}
       frame:  null,
     };
     const run   = () => mount(r);
-    const reset = () => (r.editor ? r.editor.setValue(r.source) : (textarea.value = r.source));
-
-    r.editor = editorOf(textarea, run);
-    figure.querySelector('[data-run]')?.addEventListener('click', run);
-    figure.querySelector('[data-reset]')?.addEventListener('click', reset);
+    const reset = () => (r.editor ? r.editor.reset() : (textarea.value = r.source));
 
     runners.set(figure, r);
     near.observe(figure);
     far.observe(figure);
+
+    figure.querySelector('[data-run]')?.addEventListener('click', run);
+    figure.querySelector('[data-reset]')?.addEventListener('click', reset);
   }
-})();
+
+  mountEditors();
+}
+
+const config = readConfig();
+if (config) start(config);

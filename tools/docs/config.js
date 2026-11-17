@@ -86,14 +86,6 @@ export const owners = {
   PoseHelm:    'tree.PoseHelm.prototype',
 };
 
-/** CodeMirror 5 UMD — the example editor. */
-export const codemirror = { version: '5.65.21' };
-codemirror.css = `${CDN}/codemirror@${codemirror.version}/lib/codemirror.min.css`;
-codemirror.js  = [
-  `${CDN}/codemirror@${codemirror.version}/lib/codemirror.min.js`,
-  `${CDN}/codemirror@${codemirror.version}/mode/javascript/javascript.min.js`,
-];
-
 /** Repo-relative paths (resolved against the package root by index.js). */
 export const paths = {
   src:    'src',
@@ -110,6 +102,8 @@ export const paths = {
   },
   static: 'tools/docs/static',  // copied verbatim into site/ (assets/)
   site:   'site',
+  editor:         'tools/docs/node_modules/@nakednous/api-docs',               // the nested docs project's install
+  editorManifest: 'tools/docs/node_modules/@nakednous/api-docs/dist/manifest.json',
 };
 
 /** Site-local URLs the pages hand to the runner. */
@@ -124,4 +118,5 @@ export const site = {
   search: 'assets/search.js',
   chrome: 'assets/chrome.js',    // theme picker and collapsible navigation
   index:  'search.json',
+  editor: 'assets',              // where the editor bundle is copied, under its content-hashed name
 };

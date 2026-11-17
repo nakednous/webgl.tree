@@ -26,11 +26,12 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sidebar: 15rem;
   --stage-w: 400px;
+  --cm-font: var(--mono);      /* the editor's monospace stack */
 }
 
 /* The resolved theme, and the reader's choice; both are written by the head script. */
 :root[data-theme="light"] { color-scheme: light; }
-:root[data-theme="dark"]  { color-scheme: dark; }
+:root[data-theme="dark"]  { color-scheme: dark; --cm-comment-style: italic; }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
 
@@ -307,6 +308,7 @@ footer {
   background: var(--bg-2);
   resize: vertical;
 }
+.editor textarea.source[hidden] { display: none; }   /* the adapter hides it once the editor is in */
 
 .stage {
   width: min(var(--stage-w), 100%);
@@ -338,35 +340,21 @@ footer {
   .stage { position: sticky; top: 1rem; align-self: start; }
 }
 
-/* ── CodeMirror ─────────────────────────────────────────────────────────── */
+/* ── The editor ─────────────────────────────────────────────────────────── */
 
-.editor .CodeMirror {
-  height: auto;                      /* with viewportMargin: Infinity — grows to fit */
+/* The package's editor draws its own surface, caret, gutters, selection and
+   tokens from the variables its theme reads: `--bg-2`, `--fg`, `--border` and
+   `--muted` here, and its own `--cm-*` tokens with a light/dark pair behind
+   each. What the site still states is the box and the type. */
+
+.editor .cm-editor {
   border: 1px solid var(--border);
   border-radius: 6px;
   font: .8125rem/1.5 var(--mono);
   color: var(--fg);
   background: var(--bg-2);
 }
-.editor .CodeMirror-gutters { border-right: 1px solid var(--border); background: var(--bg-2); }
-.editor .CodeMirror-linenumber { color: var(--muted); }
-.editor .CodeMirror-cursor { border-left-color: var(--fg); }
-
-.editor .CodeMirror-selected { background: light-dark(#d9d9d9, #2b3340); }
-.editor .CodeMirror-focused .CodeMirror-selected { background: light-dark(#d7d4f0, #2b3340); }
-.editor .cm-s-default .cm-keyword    { color: light-dark(#708, #c792ea); }
-.editor .cm-s-default .cm-atom       { color: light-dark(#219, #f78c6c); }
-.editor .cm-s-default .cm-number     { color: light-dark(#164, #f78c6c); }
-.editor .cm-s-default .cm-def        { color: light-dark(#00f, #82aaff); }
-.editor .cm-s-default .cm-variable-2 { color: light-dark(#05a, #addb67); }
-.editor .cm-s-default .cm-property   { color: light-dark(#1c1e22, #80cbc4); }
-.editor .cm-s-default .cm-operator   { color: light-dark(#1c1e22, #89ddff); }
-.editor .cm-s-default .cm-string     { color: light-dark(#a11, #c3e88d); }
-.editor .cm-s-default .cm-string-2   { color: light-dark(#f50, #c3e88d); }
-.editor .cm-s-default .cm-comment    { color: light-dark(#a50, #7f8c98); }
-.editor .cm-s-default .cm-builtin    { color: light-dark(#30a, #ffcb6b); }
-:root[data-theme="dark"] .editor .cm-s-default .cm-comment { font-style: italic; }
-.editor .CodeMirror-matchingbracket { color: light-dark(#0b0, #fff) !important; text-decoration: none; }
+.editor .cm-editor.cm-focused { outline: none; }
 
 /* ── Collapsed rail (wide screens) ──────────────────────────────────────── */
 

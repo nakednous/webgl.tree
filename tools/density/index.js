@@ -47,7 +47,11 @@ import { createServer } from 'node:http';
 import { dirname, extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { parseSources } from '../docs/parser.js';
+// The generator is the package's, through the docs project's install; the
+// declaration is the one the site is built from, so this gate mounts exactly
+// the examples `npm run docs` wrote.
+import { parseSources } from '../docs/node_modules/@nakednous/scholion/src/generator/index.js';
+import config from '../docs/docs.config.js';
 import { page, SHIM } from './page.js';
 import { browserAt } from './driver.js';
 
@@ -62,10 +66,24 @@ const TYPES = {
   '.wgsl': 'text/plain',
 };
 
+/**
+ * The doclets the site is built from: the declaration's own parse rules, read
+ * here rather than restated, so a gate and a build cannot disagree.
+ * @returns {Object[]}
+ */
+function siteDoclets() {
+  const { src, carriers, surface, members, ignore } = {
+    src: config.paths.src,
+    carriers: config.carrier?.docs ? [config.carrier.docs] : [],
+    ...config.parse,
+  };
+  return parseSources({ src: at(src), carriers: carriers.map(at), surface, members, ignore }).doclets;
+}
+
 /** The examples to mount: every doclet's, then the index page's module demo. */
 function examples() {
   const list = [];
-  for (const d of parseSources(at('src'), at('docs')).doclets) {
+  for (const d of siteDoclets()) {
     d.examples.forEach((ex, i) => {
       list.push({
         name: `${d.name} #${i + 1}`,
@@ -76,7 +94,7 @@ function examples() {
       });
     });
   }
-  const md = readFileSync(at('tools/docs/esm.md'), 'utf8');
+  const md = readFileSync(at(config.carrier.landing.file), 'utf8');
   const demo = /```js\n([\s\S]*?)```/.exec(md);
   if (demo) list.push({ name: 'es-modules #1', owner: 'the index page', caption: 'the ES modules demo', code: demo[1], mode: 'module' });
   return list;

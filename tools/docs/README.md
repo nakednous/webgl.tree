@@ -1,13 +1,20 @@
-# tools/docs — the API site's build and its editor
+# tools/docs — the API site's declaration and its editor
 
-`index.js` parses, validates and renders the doclets into `site/` (`npm run docs` at the repository
-root). This folder is also a nested npm project of its own, because the site's editor is not the
-repository's: it is `@nakednous/scholion`, installed here and nowhere else.
+`docs.config.js` is the site's declaration and `index.js` is `npm run docs`: the two of them state where
+this site's sources are and hand them to `@nakednous/scholion/generator`, which parses, validates,
+renders and writes `site/`. The pipeline is the package's — this folder holds no copy of a step. This
+folder is also a nested npm project of its own, because the site's editor is not the repository's: it is
+the same package, installed here and nowhere else.
 
 ## The nested project
 
 ```
 tools/docs/
+  docs.config.js      the declaration — paths, outputs, pins, references, the page's chrome
+  index.js            ~8 lines: import the generator, hand it the declaration
+  esm.md              the landing page's ES modules section, its one fence a live module demo
+  static/             the stylesheet, the scripts, the favicons, the models — copied verbatim
+  browser-check.mjs   the browser probe
   package.json        one dependency: @nakednous/scholion
   package-lock.json   committed — the root lock is ignored by pattern, this one is not
 ```
@@ -17,7 +24,7 @@ Until the package is published its dependency is a `file:` path, so the order ma
 ```
 cd ../scholion && npm run build     # the package's bundle, dist/editor.<hash>.js + dist/manifest.json
 npm install --prefix tools/docs     # links the package into tools/docs/node_modules
-npm run docs                        # copies the hashed asset into site/assets and stamps every page
+npm run docs                        # copies the hashed asset into site/assets and writes every page
 ```
 
 The library's root `package.json` and lockfile are untouched: `npm run docs` reads the nested install
@@ -25,6 +32,25 @@ and nothing else. The workspace workflow that deploys the site installs the root
 project (`npm ci --prefix tools/docs`); with a `file:` dependency that step resolves only on a machine
 that has the package checkout, which is why this project is not deployed yet — the first publish comes
 first.
+
+## What the declaration says
+
+`docs.config.js` carries the things only this site can know, and nothing it could compute:
+
+- **the paths** — `src`, `docs` (the documentation-only carriers of the re-exported tree / host
+  surface), the IIFE and ES builds of the same commit, the dependency builds the ES build was made
+  against, `static/`, and `site/`;
+- **the outputs** — the names the page finds them under, the search index, the editor's directory and
+  its notices file;
+- **the pins** — twgl.js's version and the two artifacts a page names, one version and no `latest`;
+- **the references** — each package's address, and twgl's documentation grammar: its base and a URL
+  template per name shape, so `twgl.m4.perspective` resolves without a function in this folder;
+- **the surface** — the IIFE leaves `webglTree`, twgl.js is stubbed when it is evaluated, and `owners`
+  says where each documented owner lives in it;
+- **the rules** — `src/index.js`'s re-exports are public, an `@ignore` block is not, an example is a
+  classic script reading `webglTree`;
+- **the page** — `mode: 'esm'`, the stylesheet and the favicons, and the runner's config block with
+  its `{pin:…}` and `{index}` tokens.
 
 ## What the build puts on a page
 

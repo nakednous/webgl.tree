@@ -11,7 +11,7 @@
  */
 
 import {
-  copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync,
+  copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync,
 } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
@@ -53,6 +53,16 @@ function editorAsset() {
   return { file, url: `${site.editor}/${manifest.asset}`, manifest };
 }
 
+/** The third-party notices of the bundled editor, as the page serves them. */
+function notices(manifest) {
+  const head = `${manifest.name} ${manifest.version} — editor bundle ${manifest.asset}\n` +
+               `third-party notices, as recorded in its release manifest\n`;
+  const body = manifest.licenses
+    .map((item) => `\n${item.package} ${item.version} — ${item.license ?? 'see notice'}\n\n${item.notice}\n`)
+    .join('');
+  return `${head}${body}`;
+}
+
 function main() {
   const pkg    = JSON.parse(readFileSync(at(paths.pkg), 'utf8'));
   const readme = readFileSync(at(paths.readme), 'utf8');
@@ -82,8 +92,14 @@ function main() {
   // Render.
   const pages = render(parsed, { pkg, readme, esm, editor: editor.url });
 
-  // Write site/ from scratch.
+  // Write site/ from scratch, but keep every editor asset an earlier build wrote:
+  // a page served from a cache still asks for the editor it was built against.
   const out = at(paths.site);
+  const assets = join(out, site.editor);
+  const retained = existsSync(assets)
+    ? readdirSync(assets).filter((name) => /^editor\.[0-9a-f]+\.js$/.test(name))
+        .map((name) => [name, readFileSync(join(assets, name))])
+    : [];
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   for (const [file, html] of pages) writeFileSync(join(out, file), html);
@@ -92,6 +108,8 @@ function main() {
   copyFileSync(at(paths.module), join(out, site.module));
   mkdirSync(join(out, site.editor), { recursive: true });
   copyFileSync(editor.file, join(out, site.editor, editor.manifest.asset));
+  for (const [name, bytes] of retained) writeFileSync(join(out, site.editor, name), bytes);
+  writeFileSync(join(out, site.editorNotices), notices(editor.manifest));
   for (const [name, file] of Object.entries(paths.deps)) {
     if (!existsSync(at(file))) {
       console.error(`[docs] ${file} not found — ${name} is not installed.`);
@@ -105,7 +123,7 @@ function main() {
   console.log(`[docs] ${pages.size} page(s), ${parsed.doclets.length} doclet(s), ` +
               `${examples} example(s), ${warnings.length} warning(s) → ${paths.site}/`);
   console.log(`[docs] editor ${editor.url} ${(editor.manifest.bytes / 1024).toFixed(1)} kB ` +
-              `(sha256 ${editor.manifest.sha256.slice(0, 16)}…)`);
+              `(sha256 ${editor.manifest.sha256.slice(0, 16)}…), ${retained.length} earlier asset(s) kept`);
 }
 
 main();

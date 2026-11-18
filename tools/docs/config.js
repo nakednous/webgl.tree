@@ -102,8 +102,8 @@ export const paths = {
   },
   static: 'tools/docs/static',  // copied verbatim into site/ (assets/)
   site:   'site',
-  editor:         'tools/docs/node_modules/@nakednous/api-docs',               // the nested docs project's install
-  editorManifest: 'tools/docs/node_modules/@nakednous/api-docs/dist/manifest.json',
+  editor:         'tools/docs/node_modules/@nakednous/scholion',               // the nested docs project's install
+  editorManifest: 'tools/docs/node_modules/@nakednous/scholion/dist/manifest.json',
 };
 
 /** Site-local URLs the pages hand to the runner. */
@@ -119,4 +119,5 @@ export const site = {
   chrome: 'assets/chrome.js',    // theme picker and collapsible navigation
   index:  'search.json',
   editor: 'assets',              // where the editor bundle is copied, under its content-hashed name
+  editorNotices: 'assets/editor.LICENSES.txt',   // the bundled packages' notices, served beside it
 };

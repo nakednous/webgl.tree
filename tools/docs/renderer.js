@@ -252,8 +252,8 @@ function shell({ title, active, body, nav, pkg, editor, pager = '' }) {
   <link rel="stylesheet" href="${site.style}">
   <script type="application/json" id="docs-config">${config}</script>
   <script type="module" src="${site.runner}"></script>
-  <script src="${site.search}" defer></script>
-  <script src="${site.chrome}" defer></script>
+  <script type="module" src="${site.search}"></script>
+  <script type="module" src="${site.chrome}"></script>
 </head>
 <body>
   <button class="rail-reopen" type="button" data-rail-toggle aria-controls="site-sidebar" aria-expanded="false" aria-label="Show the navigation">☰</button>
@@ -276,7 +276,8 @@ function shell({ title, active, body, nav, pkg, editor, pager = '' }) {
   </nav>
   <main>
 ${body}${pager}
-    <footer>${esc(pkg.name)} v${esc(pkg.version)} · ${esc(pkg.license ?? '')}</footer>
+    <footer>${esc(pkg.name)} v${esc(pkg.version)} · ${esc(pkg.license ?? '')} ·
+      <a href="${site.editorNotices}">third-party notices</a></footer>
   </main>
 </body>
 </html>

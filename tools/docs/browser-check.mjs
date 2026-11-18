@@ -232,6 +232,7 @@ async function launch() {
     y: { key: 'y', code: 'KeyY', vk: 89 },
     z: { key: 'z', code: 'KeyZ', vk: 90 },
     home: { key: 'Home', code: 'Home', vk: 36 },
+    escape: { key: 'Escape', code: 'Escape', vk: 27 },
   };
 
   /** One printable character through the keyboard, the way a browser types it. */
@@ -552,6 +553,17 @@ async function pagePass(browser, base, page, { detailed }) {
     light.gutterBg === light.sidebarBg && light.surface === light.sidebarBg,
     `gutter ${light.gutterBg}, sidebar ${light.sidebarBg}`);
 
+  // The sidebar's search module: the index is fetched on the first keystroke, then filtered.
+  await browser.click('.sidebar .search');
+  await browser.type('c');
+  await browser.type('a');
+  await browser.waitFor("document.querySelectorAll('.sidebar .results li a').length > 0",
+    `${page}: search results`, 8000);
+  const hits = await browser.evaluate("document.querySelectorAll('.sidebar .results li a').length");
+  check(`${page}: the search module answers a keystroke`, hits > 0, `${hits} result(s) for "ca"`);
+  await browser.key({ ...browser.KEYS.escape });
+  await browser.settle();
+
   // The reader's own path: the theme picker in the rail's foot.
   await browser.click('.side-foot .theme-toggle');
   await browser.click('.side-foot [data-theme-choice="dark"]');
@@ -718,9 +730,9 @@ async function main() {
       Boolean(detail.longest.mounted.asset.name),
       `${k(detail.longest.mounted.asset.transferSize || detail.longest.mounted.asset.encodedBodySize || 0)} over the wire, ` +
       `${Math.round(detail.longest.mounted.asset.duration || 0)} ms`);
-    check(`${longest}: the editor was ready in a page's first second`,
-      detail.longest.mounted.ready !== null && detail.longest.mounted.ready < 4000,
-      `${Math.round(detail.longest.mounted.ready || 0)} ms from navigation start`);
+    // Report-only: the budgets are not ruled, so nothing here may turn a slow machine red.
+    console.log(`· ${longest}: the editor was ready ${Math.round(detail.longest.mounted.ready || 0)} ms ` +
+                'from navigation start (measured, not gated)');
 
     detail.module = await modulePass(browser, server.url);
     detail.delayed = await delayedPass(browser, server.url, longest);

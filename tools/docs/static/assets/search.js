@@ -2,15 +2,16 @@
  * @file Sidebar search — filters the API index as you type.
  * @license AGPL-3.0-only
  *
- * Classic deferred script on every page. The page's configuration is its
- * `application/json` block `#docs-config`; its `index` — one entry per function
- * and constant: name, owner, page#anchor, first sentence — is fetched once, on
- * the first keystroke, and the typed text is matched against name and owner as a
- * plain substring. The results replace the module list while the field is
- * non-empty; Enter opens the first result, Esc clears.
+ * ES module on every page, deferred by the browser like every module. The page's
+ * configuration is its `application/json` block `#docs-config`; its `index` —
+ * one entry per function and constant: name, owner, page#anchor, first sentence —
+ * is fetched once, on the first keystroke, and the typed text is matched against
+ * name and owner as a plain substring. The results replace the module list while
+ * the field is non-empty; Enter opens the first result, Esc clears.
  */
-(function () {
-  'use strict';
+
+/** Wire the field, the module list and the results list; a page without them does nothing. */
+function start() {
   var field   = document.querySelector('.sidebar .search');
   var modules = document.querySelector('.sidebar .modules');
   var results = document.querySelector('.sidebar .results');
@@ -60,4 +61,6 @@
       if (first) window.location.href = first.getAttribute('href');
     }
   });
-})();
+}
+
+start();

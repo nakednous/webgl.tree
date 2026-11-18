@@ -2,20 +2,20 @@
 
 `index.js` parses, validates and renders the doclets into `site/` (`npm run docs` at the repository
 root). This folder is also a nested npm project of its own, because the site's editor is not the
-repository's: it is `@nakednous/api-docs`, installed here and nowhere else.
+repository's: it is `@nakednous/scholion`, installed here and nowhere else.
 
 ## The nested project
 
 ```
 tools/docs/
-  package.json        one dependency: @nakednous/api-docs
+  package.json        one dependency: @nakednous/scholion
   package-lock.json   committed — the root lock is ignored by pattern, this one is not
 ```
 
 Until the package is published its dependency is a `file:` path, so the order matters:
 
 ```
-cd ../api-docs && npm run build     # the package's bundle, dist/editor.<hash>.js + dist/manifest.json
+cd ../scholion && npm run build     # the package's bundle, dist/editor.<hash>.js + dist/manifest.json
 npm install --prefix tools/docs     # links the package into tools/docs/node_modules
 npm run docs                        # copies the hashed asset into site/assets and stamps every page
 ```
@@ -34,9 +34,15 @@ first.
 - `assets/editor.<hash>.js`: the package's bundle, copied under the name its manifest states. The build
   re-hashes the copy and refuses to write the site if it does not match the manifest's SHA-256, so a
   page can never carry a URL the artifact does not have.
-- `assets/runner.js`: an ES module. It wires every figure's Run and Reset to the textarea, then imports
-  the editor bundle — only on a page that has a `textarea.source` — mounts it, and marks a figure
-  `data-editor="fallback"` if the import or the mount fails.
+- `assets/runner.js`, `assets/search.js`, `assets/chrome.js`: ES modules, deferred by the browser. The
+  runner wires every figure's Run and Reset to the textarea, then imports the editor bundle — only on a
+  page that has a `textarea.source` — mounts it, and marks a figure `data-editor="fallback"` if the
+  import or the mount fails.
+- `assets/editor.LICENSES.txt`: the bundled packages' notices, copied out of the release manifest and
+  linked from every page's footer. The bundle carries no legal comments of its own, so this file is the
+  notice a reader can reach.
+- Every earlier `assets/editor.<hash>.js` is kept when the site is rebuilt: a page served from a cache
+  still asks for the editor it was built against.
 
 ## The browser probe
 

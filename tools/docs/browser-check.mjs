@@ -792,6 +792,13 @@ async function pagePass(browser, base, page, { detailed }) {
       await browser.settle(4);
       await browser.screenshot(join(SHOTS, `editor-${theme}.png`));
     }
+    // The focus ring, which only a focused editor shows: one click, then the shot.
+    await browser.click('.cm-content', 0);
+    await browser.evaluate("document.querySelector('.cm-editor .cm-scroller').scrollLeft = 0");
+    await browser.settle();
+    await browser.evaluate("document.documentElement.dataset.theme = document.documentElement.dataset.themeChoice = 'light'");
+    await browser.settle();
+    await browser.screenshot(join(SHOTS, 'editor-focus.png'));
     await browser.evaluate("document.documentElement.dataset.theme = document.documentElement.dataset.themeChoice = 'light'");
   }
 

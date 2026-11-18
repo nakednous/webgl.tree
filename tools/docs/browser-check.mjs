@@ -87,8 +87,16 @@ const isEditorAsset = (path) => /\/assets\/editor\.[0-9a-f]+\.js$/.test(path);
 function serve() {
   const server = createServer((req, res) => {
     const url = decodeURIComponent((req.url || '/').split('?')[0]);
-    const mode = url.startsWith('/__slow/') ? 'slow' : url.startsWith('/__absent/') ? 'absent' : 'plain';
+    const mode = url.startsWith('/__slow/') ? 'slow'
+      : url.startsWith('/__absent/') ? 'absent'
+      : url.startsWith('/__broken/') ? 'broken'
+      : 'plain';
     const path = mode === 'plain' ? url : url.slice(`/__${mode}/`.length - 1);
+    if (mode === 'plain' && path === '/__long.html') {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      res.end(longPage(asset));
+      return;
+    }
     const file = normalize(join(site, path === '/' ? '/index.html' : path));
     if (!file.startsWith(site) || !existsSync(file)) {
       res.writeHead(404); res.end('not found'); return;
@@ -100,6 +108,8 @@ function serve() {
     };
     if (mode === 'slow' && isEditorAsset(path)) setTimeout(send, SLOW_MS); else send();
   });
+  const asset = readdirSync(join(site, 'assets')).find((name) => /^editor\.[0-9a-f]+\.js$/.test(name));
+
   return new Promise((done) => server.listen(0, '127.0.0.1', () => done({
     url: `http://127.0.0.1:${server.address().port}`,
     close: () => new Promise((closed) => server.close(closed)),
@@ -119,6 +129,22 @@ function findChrome() {
   return null;
 }
 
+/** A synthetic long document, served beside the site, for the viewport checks. */
+const LONG_LINES = 600;
+function longPage(asset) {
+  const source = `Array.from({ length: ${LONG_LINES} }, (_, i) => 'const v' + i + ' = ' + i + ';').join('\\n')`;
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>a synthetic long document</title></head>
+<body><div class="editor"><textarea class="source" aria-label="a synthetic long document"></textarea></div>
+<script type="module">
+  const textarea = document.querySelector('textarea.source');
+  textarea.value = ${source};
+  const { mountEditor } = await import('./assets/${asset}');
+  mountEditor(textarea, {});
+</script>
+</body></html>`;
+}
+
 /** The recording seam every page gets before its own scripts run. */
 const PROBE_SCRIPT = `
   window.__probe = { editorAt: null, editors: 0, seen: 0, errors: [], console: [] };
@@ -134,6 +160,18 @@ const PROBE_SCRIPT = `
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
+  // The /__broken/ prefix: the editor's insertion throws, so the adapter's own
+  // failure path runs and the runner has to carry its marker up to the figure.
+  if (location.pathname.startsWith('/__broken/')) {
+    for (const name of ['appendChild', 'insertBefore']) {
+      const original = Node.prototype[name];
+      Node.prototype[name] = function (node, ...rest) {
+        const intoEditor = this.closest && this.closest('.editor');
+        if (intoEditor && node instanceof Element) throw new Error('forced mount failure');
+        return original.call(this, node, ...rest);
+      };
+    }
+  }
 `;
 
 /** A headless browser at device scale factor 1, its own profile, extensions off. */
@@ -606,20 +644,59 @@ async function pagePass(browser, base, page, { detailed }) {
     `widest ${boxes.reduce((n, b) => Math.max(n, b.scrollWidth - b.clientWidth), 0)} px over`);
 
   // ── the last line of the longest sketch is inside the box ─────────────────
+  // The longest sketch is longer than the viewport margin, so its first render is
+  // a truncation; that is the behaviour the design now states. Walk the page
+  // towards the sketch's end until its last line is rendered, and report how far
+  // that took — a line that never appears is a defect, not a viewport.
+  const walk = await browser.evaluate(`(async () => {
+    const figures = [...document.querySelectorAll('figure.example')];
+    const pick = figures.reduce((a, b) => {
+      const count = (figure) => figure.querySelector('textarea.source').defaultValue.split('\\n').length;
+      return count(b) > count(a) ? b : a;
+    }, figures[0]);
+    const editor = pick.querySelector('.cm-editor');
+    const sketch = pick.querySelector('textarea.source').defaultValue.split('\\n');
+    const expected = sketch[sketch.length - 1];
+    const before = editor.querySelectorAll('.cm-line').length;
+    editor.scrollIntoView({ block: 'start' });
+    let steps = 0, present = false;
+    for (let i = 0; i < 12 && !present; i += 1) {
+      const lines = [...editor.querySelectorAll('.cm-line')];
+      present = lines.some((line) => line.textContent === expected);
+      if (present) break;
+      window.scrollBy(0, 120);
+      steps += 1;
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+    }
+    return { present, steps, expected, before, total: sketch.length };
+  })()`);
+  check(`${page}: walking the page reaches the longest sketch's last line`,
+    walk.present === true, `${walk.steps} step(s) of 120 px, last line ${JSON.stringify(walk.expected)}`);
+
   const clip = await browser.evaluate(`(() => {
-    const editors = [...document.querySelectorAll('.cm-editor')];
-    const editor = editors.reduce((a, b) => (b.querySelectorAll('.cm-line').length > a.querySelectorAll('.cm-line').length ? b : a), editors[0]);
-    editor.scrollIntoView({ block: 'end' });
+    const figures = [...document.querySelectorAll('figure.example')];
+    const pick = figures.reduce((a, b) => {
+      const count = (figure) => figure.querySelector('textarea.source').defaultValue.split('\\n').length;
+      return count(b) > count(a) ? b : a;
+    }, figures[0]);
+    const editor = pick.querySelector('.cm-editor');
+    const expected = pick.querySelector('textarea.source').defaultValue.split('\\n').length;
     const lines = editor.querySelectorAll('.cm-line');
     const last = lines[lines.length - 1];
     const box = editor.getBoundingClientRect();
     const rect = last.getBoundingClientRect();
-    return { lines: lines.length, inside: rect.bottom <= box.bottom + 1 && rect.top >= box.top - 1,
+    const sketch = pick.querySelector('textarea.source').defaultValue.split('\\n');
+    return { expected, rendered: lines.length,
+             last: last.textContent, expectedLast: sketch[sketch.length - 1],
+             inside: rect.bottom <= box.bottom + 1 && rect.top >= box.top - 1,
              bottom: Math.round(rect.bottom), boxBottom: Math.round(box.bottom) };
   })()`);
-  check(`${page}: the longest sketch reaches its last line unclipped`, clip.inside,
-    `${clip.lines} line(s), last bottom ${clip.bottom} in a box of ${clip.boxBottom}`);
-
+  check(`${page}: the longest sketch is longer than the viewport the editor renders`,
+    walk.before < walk.total,
+    `${walk.before} of ${walk.total} line(s) rendered before scrolling`);
+  check(`${page}: the longest sketch's last line sits inside its box once reached`,
+    clip.inside && clip.last === clip.expectedLast,
+    `last "${clip.last}" (expected "${clip.expectedLast}"), bottom ${clip.bottom} in a box of ${clip.boxBottom}`);
   if (SHOTS) {
     mkdirSync(SHOTS, { recursive: true });
     await browser.navigate(url);
@@ -647,6 +724,62 @@ async function pagePass(browser, base, page, { detailed }) {
   return { mounted, light, dark, clip, longestBox };
 }
 
+/**
+ * A synthetic 600-line document: the viewport the design now states, and the find
+ * behaviour it accepts. Rendered lines are compared with the document's lines, so
+ * nothing here trusts the rendered DOM to be the document.
+ */
+async function longPass(browser, base) {
+  await browser.navigate(`${base}/__long.html`);
+  await browser.waitFor("document.querySelectorAll('.cm-editor').length === 1",
+    'the synthetic long document', 20000);
+  await browser.settle(3);
+  const head = await browser.evaluate(`(() => {
+    const editor = document.querySelector('.cm-editor');
+    return {
+      rendered: editor.querySelectorAll('.cm-line').length,
+      document: document.querySelector('textarea.source').value.split('\\n').length,
+      findAvailable: typeof window.find === 'function',
+    };
+  })()`);
+  check('a long document renders its window viewport plus a margin, not all of it',
+    head.rendered < head.document, `${head.rendered} of ${head.document} line(s) rendered`);
+  check('the document is longer than the sketch the pilot measured',
+    head.document >= 600, `${head.document} line(s)`);
+
+  const findBefore = head.findAvailable
+    ? await browser.evaluate("window.find('const v599 = 599;') === true") : null;
+  if (head.findAvailable) {
+    check('browser find cannot reach a line the editor has not rendered', findBefore === false,
+      `find before scrolling: ${findBefore}`);
+  }
+
+  await browser.evaluate(`(() => {
+    const editor = document.querySelector('.cm-editor');
+    const box = editor.getBoundingClientRect();
+    window.scrollTo(0, window.scrollY + box.bottom - window.innerHeight + 4);
+  })()`);
+  await browser.settle(8);
+  const tail = await browser.evaluate(`(() => {
+    const editor = document.querySelector('.cm-editor');
+    const lines = editor.querySelectorAll('.cm-line');
+    const last = lines[lines.length - 1];
+    const box = editor.getBoundingClientRect();
+    const rect = last.getBoundingClientRect();
+    return { text: last.textContent, rendered: lines.length,
+             inside: rect.bottom <= box.bottom + 1 && rect.top >= box.top - 1 };
+  })()`);
+  check('scrolling to the end renders the document\'s own last line, inside its box',
+    tail.text === 'const v599 = 599;' && tail.inside, `last "${tail.text}", ${tail.rendered} line(s) rendered`);
+
+  const findAfter = head.findAvailable
+    ? await browser.evaluate("window.find('const v599 = 599;') === true") : null;
+  if (head.findAvailable) {
+    check('once rendered, browser find reaches it', findAfter === true, `find after scrolling: ${findAfter}`);
+  }
+  return { head, tail, findBefore, findAfter };
+}
+
 /** A page whose editor import is delayed: the edit lands before the mount. */
 async function delayedPass(browser, base, page) {
   await browser.navigate(`${base}/__slow/${page}`);
@@ -665,6 +798,41 @@ async function delayedPass(browser, base, page) {
   const after = await browser.evaluate(`({ doc: ${readDoc(0)}, source: document.querySelector('textarea.source').defaultValue })`);
   check(`${page}: Reset still restores the served source after a delayed mount`, after.doc === after.source);
   return { kept, same: after.doc === after.source };
+}
+
+/**
+ * A mount that fails inside the adapter: the adapter catches it, marks its
+ * textarea and returns normally, so only the runner can carry the marker to the
+ * figure. The insertion is made to throw by the injected seam, on `/__broken/`.
+ */
+async function brokenPass(browser, base, page) {
+  await browser.navigate(`${base}/__broken/${page}`);
+  await browser.settle(6);
+  await sleep(400);
+  const state = await browser.evaluate(`({
+    editors: document.querySelectorAll('.cm-editor').length,
+    figures: document.querySelectorAll('figure.example').length,
+    figureMarks: document.querySelectorAll('figure.example[data-editor="fallback"]').length,
+    textareaMarks: document.querySelectorAll('textarea.source[data-editor="fallback"]').length,
+    visible: [...document.querySelectorAll('textarea.source')].filter((t) => t.getBoundingClientRect().height > 0).length,
+    sources: document.querySelectorAll('textarea.source').length,
+    errors: window.__probe.errors.slice(),
+  })`);
+  check(`${page}: a mount handled inside the adapter leaves no editor`,
+    state.editors === 0, `${state.editors} editor(s)`);
+  check(`${page}: the adapter marks every textarea it failed on`,
+    state.textareaMarks === state.sources, `${state.textareaMarks}/${state.sources}`);
+  check(`${page}: the runner mirrors that marker to every figure`,
+    state.figureMarks === state.figures, `${state.figureMarks}/${state.figures}`);
+  check(`${page}: every textarea stays visible`, state.visible === state.sources, `${state.visible}/${state.sources}`);
+  check(`${page}: no unhandled rejection from a handled mount failure`, state.errors.length === 0,
+    state.errors.slice(0, 2).join(' | '));
+  await browser.click('figure.example [data-run]');
+  await browser.settle(3);
+  const runs = await browser.evaluate(
+    "document.querySelectorAll('figure.example [data-stage] iframe').length > 0");
+  check(`${page}: Run still runs from the textarea`, runs === true);
+  return state;
 }
 
 /** The editor asset 404s: every textarea stays usable, nothing throws. */
@@ -735,6 +903,8 @@ async function main() {
                 'from navigation start (measured, not gated)');
 
     detail.module = await modulePass(browser, server.url);
+    detail.long = await longPass(browser, server.url);
+    detail.broken = await brokenPass(browser, server.url, longest);
     detail.delayed = await delayedPass(browser, server.url, longest);
     detail.fallback = await fallbackPass(browser, server.url, longest);
 

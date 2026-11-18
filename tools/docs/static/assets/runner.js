@@ -150,6 +150,9 @@ function start(cfg) {
         r.editor = null;
         r.figure.dataset.editor = 'fallback';
       }
+      // The adapter handles a mount failure itself and hands back the textarea's
+      // verbs; its marker is the one to carry up to the figure.
+      if (r.textarea.dataset.editor === 'fallback') r.figure.dataset.editor = 'fallback';
     }
   }
 

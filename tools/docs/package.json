@@ -5,6 +5,6 @@
   "type": "module",
   "description": "The API site's editor dependency: @nakednous/scholion and nothing else.",
   "dependencies": {
-    "@nakednous/scholion": "file:../../../scholion"
+    "@nakednous/scholion": "file:../../../../scholion"
   }
 }

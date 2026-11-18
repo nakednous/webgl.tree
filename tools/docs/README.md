@@ -22,12 +22,12 @@ tools/docs/
 Until the package is published its dependency is a `file:` path, so the order matters:
 
 ```
-cd ../scholion && npm run build     # the package's bundle, dist/editor.<hash>.js + dist/manifest.json
+cd ../../../scholion && npm run build   # the package's bundle, dist/editor.<hash>.js + dist/manifest.json
 npm install --prefix tools/docs     # links the package into tools/docs/node_modules
 npm run docs                        # copies the hashed asset into site/assets and writes every page
 ```
 
-The library's root `package.json` and lockfile are untouched: `npm run docs` reads the nested install
+`scholion` is at `~/books/scholion` — the one package both instances' sites share. The library's root `package.json` and lockfile are untouched: `npm run docs` reads the nested install
 and nothing else. The workspace workflow that deploys the site installs the root and then the nested
 project (`npm ci --prefix tools/docs`); with a `file:` dependency that step resolves only on a machine
 that has the package checkout, which is why this project is not deployed yet — the first publish comes

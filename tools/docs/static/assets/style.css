@@ -27,11 +27,51 @@
   --sidebar: 15rem;
   --stage-w: 400px;
   --cm-font: var(--mono);      /* the editor's monospace stack */
+  --cm-font-size: .85rem;      /* the size and leading of the page's own code fences */
+  --cm-line-height: 1.45;
 }
 
 /* The resolved theme, and the reader's choice; both are written by the head script. */
 :root[data-theme="light"] { color-scheme: light; }
-:root[data-theme="dark"]  { color-scheme: dark; --cm-comment-style: italic; }
+:root[data-theme="dark"]  {
+  color-scheme: dark;
+  --cm-comment-style: italic;
+  --cm-keyword:   #e08fd0;
+  --cm-atom:      #e08fd0;
+  --cm-builtin:   #e08fd0;
+  --cm-tag:       #e08fd0;
+  --cm-def:       #3daee9;
+  --cm-type:      #3daee9;
+  --cm-variable-2: #e4e6ea;
+  --cm-property:  #e4e6ea;
+  --cm-operator:  #e4e6ea;
+  --cm-number:    #9a9ea7;
+  --cm-comment:   #9a9ea7;
+  --cm-string:    #8fd8a8;
+  --cm-string-2:  #f0a46a;
+  --cm-invalid:   #ff7676;
+}
+
+/* The editor's tokens are the page's own roles: the accent the tables already use
+   for types, the accent links use for definitions, the muted grey for numbers and
+   comments, one green for a string. Every role clears 4.5:1 on --bg-2, in both
+   themes, and the probe measures it. */
+:root {
+  --cm-keyword:   #a2338a;   /* --accent-2 */
+  --cm-atom:      #a2338a;
+  --cm-builtin:   #a2338a;
+  --cm-tag:       #a2338a;
+  --cm-def:       #0077a7;   /* --accent */
+  --cm-type:      #0077a7;
+  --cm-variable-2: #1c1e22;  /* --fg */
+  --cm-property:  #1c1e22;
+  --cm-operator:  #1c1e22;
+  --cm-number:    #646870;   /* --muted */
+  --cm-comment:   #646870;
+  --cm-string:    #1c6b3f;
+  --cm-string-2:  #b7400a;
+  --cm-invalid:   #9f1d20;
+}
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
 
@@ -342,19 +382,22 @@ footer {
 
 /* ── The editor ─────────────────────────────────────────────────────────── */
 
-/* The package's editor draws its own surface, caret, gutters, selection and
-   tokens from the variables its theme reads: `--bg-2`, `--fg`, `--border` and
-   `--muted` here, and its own `--cm-*` tokens with a light/dark pair behind
-   each. What the site still states is the box and the type. */
+/* The package's editor draws the surface, the caret, the gutters, the selection
+   and every token role from variables: its structure reads this page's `--bg-2`,
+   `--fg`, `--border` and `--muted`, and its token roles read the `--cm-*` values
+   stated above — the package ships no palette of its own, so a site that states
+   none gets monochrome code. What the site states is the values, the box and the
+   type. */
 
 .editor .cm-editor {
   border: 1px solid var(--border);
   border-radius: 6px;
-  font: .8125rem/1.5 var(--mono);
   color: var(--fg);
   background: var(--bg-2);
 }
-.editor .cm-editor.cm-focused { outline: none; }
+/* The insets of a fence, so an example and a fence read as the same code. */
+.editor .cm-content { padding: 8px 0; }
+.editor .cm-line { padding: 0 16px 0 8px; }
 
 /* ── Collapsed rail (wide screens) ──────────────────────────────────────── */
 

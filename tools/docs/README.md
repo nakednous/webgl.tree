@@ -38,6 +38,10 @@ first.
   runner wires every figure's Run and Reset to the textarea, then imports the editor bundle — only on a
   page that has a `textarea.source` — mounts it, and marks a figure `data-editor="fallback"` if the
   import or the mount fails.
+- The editor's look is split: the package ships the structure and the token-role mapping, this site
+  states the values — `--cm-*` per role out of its own accent and neutral variables, and the type,
+  leading and insets of its code fences. The probe measures every role's contrast against the editor's
+  background in both themes; nothing about a palette lives in the package.
 - `assets/editor.LICENSES.txt`: the bundled packages' notices, copied out of the release manifest and
   linked from every page's footer. The bundle carries no legal comments of its own, so this file is the
   notice a reader can reach.

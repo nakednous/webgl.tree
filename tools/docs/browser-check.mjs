@@ -363,6 +363,35 @@ const THEME_STYLES = `(() => {
   };
 })()`;
 
+/**
+ * The roles the site states, and a WCAG contrast ratio measured in the page: each
+ * role's colour is resolved through a probe element, so a declared hex, an `oklch()`
+ * or a variable chain all reach the same comparison.
+ */
+const CONTRAST = `(() => {
+  const roles = ['keyword','atom','number','string','string-2','comment','def','variable-2',
+                 'property','operator','builtin','type','tag','invalid'];
+  const editor = document.querySelector('.cm-editor');
+  const background = getComputedStyle(editor).backgroundColor;
+  const probe = document.createElement('span');
+  editor.append(probe);
+  const parse = (value) => {
+    const m = /rgba?\\(([^)]+)\\)/.exec(value);
+    const [r, g, b] = m ? m[1].split(',').map(Number) : [0, 0, 0];
+    const channel = (c) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  };
+  const out = [];
+  for (const role of roles) {
+    probe.style.color = 'var(--cm-' + role + ', currentColor)';
+    const colour = getComputedStyle(probe).color;
+    const [a, b] = [parse(colour), parse(background)].sort((x, y) => y - x);
+    out.push({ role, colour, ratio: Number(((a + 0.05) / (b + 0.05)).toFixed(2)) });
+  }
+  probe.remove();
+  return { background, roles: out };
+})()`;
+
 // ── The run ─────────────────────────────────────────────────────────────────
 
 const results = [];
@@ -615,6 +644,51 @@ async function pagePass(browser, base, page, { detailed }) {
   await browser.click('.side-foot .theme-toggle');
   await browser.click('.side-foot [data-theme-choice="light"]');
   await browser.settle();
+
+  // ── every token role against the editor's own background, both themes ─────
+  await browser.evaluate("document.documentElement.dataset.theme = document.documentElement.dataset.themeChoice = 'light'");
+  await browser.settle();
+  const lightRoles = await browser.evaluate(CONTRAST);
+  await browser.evaluate("document.documentElement.dataset.theme = document.documentElement.dataset.themeChoice = 'dark'");
+  await browser.settle();
+  const darkRoles = await browser.evaluate(CONTRAST);
+  for (const [theme, measured] of [['light', lightRoles], ['dark', darkRoles]]) {
+    const weak = measured.roles.filter((role) => role.ratio < 4.5);
+    check(`${page}: every token role clears 4.5:1 in ${theme}`,
+      weak.length === 0,
+      `${measured.roles.length} role(s), weakest ${Math.min(...measured.roles.map((r) => r.ratio))}:1` +
+      (weak.length ? ` — ${weak.map((r) => `${r.role} ${r.ratio}`).join(', ')}` : ''));
+  }
+  await browser.evaluate("document.documentElement.dataset.theme = document.documentElement.dataset.themeChoice = 'light'");
+  await browser.settle();
+
+  // ── the focus ring: a keyboard focus draws it, and only then ──────────────
+  await browser.click('.cm-content', 0);
+  await browser.settle();
+  await browser.key({ ...browser.KEYS.tab, modifiers: ['shift'] });
+  await browser.key({ ...browser.KEYS.tab });
+  await browser.settle();
+  const ring = await browser.evaluate(`(() => {
+    const editor = document.querySelector('.cm-editor');
+    const style = getComputedStyle(editor);
+    return { width: style.outlineWidth, style: style.outlineStyle, colour: style.outlineColor,
+             focusVisible: editor.querySelector('.cm-content').matches(':focus-visible') };
+  })()`);
+  check(`${page}: a focused editor draws the site's ring`, ring.style !== 'none' && parseFloat(ring.width) >= 2,
+    `${ring.style} ${ring.width} ${ring.colour}${ring.focusVisible ? '' : ' (no :focus-visible)'}`);
+
+  // How the engine treats a pointer click is worth knowing, not gating: a text
+  // field may match `:focus-visible` however it was focused.
+  await browser.click('.cm-content', 0);
+  await browser.settle();
+  const clickRing = await browser.evaluate(`(() => {
+    const editor = document.querySelector('.cm-editor');
+    const style = getComputedStyle(editor);
+    return { style: style.outlineStyle, width: style.outlineWidth,
+             focusVisible: editor.querySelector('.cm-content').matches(':focus-visible') };
+  })()`);
+  console.log(`· ${page}: after a pointer click the ring is ${clickRing.style} ${clickRing.width}` +
+              `${clickRing.focusVisible ? ', and :focus-visible matches' : ', and :focus-visible does not match'}`);
 
   // ── growth and wrapping, on every editor of the page ──────────────────────
   const boxes = await browser.evaluate(`(() => {
@@ -930,12 +1004,17 @@ async function main() {
   }
 
   const failed = results.filter((r) => !r.ok);
-  const assetName = readdirSync(join(site, 'assets')).find((name) => /^editor\.[0-9a-f]+\.js$/.test(name));
+  // The asset the pages actually name — not merely one that exists beside them.
+  const configBlock = /<script type="application\/json" id="docs-config">([\s\S]*?)<\/script>/
+    .exec(readFileSync(join(site, 'index.html'), 'utf8'));
+  const assetUrl = configBlock ? JSON.parse(configBlock[1]).editor : '';
+  const assetName = assetUrl.split('/').pop();
   const assetSize = assetName ? statSync(join(site, 'assets', assetName)).size : 0;
+  const retained = readdirSync(join(site, 'assets')).filter((name) => /^editor\.[0-9a-f]+\.js$/.test(name)).length;
   console.log(`\n[probe] ${results.length - failed.length}/${results.length} check(s) passed`);
   console.log(`[probe] site: ${stat.pages} page(s), ${stat.examples} example(s); longest ${stat.longest.page} ` +
               `(${stat.longest.examples} example(s), ${k(stat.longest.bytes)} of source)`);
-  console.log(`[probe] editor: ${assetName} ${k(assetSize)}, ready at ` +
+  console.log(`[probe] editor: ${assetName} ${k(assetSize)} (${retained} retained), ready at ` +
               `${Math.round((detail.longest && detail.longest.mounted.ready) || 0)} ms`);
   if (failed.length) for (const one of failed) console.error(`[probe] ✗ ${one.name}${one.detail ? ` — ${one.detail}` : ''}`);
   if (JSON_OUT) console.log(JSON.stringify({ results, site: stat, detail }, null, 2));

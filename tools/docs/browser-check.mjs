@@ -428,7 +428,10 @@ function staticPass() {
       if (sourceBytes > longest.bytes) longest = { page, bytes: sourceBytes, examples: sources.length };
     }
     if (!/editor\.[0-9a-f]+\.js$/.test(cfg.editor ?? '')) problems.push(`${page}: editor URL "${cfg.editor}"`);
-    if (!html.includes('<script type="module" src="assets/runner.js">')) problems.push(`${page}: runner is not a module`);
+    // The runner's URL may carry the build stamp: `?v=<hash>` after the file.
+    if (!/<script type="module" src="assets\/runner\.js(\?v=[0-9a-f]+)?">/.test(html)) {
+      problems.push(`${page}: runner is not a module`);
+    }
     if (/codemirror/i.test(html)) problems.push(`${page}: a CodeMirror reference survives`);
     if (/webglTreeDocs/.test(html)) problems.push(`${page}: the page still writes a global config`);
   }

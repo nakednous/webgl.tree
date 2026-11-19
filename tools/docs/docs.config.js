@@ -144,6 +144,14 @@ export default {
   },
 
   /**
+   * Every site-local asset URL carries the build stamp: a rebuild has to
+   * invalidate what the browser cached, or the new pages run the old client —
+   * the sheet, the scripts and the index the page fetches, and the builds the
+   * frames import. A CDN pin is someone else's file and carries none.
+   */
+  stamp: true,
+
+  /**
    * The runner's contract: the page's config block, its `{tokens}` resolved by
    * the build — `{bundle}`, `{module}`, `{index}`, `{editor}`, `{dep:<name>}`,
    * `{pin:<name>:<field>}`.
@@ -154,15 +162,15 @@ export default {
     chrome: 'assets/chrome.js',    // theme picker and collapsible navigation
     config: {
       twgl: '{pin:twgl.js:script}',
-      lib: './{bundle}',
+      lib: './{bundle}?v={stamp}',
       imports: {
         'twgl.js': '{pin:twgl.js:module}',
-        'webgl.tree': './{module}',
-        '@nakednous/tree': './{dep:@nakednous/tree}',
-        '@nakednous/host': './{dep:@nakednous/host}',
-        '@nakednous/idiom': './{dep:@nakednous/idiom}',
+        'webgl.tree': './{module}?v={stamp}',
+        '@nakednous/tree': './{dep:@nakednous/tree}?v={stamp}',
+        '@nakednous/host': './{dep:@nakednous/host}?v={stamp}',
+        '@nakednous/idiom': './{dep:@nakednous/idiom}?v={stamp}',
       },
-      index: '{index}',
+      index: '{index}?v={stamp}',
       editor: '{editor}',
     },
   },

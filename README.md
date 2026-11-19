@@ -1,5 +1,7 @@
 # `webgl.tree`
 
+[![npm](https://img.shields.io/badge/dynamic/json?url=https://registry.npmjs.org/webgl.tree&query=$.dist-tags.latest&label=npm&color=0077a7&logo=npm&logoColor=white)](https://www.npmjs.com/package/webgl.tree)
+
 [`@nakednous/tree`](https://github.com/nakednous/tree) and
 [`@nakednous/host`](https://github.com/nakednous/host) on raw WebGL2 through
 [twgl](https://twgljs.org/), with the composites on
@@ -28,7 +30,7 @@ Two script tags, twgl.js first; webgl.tree reads the global `twgl` and exposes t
 const { createCanvas, setCamera, bind, draw, axes, tree } = webglTree
 
 const gl = createCanvas(400, 300)                              // buffer at the display's pixel density
-const prog = twgl.createProgramInfo(gl, [vert, frag])          // twgl's verb, not re-wrapped
+const prog = twgl.createProgramInfo(gl, [vert, frag])          // twgl's own call, not re-wrapped
 const mesh = twgl.createBufferInfoFromArrays(gl, arrays)
 const cam = tree.createCamera({ eye: [0, 0, 800] })
 
@@ -42,7 +44,7 @@ function frame() {
 ```
 
 `tree` holds the math — matrices, quaternions, camera states, visibility; `host` holds the canvas
-host — handles, tracks, orbit, devices, media. The composite verbs — targets, passes, the `pipe`
+host — handles, tracks, orbit, devices, media. The composites — targets, passes, the `pipe`
 chain, `state`, the draw policy — are the bridges' shared layer,
 [`@nakednous/idiom`](https://www.npmjs.com/package/@nakednous/idiom), which the bridge re-exports
 under the names below. For ES modules, `npm install webgl.tree twgl.js`
@@ -53,6 +55,19 @@ and `import { setCamera, axes, tree } from 'webgl.tree'`; the ES build keeps twg
 import map resolves them.
 
 ---
+
+## The API site
+
+[`jpcharalambosh.co/webgl.tree`](https://jpcharalambosh.co/webgl.tree/) — the reference, generated from
+this source; one page per module, the same page set and anchors as its WebGPU twin, each figure the
+twin's figure, and every example a classic sketch over the global `webglTree`.
+
+| | |
+|---|---|
+| build | `npm run docs`, after `npm run build`, into `site/` |
+| pages | one per module of the surface below, and the ones the bridge re-exports |
+| gate | the docs build against the IIFE build — every name, signature, example and fence — and density at 1 and 2 |
+| deploy | `pages.yml` on `main`: the release tag's code, or `main`'s when only documentation moved |
 
 ## Architecture
 
@@ -80,7 +95,7 @@ dependency of the bridge: a panel writes its `u*` names through a target sink, a
 reads them. Dependency direction is strict: `{ tree, host, idiom } ← webgl.tree`; nothing flows
 back. The layer supplies the composites and calls a backend; this package supplies that backend —
 `src/backend.js`, twgl's ceremony behind the layer's twenty-five members and four conventions — and
-the raw verbs a hero writes itself.
+the raw calls a hero writes itself.
 
 **What it takes from twgl.** The ceremony, and nothing else:
 [`twgl.createProgramInfo`][twgl.createProgramInfo] ·
@@ -108,7 +123,7 @@ Every export is a free function taking `gl` first; per-context state lives in a 
 by `gl`, created on first use and released by [`dispose(gl)`][dispose] — the record is the layer's,
 extended with what only the bridge needs. Options object last. The
 [API site](https://jpcharalambosh.co/webgl.tree/) documents every name below, one page per
-module — the links go there; a composite's page documents the verb, its implementation lives in
+module — the links go there; a composite's page documents the call, its implementation lives in
 `@nakednous/idiom`.
 
 | call | what it does |
@@ -122,7 +137,7 @@ module — the links go there; a composite's page documents the verb, its implem
 | [`program(gl, frag)`][program] · [`fullscreen(gl)`][fullscreen] · [`filter(gl, prog, uniforms, input)`][filter] | a fullscreen pass from its fragment stage; the covering quad, `aTexCoord` bottom-up; bind + draw with the depth test off, `input` — a texture, or a target's `.color` — bound to **every sampler the program declares and the bag leaves unset** (a stage names its own input: `uSource`, `uScene`, its own word; the bag wins where it sets one, so a second texture travels there), `uResolution` and `uTexelSize` filled iff declared; returns the bound program, or `null` where nothing was drawn — a `program(gl, frag)` that failed to compile is `null`, and a pass handed one runs nothing rather than half of something |
 | [`image(gl, tex, { x, y, width, height, tint, mask, blend })`][image] | a texture onto the current target, rect in target pixels from the bottom-left, default cover; [`RED`][RED] … masks, [`NORMAL`][NORMAL] · [`ADD`][ADD] · [`MULTIPLY`][MULTIPLY] blends |
 | [`pipe(gl, source, passes, opts)`][pipe] · [`releasePipe(gl, key)`][releasePipe] | the ping-pong chain over cached colour-only targets; passes are programs or `{ program, uniforms }`, each run with the chain's texture as its input argument; `display`, `key`, `ping` / `pong`, `clear`, `clearFn`, [`draw`][draw] |
-| [`state(gl, opts)`][state] | a target pair holding **one value across frames**: `read` — the side the last pass wrote — `write`, and `count`, all read-only because a pair and a counter that can be assigned apart are the drift the verb prevents; `pass(prog, uniforms)` runs a fullscreen pass from `read` into `write` with the read side as its input, swaps, counts, and restores the caller's target and viewport; `swap()` for a pass that draws geometry in; `reset()` clears both sides to `clear` and zeroes the count; `resize(w, h)`; `dispose()`; `renderTarget`'s sampling and format options only — one colour texture per side, no depth, no multisampling; **`state()` and `resize()` clear both sides as they make them** (a driver's fresh storage is undefined), and after that **nothing is cleared but by `reset()`** |
+| [`state(gl, opts)`][state] | a target pair holding **one value across frames**: `read` — the side the last pass wrote — `write`, and `count`, all read-only because a pair and a counter that can be assigned apart are the drift `state()` prevents; `pass(prog, uniforms)` runs a fullscreen pass from `read` into `write` with the read side as its input, swaps, counts, and restores the caller's target and viewport; `swap()` for a pass that draws geometry in; `reset()` clears both sides to `clear` and zeroes the count; `resize(w, h)`; `dispose()`; `renderTarget`'s sampling and format options only — one colour texture per side, no depth, no multisampling; **`state()` and `resize()` clear both sides as they make them** (a driver's fresh storage is undefined), and after that **nothing is cleared but by `reset()`** |
 | [`axes`][axes] · [`grid`][grid] · [`hermite`][hermite] · [`viewFrustum`][viewFrustum] · [`trackPath`][trackPath] · [`helmRig`][helmRig] · [`handleLocus`][handleLocus] · [`pane`][pane] | the scene gizmos over the core generators: `(gl, subject?, { M, color, bits, size, depth, width })`; [`viewFrustum`][viewFrustum] takes a camera state, a track or `{ mat4Eye, mat4Proj }` plus `nearTexture` / `farTexture`; [`trackPath`][trackPath] draws markers and `HANDLES`; [`helmRig`][helmRig] orients to the helm's frame and, with `{ x, y, size, tilt }`, composites a corner readout; [`handleLocus`][handleLocus] draws a host handle's dot, aim and locus |
 | [`lines(gl, segments, opts)`][lines] | the caller's own batch, drawn in one call: ten numbers a segment — `x0 y0 z0 x1 y1 z1 r g b a` — into a cache a context, `{ count, M, width, depth }`; alpha blended, `width` in logical pixels |
 | [`beginHUD(gl)`][beginHUD] · [`endHUD(gl)`][endHUD] · [`cross`][cross] · [`bullsEye`][bullsEye] | an orthographic camera over the viewport in y-down pixels with the depth test off; the two screen-space gizmos wrap themselves in it when called outside |
@@ -142,7 +157,7 @@ own shaders.
 ```
 setCamera(gl, cam)                 // 1  install V and P; the host's view bag follows
 if (!h.update()) orbit.update()    // 2  the host's handles, then the orbit on what they left
-bindFramebufferInfo(gl, target)    // 3  route a pass with twgl's verb; gl.clear is yours
+bindFramebufferInfo(gl, target)    // 3  route a pass with twgl's call; gl.clear is yours
 bind(gl, prog, uniforms)           // 4
 draw(gl, mesh, M)                  // 5  the declared transforms uploaded
 axes(gl) · trackPath(gl, track)    // 6  gizmos, each binding and restoring its own program
@@ -168,7 +183,7 @@ twgl sets the viewport on bind and every bridge call reads it back.
 | label anchors | tree → `idiom` → host | [`helmRig`][helmRig]'s `identify` anchors: the layer takes each to world space and states its id (`<cache name>:<index>`), and the bridge hands it to `host.labels` as a one-frame label |
 | uniforms bag | [ui](https://github.com/nakednous/ui) → bridge | a panel's target writes `u*` names; [`bind(gl, prog, bag)`][bind] reads them |
 | camera state | tree ↔ host ↔ bridge | plain data: a track, a helm, the orbit write it; the bridge only reads it |
-| the layer | bridge → `@nakednous/idiom` | the backend's twenty-five members and four conventions; every composite verb takes the context record, never `gl` |
+| the layer | bridge → `@nakednous/idiom` | the backend's twenty-five members and four conventions; every composite takes the context record, never `gl` |
 | id program | application → bridge | [`pick`][pick]'s `opts.program` for a displaced surface; `paint` sets its `uColor` |
 
 ---

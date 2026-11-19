@@ -1,6 +1,6 @@
 # `webgl.tree`
 
-[![npm](https://img.shields.io/badge/dynamic/json?url=https://registry.npmjs.org/webgl.tree&query=$.dist-tags.latest&label=npm&color=0077a7&logo=npm&logoColor=white)](https://www.npmjs.com/package/webgl.tree)
+[![npm](https://img.shields.io/badge/dynamic/json?url=https://registry.npmjs.org/webgl.tree&query=$.dist-tags.latest&label=npm&color=0077a7)](https://www.npmjs.com/package/webgl.tree)
 
 [`@nakednous/tree`](https://github.com/nakednous/tree) and
 [`@nakednous/host`](https://github.com/nakednous/host) on raw WebGL2 through
@@ -55,19 +55,6 @@ and `import { setCamera, axes, tree } from 'webgl.tree'`; the ES build keeps twg
 import map resolves them.
 
 ---
-
-## The API site
-
-[`jpcharalambosh.co/webgl.tree`](https://jpcharalambosh.co/webgl.tree/) — the reference, generated from
-this source; one page per module, the same page set and anchors as its WebGPU twin, each figure the
-twin's figure, and every example a classic sketch over the global `webglTree`.
-
-| | |
-|---|---|
-| build | `npm run docs`, after `npm run build`, into `site/` |
-| pages | one per module of the surface below, and the ones the bridge re-exports |
-| gate | the docs build against the IIFE build — every name, signature, example and fence — and density at 1 and 2 |
-| deploy | `pages.yml` on `main`: the release tag's code, or `main`'s when only documentation moved |
 
 ## Architecture
 
@@ -205,6 +192,21 @@ did not move, and on any canvas whose buffer is not its page size times the dens
 and `DENSITY_LIMIT=<n>` narrow the run to the figure being fixed, and a run that judges nothing — a browser
 without WebGL2 — fails rather than passing quietly. `npm run docs` comes first: the examples
 are served from `site/`, models and all.
+
+---
+
+## The API site
+
+[`jpcharalambosh.co/webgl.tree`](https://jpcharalambosh.co/webgl.tree/) — the reference, generated from
+this source; one page per module, the same page set and anchors as its WebGPU twin, each figure the
+twin's figure, and every example a classic sketch over the global `webglTree`.
+
+| | |
+|---|---|
+| build | `npm run docs`, after `npm run build`, into `site/` |
+| pages | one per documented module, the re-exported surface's included |
+| gate | the docs build against the IIFE build — every name, signature, example and fence — and density at 1 and 2 |
+| deploy | `pages.yml` on `main`: the release tag's code, or `main`'s when only documentation moved |
 
 ---
 

@@ -1,7 +1,5 @@
 # `webgl.tree`
 
-[![npm](https://img.shields.io/badge/dynamic/json?url=https://registry.npmjs.org/webgl.tree&query=$.dist-tags.latest&label=npm&color=0077a7)](https://www.npmjs.com/package/webgl.tree)
-
 [`@nakednous/tree`](https://github.com/nakednous/tree) and
 [`@nakednous/host`](https://github.com/nakednous/host) on raw WebGL2 through
 [twgl](https://twgljs.org/), with the composites on

@@ -40,7 +40,7 @@ function frame(ms) {
   cam.eye[0] = 215 * Math.sin(t)
   cam.eye[2] = 215 * Math.cos(t)
   gl.enable(gl.DEPTH_TEST)
-  gl.clearColor(0.075, 0.553, 0.459, 1)
+  gl.clearColor(0.024, 0.196, 0.282, 1)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   setCamera(gl, cam)
   axes(gl, { size: 100 })

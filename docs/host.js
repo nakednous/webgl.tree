@@ -30,7 +30,7 @@
  * const canvasHost = host.createHost(canvas, {
  *   onFrame: () => {
  *     gl.enable(gl.DEPTH_TEST)
- *     gl.clearColor(0.075, 0.553, 0.459, 1)
+ *     gl.clearColor(0.024, 0.196, 0.282, 1)
  *     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *     setCamera(gl, cam)
  *     h.update()
@@ -67,7 +67,7 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 80 })
@@ -99,7 +99,7 @@
  * function frame() {
  *   if (Math.floor(canvasHost.clock()) % 2 === 0) canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -143,7 +143,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -179,7 +179,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   track.handles.update()
@@ -217,7 +217,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -257,7 +257,7 @@
  *   canvasHost.tick(1 / 60)
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 50 })
@@ -294,7 +294,7 @@
  *   helm.feed(lin, ang)
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -338,7 +338,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -374,7 +374,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -414,7 +414,7 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, 0.6 * Math.sin(canvasHost.clock())), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { M, texture: tex })
@@ -447,7 +447,7 @@
  * video.ready.then(() => { tex = texture(gl, video.el) })
  *
  * function frame() {
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -485,7 +485,7 @@
  * }, 320, 96)
  * const tex = texture(gl, source)
  *
- * gl.clearColor(0.075, 0.553, 0.459, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
  * pane(gl, [-160, 48, 0], [160, 48, 0], [160, -48, 0], [-160, -48, 0], { texture: tex })
@@ -531,7 +531,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (torus) {
@@ -585,7 +585,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   tree.cameraOrbit(cam, 0.01, 0)
  *   setCamera(gl, cam)
@@ -630,7 +630,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   orbit.update()
@@ -655,7 +655,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (!h.update()) orbit.update()
@@ -691,7 +691,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (alive) orbit.update()
@@ -723,7 +723,7 @@
  * function frame() {
  *   const moved = orbit.update()
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: moved ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
@@ -754,7 +754,7 @@
  * function frame() {
  *   orbit.update()
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -789,7 +789,7 @@
  * function frame() {
  *   if (orbit) orbit.update()
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -828,7 +828,7 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
@@ -869,7 +869,7 @@
  * })
  *
  * function frame() {
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -902,7 +902,7 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
@@ -938,7 +938,7 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
@@ -975,7 +975,7 @@
  * function frame() {
  *   tree.cameraOrbit(cam, 0.01, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { size: 100, bits: tree.X | tree.Y | tree.Z })
@@ -1006,7 +1006,7 @@
  * canvas.addEventListener('click', () => (video.el.paused ? video.start() : video.stop()))
  *
  * function frame() {
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -1037,7 +1037,7 @@
  * video.ready.then(() => { tex = texture(gl, video.el); readyAt = canvasHost.clock() })
  *
  * function frame() {
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -1071,7 +1071,7 @@
  * canvas.addEventListener('click', () => { if (live) { video.dispose(); live = false } })
  *
  * function frame() {
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -1109,7 +1109,7 @@
  *   canvasHost.tick(1 / 60)
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
@@ -1148,7 +1148,7 @@
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
  *   tree.mat4FromTRS(R, read.pos[0], read.pos[1] + 60, read.pos[2], ...read.rot, 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 40 })
@@ -1185,7 +1185,7 @@
  *   canvasHost.tick(1 / 60)
  *   helm.activity(rates)
  *   const peak = Math.max(1, ...rates.map(Math.abs))
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   beginHUD(gl)

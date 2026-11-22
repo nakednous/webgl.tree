@@ -82,7 +82,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   const grabbed = h.update()
@@ -114,7 +114,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (h.update() && Math.hypot(...h.value(v)) > 100) h.cancel()
@@ -149,7 +149,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -188,7 +188,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -229,7 +229,7 @@
  *     center = [target[0] - 60 * Math.cos(a), 0, target[2] - 60 * Math.sin(a)]
  *   }
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -260,7 +260,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -293,7 +293,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -329,7 +329,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -360,7 +360,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -395,7 +395,7 @@
  *   c[0] = 70 * Math.cos(t); c[2] = 70 * Math.sin(t)
  *   h.anchor(c)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -429,7 +429,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.075, 0.553, 0.459, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (h) h.update()

@@ -36,9 +36,19 @@
 const LIVE_MAX = 8;
 const NEAR     = '300px 0px';   // mount when the figure is within this margin of the viewport
 const FAR      = '1500px 0px';  // unmount once it is beyond this margin
-const STAGE_BG = '#0a0a0e';     // fixed stage — never the page theme
 
 const attr = (s) => String(s).replace(/"/g, '&quot;');
+
+/**
+ * The stage's colour, read from the page's own `--stage`: the sheet states it
+ * once, for the box the figure shows and for the frame's backdrop, so the
+ * frame never flashes a colour the sketch is not about to paint. It is fixed —
+ * never the page theme — and it is the colour every example clears to.
+ */
+function stageColor() {
+  const value = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim();
+  return value || '#0a0a0e';
+}
 
 /** The page's configuration: read once from the JSON block, or null. */
 function readConfig() {
@@ -52,13 +62,13 @@ function readConfig() {
 }
 
 /** The iframe document: pinned twgl and the bundle, or the import map, then the example. */
-function srcdoc(cfg, code, module) {
+function srcdoc(cfg, code, module, stage) {
   const head = module
     ? `<script type="importmap">${JSON.stringify({ imports: cfg.imports })}</script>`
     : `<script src="${attr(cfg.twgl)}"></script>\n<script src="${attr(cfg.lib)}"></script>`;
   return `<!doctype html>
 <html><head><meta charset="utf-8">
-<style>html,body{margin:0;overflow:hidden;background:${STAGE_BG}}canvas{display:block}</style>
+<style>html,body{margin:0;overflow:hidden;background:${stage}}canvas{display:block}</style>
 ${head}
 </head><body>
 <script${module ? ' type="module"' : ''}>
@@ -103,7 +113,7 @@ function start(cfg) {
     f.className = 'sketch';
     f.title     = r.title;
     f.setAttribute('allow', 'hid' in navigator ? 'hid; camera' : 'camera');   // a browser without WebHID warns on the name
-    f.srcdoc = srcdoc(cfg, code(r), r.module);
+    f.srcdoc = srcdoc(cfg, code(r), r.module, stageColor());
     r.stage.replaceChildren(f);
     r.frame = f;
     live.push(r);

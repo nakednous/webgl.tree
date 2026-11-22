@@ -4,7 +4,8 @@
  * The palette is one accent per theme, at one hue: the deep tone carries a
  * white page, the bright tone carries #131417. `light-dark()` resolves every
  * pair against `color-scheme`, which is the only thing the theme picker
- * changes; the sketch stage is a fixed dark box either way.
+ * changes; the sketch stage is a fixed dark box either way, and it is the
+ * accent's own hue, so a sketch reads as this site's.
  *
  * The rail is a flex column: head, search, a scrolling navigation and the
  * theme switch at its foot. It hides as a whole on a wide screen and folds its
@@ -21,7 +22,11 @@
   --accent:     light-dark(#0077a7, #3daee9);   /* links, the current page's marker, Run */
   --accent-ink: light-dark(#ffffff, #0a0b0d);   /* the label on an accent fill */
   --accent-2:   light-dark(#a2338a, #e08fd0);   /* types */
-  --stage:    #0a0a0e;                          /* fixed — not themed */
+  /* The sketch stage: the accent's own hue, deep enough that every mark an
+     example draws clears 3:1 on it — the white grid, the amber marks, the
+     axes' red, lime and dodger blue. Every example clears to this colour, and
+     the runner paints its frame with it; fixed — never themed. */
+  --stage:    #063248;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sidebar: 15rem;

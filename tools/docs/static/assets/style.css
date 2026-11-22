@@ -22,13 +22,11 @@
   --accent:     light-dark(#0077a7, #3daee9);   /* links, the current page's marker, Run */
   --accent-ink: light-dark(#ffffff, #0a0b0d);   /* the label on an accent fill */
   --accent-2:   light-dark(#a2338a, #e08fd0);   /* types */
-  /* The sketch stage: the accent's own hue, a paper plate for the day it is
-     read on, and every mark an example draws is stated in the page's ink, a
-     dark gold or a deep magenta so it clears 3:1 on it. Every example clears
-     to this colour, and the runner paints its frame with it; fixed — never
-     themed. The plate carries a hairline, because a paper ground is a hair
-     away from the page's own. */
-  --stage:    #e0fcff;
+  /* The sketch stage: the accent's own hue, deep enough that every mark an
+     example draws clears 3:1 on it — the white grid, the amber marks, the
+     axes' red, lime and dodger blue. Every example clears to this colour, and
+     the runner paints its frame with it; fixed — never themed. */
+  --stage:    #063248;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sidebar: 15rem;
@@ -364,8 +362,6 @@ footer {
   aspect-ratio: 4 / 3;
   border-radius: 6px;
   background: var(--stage);
-  /* the plate's edge: a paper ground is one step from the page's own */
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 26%, var(--border));
   overflow: hidden;
 }
 .stage iframe { display: block; width: 100%; height: 100%; border: 0; }

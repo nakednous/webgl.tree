@@ -65,10 +65,10 @@ export function installCamera(ctx, V, P) {
  * const P = tree.cameraProj(tree.mat4(), cam, 400 / 300)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, V, P)
- * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { size: 100 })
  * @example
  * <caption>A camera state circling the axes, one turn every 6.3 seconds.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
@@ -81,10 +81,10 @@ export function installCamera(ctx, V, P) {
  *   cam.eye[0] = 215 * Math.sin(t)
  *   cam.eye[2] = 215 * Math.cos(t)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 100 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

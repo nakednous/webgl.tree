@@ -79,10 +79,10 @@ export { targetSpecs } from './backend.js';
  * const small = renderTarget(gl, { width: 100, height: 75 })
  * twgl.bindFramebufferInfo(gl, small)
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
- * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
  * image(gl, small.color)
@@ -99,10 +99,10 @@ export { targetSpecs } from './backend.js';
  * for (const target of [plain, smooth]) {
  *   twgl.bindFramebufferInfo(gl, target)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam, { aspect: 100 / 150 })
- *   axes(gl, { size: 100, width: 2, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 100, width: 2 })
  * }
  * smooth.resolve()
  *

@@ -15,7 +15,7 @@
  * @memberof tree
  * @returns {Float64Array}
  * @example
- * <caption>Planes made once and refilled every frame as the ink frustum turns: the small axes, fixed at (60, 0, 0), are drawn in their colors while inside it and gold while outside.</caption>
+ * <caption>Planes made once and refilled every frame as the white frustum turns: the small axes, fixed at (60, 0, 0), are drawn in their colors while inside it and yellow while outside.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -29,11 +29,11 @@
  *   tree.cameraPlanes(pl, lens, 4 / 3)
  *   const inside = tree.pointVisibility(pl, 60, 0, 0) === tree.VISIBLE
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, inside ? { M, size: 20 } : { M, size: 20, semantic: false, color: [0.541, 0.416, 0, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, inside ? { M, size: 20 } : { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -103,12 +103,12 @@
  * @param {number} pz
  * @returns {number} `tree.VISIBLE` or `tree.INVISIBLE`.
  * @example
- * <caption>A point sweeps across the ink frustum through its axis, 120 from its eye: the small axes on it are drawn in their colors while it tests visible — while |x| stays under 66.3, the frustum's half width there — and gold otherwise.</caption>
+ * <caption>A point sweeps across the white frustum through its axis, 120 from its eye: the small axes on it are drawn in their colors while it tests visible — while |x| stays under 66.3, the frustum's half width there — and yellow otherwise.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
  * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
@@ -119,11 +119,11 @@
  *   tree.mat4FromTranslation(M, x, 0, 0)
  *   const v = tree.pointVisibility(planes, x, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, v === tree.VISIBLE ? { M, size: 20 } : { M, size: 20, semantic: false, color: [0.541, 0.416, 0, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, v === tree.VISIBLE ? { M, size: 20 } : { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
  *   out.textContent = 'x ' + x.toFixed(1)
  *   requestAnimationFrame(frame)
  * }
@@ -141,12 +141,12 @@
  * @param {number} radius
  * @returns {number} `tree.VISIBLE`, `tree.SEMIVISIBLE` or `tree.INVISIBLE`.
  * @example
- * <caption>A sphere of radius 30 sweeps across the frustum: ink while wholly inside, gold while it crosses a side plane, magenta once wholly outside — the readout names the state.</caption>
+ * <caption>A sphere of radius 30 sweeps across the frustum: white while wholly inside, yellow while it crosses a side plane, magenta once wholly outside — the readout names the state.</caption>
  * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
  * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
@@ -167,10 +167,10 @@
  *   const c = [150 * Math.sin(ms / 1500), 0, 0]
  *   const v = tree.sphereVisibility(planes, c[0], c[1], c[2], 30)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
  *   ring(c, 30, [1, 0, 0], [0, 1, 0], colors[v])
  *   ring(c, 30, [1, 0, 0], [0, 0, 1], colors[v])
  *   ring(c, 30, [0, 1, 0], [0, 0, 1], colors[v])
@@ -193,12 +193,12 @@
  * @param {number} z1  Maximum corner z.
  * @returns {number} `tree.VISIBLE`, `tree.SEMIVISIBLE` or `tree.INVISIBLE`.
  * @example
- * <caption>A 50-unit box sweeps across the frustum: ink while wholly inside, gold while it crosses a side plane, magenta once wholly outside — the readout names the state.</caption>
+ * <caption>A 50-unit box sweeps across the frustum: white while wholly inside, yellow while it crosses a side plane, magenta once wholly outside — the readout names the state.</caption>
  * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [0, 300, 250] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
  * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
@@ -219,10 +219,10 @@
  *   const x = 150 * Math.sin(ms / 1500)
  *   const v = tree.boxVisibility(planes, x - 25, -25, -25, x + 25, 25, 25)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
  *   box(x - 25, -25, -25, x + 25, 25, 25, colors[v])
  *   out.textContent = names[v]
  *   requestAnimationFrame(frame)
@@ -241,12 +241,12 @@
  * @param {number} pz
  * @returns {number}
  * @example
- * <caption>A point slides along the ink frustum's axis between z = 120 and z = −100: the small axes on it are drawn magenta while its distance to the near plane is positive — past z = 100 — gold while its distance to the far plane is — past z = −80 — and in their colors in between.</caption>
+ * <caption>A point slides along the white frustum's axis between z = 120 and z = −100: the small axes on it are drawn magenta while its distance to the near plane is positive — past z = 100 — yellow while its distance to the far plane is — past z = −80 — and in their colors in between.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const cam = tree.createCamera({ eye: [300, 200, 150], center: [0, 0, 10] })
  * const lens = tree.createCamera({ eye: [0, 0, 120], center: [0, 0, 0], fov: Math.PI / 4, near: 20, far: 200 })
  * const planes = tree.cameraPlanes(tree.planes(), lens, 4 / 3)
@@ -256,10 +256,10 @@
  *   const z = 10 + 110 * Math.sin(ms / 1500)
  *   tree.mat4FromTranslation(M, 0, 0, z)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
  *   const nearOut = tree.distanceToPlane(planes, tree.PLANE_NEAR, 0, 0, z) > 0
  *   const farOut = tree.distanceToPlane(planes, tree.PLANE_FAR, 0, 0, z) > 0
  *   const color = nearOut ? [1, 0.31, 0.85, 1] : farOut ? [1, 0.82, 0.4, 1] : null

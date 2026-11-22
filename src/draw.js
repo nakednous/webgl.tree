@@ -87,7 +87,7 @@ export function uploadTransforms(ctx, prog, M) {
  * @param {object} [uniforms]  Values by name, as twgl.setUniforms takes them.
  * @returns {object} prog
  * @example
- * <caption>One program bound twice: a magenta cube on the left, a gold one on the right.</caption>
+ * <caption>One program bound twice: a magenta cube on the left, a yellow one on the right.</caption>
  * const { createCanvas, setCamera, bind, draw, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -114,7 +114,7 @@ export function uploadTransforms(ctx, prog, M) {
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [76, 102, 204] }))
  * bind(gl, prog, { uColor: [1, 0.31, 0.85] })
@@ -162,7 +162,7 @@ export function bind(gl, prog, uniforms) {
  *        `{ numComponents, data }` or a typed array twgl can size.
  * @returns {object} A twgl bufferInfo, what draw takes.
  * @example
- * <caption>A model file: host.loadMesh reads models/torus.obj into a mesh, and the gold torus tumbles about X, lit by the file's normals.</caption>
+ * <caption>A model file: host.loadMesh reads models/torus.obj into a mesh, and the yellow torus tumbles about X, lit by the file's normals.</caption>
  * const { createCanvas, setCamera, bind, buffer, draw, host, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -198,7 +198,7 @@ export function bind(gl, prog, uniforms) {
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 1, 0, 0, ms / 1000)
@@ -241,7 +241,7 @@ export function bind(gl, prog, uniforms) {
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.09, 0.1, 0.13, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 0.4, 1, 0.2, ms / 1400)
@@ -297,7 +297,7 @@ export function bind(gl, prog, uniforms) {
  * const q = tree.quat()
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.09, 0.1, 0.13, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1600)
@@ -354,7 +354,7 @@ export function buffer(gl, arrays) {
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -378,7 +378,7 @@ export function draw(gl, obj, M, opts) {
  * @param {ArrayLike<number>} [M]  A model mat4; omitted for identity.
  * @param {{ mode?:number, count?:number, offset?:number }} [opts]
  * @example
- * <caption>A field of ten gold cubes from one call, spaced by gl_InstanceID, and a magenta cube drawn beside it under the same camera — the camera is installed once for both.</caption>
+ * <caption>A field of ten yellow cubes from one call, spaced by gl_InstanceID, and a magenta cube drawn beside it under the same camera — the camera is installed once for both.</caption>
  * const { createCanvas, setCamera, bind, draw, drawInstanced, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -410,7 +410,7 @@ export function draw(gl, obj, M, opts) {
  * const M = tree.mat4()
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [99, 131, 263] }))
  * bind(gl, prog, { uColor: [1, 0.82, 0.4], uSpread: 1 })

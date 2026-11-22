@@ -111,7 +111,7 @@ function _dispatch(view, from, to) {
  * @param {string|Float32Array|number[]} to  A space name, or the frame the point is read into (its inverse is taken per call).
  * @returns {number[]|null} out, or null when `to` is a singular frame.
  * @example
- * <caption>The tip of the spinning x axis, mapped from world space to logical pixels: the ink cross drawn there stays on it.</caption>
+ * <caption>The tip of the spinning x axis, mapped from world space to logical pixels: the white cross drawn there stays on it.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapLocation, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -123,13 +123,13 @@ function _dispatch(view, from, to) {
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4MulPoint(tip, M, 100, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 100 })
  *   mapLocation(gl, screen, tip[0], tip[1], tip[2], tree.WORLD, tree.SCREEN)
  *   beginHUD(gl)
- *   cross(gl, { x: screen[0], y: screen[1], size: 24, color: [0.11, 0.118, 0.133, 1] })
+ *   cross(gl, { x: screen[0], y: screen[1], size: 24, color: [1, 1, 1, 1] })
  *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }
@@ -146,13 +146,13 @@ function _dispatch(view, from, to) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 100 })
  *   mapLocation(gl, screen, 100, 0, 0, M, tree.SCREEN)
  *   beginHUD(gl)
- *   cross(gl, { x: screen[0], y: screen[1], size: 24, color: [0.11, 0.118, 0.133, 1] })
+ *   cross(gl, { x: screen[0], y: screen[1], size: 24, color: [1, 1, 1, 1] })
  *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }
@@ -179,7 +179,7 @@ export function mapLocation(gl, out, x, y, z, from, to) {
  * @param {string|Float32Array|number[]} to  A space name, or the frame the direction is read into (its inverse is taken per call).
  * @returns {number[]|null} out, or null when `to` is a singular frame.
  * @example
- * <caption>The spinning x axis's direction, mapped from world space to the screen: the ink cross, placed 80 pixels from the center along it, rides over the red axis.</caption>
+ * <caption>The spinning x axis's direction, mapped from world space to the screen: the white cross, placed 80 pixels from the center along it, rides over the red axis.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mapDirection, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -191,14 +191,14 @@ export function mapLocation(gl, out, x, y, z, from, to) {
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4MulDir(d, M, 1, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 120, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 120 })
  *   mapDirection(gl, onScreen, d[0], d[1], d[2], tree.WORLD, tree.SCREEN)
  *   const len = Math.hypot(onScreen[0], onScreen[1]) || 1
  *   beginHUD(gl)
- *   cross(gl, { x: 200 + 80 * onScreen[0] / len, y: 150 + 80 * onScreen[1] / len, size: 20, color: [0.11, 0.118, 0.133, 1] })
+ *   cross(gl, { x: 200 + 80 * onScreen[0] / len, y: 150 + 80 * onScreen[1] / len, size: 20, color: [1, 1, 1, 1] })
  *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }
@@ -232,15 +232,15 @@ export function mapDirection(gl, out, dx, dy, dz, from, to) {
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 150, subdivisions: 15, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 150, subdivisions: 15, color: [1, 1, 1, 1] })
  *   if (unproject(gl, origin, dir, px, py) && dir[1] < 0) {
  *     const s = -origin[1] / dir[1]
  *     tree.mat4FromTranslation(M, origin[0] + s * dir[0], 0, origin[2] + s * dir[2])
  *   }
- *   axes(gl, { M, size: 25, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 25 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -270,7 +270,7 @@ export function unproject(gl, outO, outD, sx, sy) {
  * out vec4 outColor;
  * void main() {
  *   float d = distance(gl_FragCoord.xy, uMouse);
- *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.878, 0.988, 1), smoothstep(38.0, 42.0, d)), 1.0);
+ *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.024, 0.196, 0.282), smoothstep(38.0, 42.0, d)), 1.0);
  * }`)
  * const uniforms = { uMouse: tree.vec2() }
  * fragCoord(gl, uniforms.uMouse, 200, 150)
@@ -295,7 +295,7 @@ export function fragCoord(gl, out, x, y) {
  * @param {number} eyeZ  The eye-space z of the depth measured.
  * @returns {number}
  * @example
- * <caption>The eye dollies between 200 and 600 from the grid, whose cells are 20 units: a ink cross sized 20 ÷ pixelRatio pixels spans exactly one cell at every distance.</caption>
+ * <caption>The eye dollies between 200 and 600 from the grid, whose cells are 20 units: a white cross sized 20 ÷ pixelRatio pixels spans exactly one cell at every distance.</caption>
  * const { createCanvas, setCamera, grid, beginHUD, endHUD, cross, pixelRatio, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -305,12 +305,12 @@ export function fragCoord(gl, out, x, y) {
  *   const d = 400 + 200 * Math.sin(ms / 1000)
  *   cam.eye[2] = d
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
  *   beginHUD(gl)
- *   cross(gl, { x: 200, y: 150, size: 20 / pixelRatio(gl, -d), color: [0.541, 0.416, 0, 1] })
+ *   cross(gl, { x: 200, y: 150, size: 20 / pixelRatio(gl, -d), color: [1, 0.82, 0.4, 1] })
  *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }
@@ -327,7 +327,7 @@ export function pixelRatio(gl, eyeZ) {
  * @param {Float32Array|number[]} out
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>W · P · V takes the spinning x axis's tip straight to logical pixels, where the ink cross is drawn over it.</caption>
+ * <caption>W · P · V takes the spinning x axis's tip straight to logical pixels, where the white cross is drawn over it.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, viewOf, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -338,14 +338,14 @@ export function pixelRatio(gl, eyeZ) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 100 })
  *   tree.mat4Mul(WPV, mat4Viewport(gl, W), viewOf(gl).mat4PV)
  *   tree.mat4MulPoint(tip, tree.mat4Mul(WPV, WPV, M), 100, 0, 0)
  *   beginHUD(gl)
- *   cross(gl, { x: tip[0], y: tip[1], size: 24, color: [0.11, 0.118, 0.133, 1] })
+ *   cross(gl, { x: tip[0], y: tip[1], size: 24, color: [1, 1, 1, 1] })
  *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }

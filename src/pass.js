@@ -96,7 +96,7 @@ export function program(gl, frag) {
  * out vec4 outColor;
  * void main() {
  *   float cell = mod(floor(vTexCoord.x * 8.0) + floor(vTexCoord.y * 6.0), 2.0);
- *   outColor = vec4(mix(vec3(0.878, 0.988, 1), vec3(1.0, 0.82, 0.4), cell), 1.0);
+ *   outColor = vec4(mix(vec3(0.024, 0.196, 0.282), vec3(1.0, 0.82, 0.4), cell), 1.0);
  * }`)
  * bind(gl, checker)
  * draw(gl, fullscreen(gl))
@@ -124,7 +124,7 @@ export function fullscreen(gl) {
  *        nothing was drawn: a `program(gl, frag)` that failed to compile is null,
  *        and a pass handed one runs nothing rather than half of something.
  * @example
- * <caption>A stage that names its own input: uScene, bound by the argument, shown colour-inverted — the paper ground turns dark and every mark its complement.</caption>
+ * <caption>A stage that names its own input: uScene, bound by the argument, shown colour-inverted — the green ground turns pink.</caption>
  * const { createCanvas, setCamera, axes, renderTarget, program, filter, SCREEN, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -141,10 +141,10 @@ export function fullscreen(gl) {
  *
  * twgl.bindFramebufferInfo(gl, scene)
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
- * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
  * filter(gl, invert, null, scene)      // uScene takes the target's colour texture
@@ -194,7 +194,7 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  *        each carry that factor, and so does the example below — and a figure
  *        that draws with `filter()` or in world space never has the question.
  * @example
- * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of the canvas.</caption>
+ * <caption>A target as a 160 × 120 inset, 20 px in from the bottom-left corner of a yellow canvas.</caption>
  * const { createCanvas, setCamera, axes, renderTarget, image, SCREEN, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -202,13 +202,13 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  * const scene = renderTarget(gl)
  * twgl.bindFramebufferInfo(gl, scene)
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
- * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { size: 100 })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(1, 0.82, 0.4, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * const s = gl.drawingBufferWidth / gl.canvas.clientWidth   // the inset is given in logical pixels
  * image(gl, scene.color, { x: 20 * s, y: 20 * s, width: 160 * s, height: 120 * s })
@@ -259,7 +259,7 @@ export function passOf(entry) {
  *        texture as the pass's input argument).
  * @returns {object|null} The target holding the result, or null without passes.
  * @example
- * <caption>Pixelate into 20 × 20 cells, then invert: magenta turns green, gold blue, the paper ground dark.</caption>
+ * <caption>Pixelate into 20 × 20 cells, then invert: magenta turns green, yellow blue, the ground pink.</caption>
  * const { createCanvas, setCamera, pane, renderTarget, program, pipe, SCREEN, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -284,11 +284,11 @@ export function passOf(entry) {
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [0, 0, 170] }))
- * pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [0.635, 0.2, 0.541, 1] })
- * pane(gl, [-30, 70, 1], [110, 70, 1], [110, -70, 1], [-30, -70, 1], { color: [0.541, 0.416, 0, 1] })
+ * pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [1, 0.31, 0.85, 1] })
+ * pane(gl, [-30, 70, 1], [110, 70, 1], [110, -70, 1], [-30, -70, 1], { color: [1, 0.82, 0.4, 1] })
  *
  * twgl.bindFramebufferInfo(gl, SCREEN)
  * pipe(gl, scene, [{ program: pixelate, uniforms: { uCells: 20 } }, invert])
@@ -322,7 +322,7 @@ export function pipe(gl, source, passes, opts) {
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  *
  * const scene = renderTarget(gl)
  * const pixelate = program(gl, `#version 300 es
@@ -348,11 +348,11 @@ export function pipe(gl, source, passes, opts) {
  * function frame(ms) {
  *   const a = ms / 2000
  *   twgl.bindFramebufferInfo(gl, scene)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   pane(gl, ...square(-40, a, 0), { color: [0.635, 0.2, 0.541, 1] })
- *   pane(gl, ...square(40, -a, 1), { color: [0.541, 0.416, 0, 1] })
+ *   pane(gl, ...square(-40, a, 0), { color: [1, 0.31, 0.85, 1] })
+ *   pane(gl, ...square(40, -a, 1), { color: [1, 0.82, 0.4, 1] })
  *   twgl.bindFramebufferInfo(gl, SCREEN)
  *   if (effect) {
  *     const target = pipe(gl, scene, { program: pixelate, uniforms: { uCells: 16 } }, { key: 'fx' })

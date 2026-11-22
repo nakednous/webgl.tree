@@ -30,12 +30,12 @@
  * const canvasHost = host.createHost(canvas, {
  *   onFrame: () => {
  *     gl.enable(gl.DEPTH_TEST)
- *     gl.clearColor(0.878, 0.988, 1, 1)
+ *     gl.clearColor(0.024, 0.196, 0.282, 1)
  *     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *     setCamera(gl, cam)
  *     h.update()
- *     axes(gl, { size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
- *     handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
+ *     axes(gl, { size: 50 })
+ *     handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
  *   },
  * })
  * init(gl, { host: canvasHost })
@@ -67,10 +67,10 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 80 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -99,11 +99,11 @@
  * function frame() {
  *   if (Math.floor(canvasHost.clock()) % 2 === 0) canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   trackPath(gl, track, { bits: tree.PATH, color: [0.541, 0.416, 0, 1] })
- *   axes(gl, { M: track.mat4Model(M), size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 40 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -143,12 +143,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -163,7 +163,7 @@
  * @param {boolean|object} [opts.handles]  Draggable keyframe handles.
  * @returns {PoseTrack}
  * @example
- * <caption>A pose track with handles: drag a keyframe's dot and the gold path reshapes through it while the frame keeps riding it.</caption>
+ * <caption>A pose track with handles: drag a keyframe's dot and the yellow path reshapes through it while the frame keeps riding it.</caption>
  * const { createCanvas, init, setCamera, axes, trackPath, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -179,12 +179,12 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   track.handles.update()
- *   trackPath(gl, track, { bits: tree.PATH | tree.HANDLES, color: [0.541, 0.416, 0, 1] })
- *   axes(gl, { M: track.mat4Model(M), size: 30, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   trackPath(gl, track, { bits: tree.PATH | tree.HANDLES, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: track.mat4Model(M), size: 30 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -217,11 +217,11 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -257,10 +257,10 @@
  *   canvasHost.tick(1 / 60)
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 50 })
  *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -294,11 +294,11 @@
  *   helm.feed(lin, ang)
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -338,11 +338,11 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -374,11 +374,11 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   helmRig(gl, helm, { x: 330, y: 10, size: 60 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -414,7 +414,7 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, 0.6 * Math.sin(canvasHost.clock())), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { M, texture: tex })
@@ -447,7 +447,7 @@
  * video.ready.then(() => { tex = texture(gl, video.el) })
  *
  * function frame() {
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -485,7 +485,7 @@
  * }, 320, 96)
  * const tex = texture(gl, source)
  *
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
  * pane(gl, [-160, 48, 0], [160, 48, 0], [160, -48, 0], [-160, -48, 0], { texture: tex })
@@ -499,7 +499,7 @@
  * @param {{ format?:string, parse?:function, normals?:'smooth'|'flat'|false, fetch?:object }} [opts]  normals: left out, the file's are kept and a mesh without any gets smooth ones; 'smooth' and 'flat' always recompute; false computes nothing.
  * @returns {Promise<object>} The mesh.
  * @example
- * <caption>models/torus.obj, fetched into a mesh and uploaded once it arrives: the gold torus turns, lit by the file's own normals.</caption>
+ * <caption>models/torus.obj, fetched into a mesh and uploaded once it arrives: the yellow torus turns, lit by the file's own normals.</caption>
  * const { createCanvas, init, setCamera, bind, buffer, draw, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -531,7 +531,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (torus) {
@@ -585,7 +585,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   tree.cameraOrbit(cam, 0.01, 0)
  *   setCamera(gl, cam)
@@ -630,12 +630,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   orbit.update()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -655,13 +655,13 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (!h.update()) orbit.update()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
- *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -691,12 +691,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (alive) orbit.update()
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: alive ? [1, 1, 1, 1] : [1, 0.31, 0.85, 1] })
- *   axes(gl, { size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 50 })
  *   if (alive) canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -709,7 +709,7 @@
  * @memberof Orbit
  * @returns {boolean} Whether the camera moved.
  * @example
- * <caption>Drag to orbit: the grid is drawn gold on every frame update() reports that it moved the camera, ink when it did not.</caption>
+ * <caption>Drag to orbit: the grid is drawn yellow on every frame update() reports that it moved the camera, white when it did not.</caption>
  * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -723,11 +723,11 @@
  * function frame() {
  *   const moved = orbit.update()
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: moved ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
- *   axes(gl, { size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 50 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -754,11 +754,11 @@
  * function frame() {
  *   orbit.update()
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -789,11 +789,11 @@
  * function frame() {
  *   if (orbit) orbit.update()
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { M: tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1), size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1), size: 50 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -819,7 +819,7 @@
  *
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
- * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: #1c1e22; font: 14px monospace }'
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
@@ -828,10 +828,10 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
  *   ;[[110, 0, 0, 'x'], [0, 110, 0, 'y'], [0, 0, 110, 'z']].forEach(([x, y, z, name]) => {
  *     tree.mat4MulPoint(tip, M, x, y, z)
  *     canvasHost.labels.set(name, name, tip[0], tip[1], tip[2])
@@ -859,7 +859,7 @@
  *
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
- * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: #1c1e22; font: 14px monospace }'
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [0, 0, 300] })
@@ -869,10 +869,10 @@
  * })
  *
  * function frame() {
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
  *   canvasHost.labels.tick()
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -891,7 +891,7 @@
  *
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
- * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: #1c1e22; font: 14px monospace }'
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
@@ -902,10 +902,10 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
  *   shown.forEach(([x, y, z, name]) => {
  *     tree.mat4MulPoint(tip, M, x, y, z)
  *     canvasHost.labels.set(name, name, tip[0], tip[1], tip[2])
@@ -927,7 +927,7 @@
  *
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
- * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: #1c1e22; font: 14px monospace }'
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
@@ -938,10 +938,10 @@
  * function frame() {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 80, bits: tree.X | tree.Y | tree.Z })
  *   if (labelled) [[110, 0, 0, 'x'], [0, 110, 0, 'y'], [0, 0, 110, 'z']].forEach(([x, y, z, name]) => {
  *     tree.mat4MulPoint(tip, M, x, y, z)
  *     canvasHost.labels.set(name, name, tip[0], tip[1], tip[2])
@@ -964,7 +964,7 @@
  *
  * const gl = createCanvas(400, 300)
  * const canvas = gl.canvas
- * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: #1c1e22; font: 14px monospace }'
+ * document.head.appendChild(document.createElement('style')).textContent = '.host-label { color: white; font: 14px monospace }'
  * const canvasHost = host.createHost(canvas)
  * init(gl, { host: canvasHost })
  * const cam = tree.createCamera({ eye: [180, 150, 300] })
@@ -975,10 +975,10 @@
  * function frame() {
  *   tree.cameraOrbit(cam, 0.01, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 100, bits: tree.X | tree.Y | tree.Z, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 100, bits: tree.X | tree.Y | tree.Z })
  *   if (ticking) canvasHost.labels.tick()
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -1006,7 +1006,7 @@
  * canvas.addEventListener('click', () => (video.el.paused ? video.start() : video.stop()))
  *
  * function frame() {
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -1037,7 +1037,7 @@
  * video.ready.then(() => { tex = texture(gl, video.el); readyAt = canvasHost.clock() })
  *
  * function frame() {
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -1071,7 +1071,7 @@
  * canvas.addEventListener('click', () => { if (live) { video.dispose(); live = false } })
  *
  * function frame() {
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (tex) {
@@ -1109,11 +1109,11 @@
  *   canvasHost.tick(1 / 60)
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 30, semantic: false, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { M, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 40 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -1127,7 +1127,7 @@
  * @param {{ pos: number[], rot: number[] }} [out]
  * @returns {{ pos: number[], rot: number[] }} out
  * @example
- * <caption>A helm fed a synthetic sway drives a bound pose; eval() reads the same pose back out, and the gold copy of the frame drawn from it, 60 above, moves in step with the original.</caption>
+ * <caption>A helm fed a synthetic sway drives a bound pose; eval() reads the same pose back out, and the yellow copy of the frame drawn from it, 60 above, moves in step with the original.</caption>
  * const { createCanvas, init, setCamera, axes, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -1148,11 +1148,11 @@
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, 1, 1, 1)
  *   tree.mat4FromTRS(R, read.pos[0], read.pos[1] + 60, read.pos[2], ...read.rot, 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { M: R, size: 40, semantic: false, color: [0.541, 0.416, 0, 1] })
+ *   axes(gl, { M, size: 40 })
+ *   axes(gl, { M: R, size: 40, semantic: false, color: [1, 0.82, 0.4, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -1166,7 +1166,7 @@
  * @param {number[]} out6  6-element destination.
  * @returns {number[]} out6
  * @example
- * <caption>A helm fed a synthetic signal that cycles through its six channels: six ink crosses along the bottom rise with the rates activity() reports, one channel at a time.</caption>
+ * <caption>A helm fed a synthetic signal that cycles through its six channels: six white crosses along the bottom rise with the rates activity() reports, one channel at a time.</caption>
  * const { createCanvas, init, setCamera, beginHUD, endHUD, cross, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -1185,11 +1185,11 @@
  *   canvasHost.tick(1 / 60)
  *   helm.activity(rates)
  *   const peak = Math.max(1, ...rates.map(Math.abs))
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   beginHUD(gl)
- *   rates.forEach((r, i) => cross(gl, { x: 75 + 50 * i, y: 250 - 150 * Math.abs(r) / peak, size: 16, color: [0.11, 0.118, 0.133, 1] }))
+ *   rates.forEach((r, i) => cross(gl, { x: 75 + 50 * i, y: 250 - 150 * Math.abs(r) / peak, size: 16, color: [1, 1, 1, 1] }))
  *   endHUD(gl)
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)

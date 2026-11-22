@@ -31,11 +31,11 @@
  * const cam = tree.createCamera({ eye: [0, 200, 300], halfHeight: 150 })
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- * axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ * axes(gl, { size: 60 })
  */
 
 /**
@@ -59,11 +59,11 @@
  *   if (ms - last > 3000) { last = ms; tree.cameraCopy(cam, home) }
  *   tree.cameraOrbit(cam, 0.02, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -90,11 +90,11 @@
  *   tree.cameraOrbit(cam, 0.01, 0)
  *   tree.cameraView(V, cam)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, V, P)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -108,7 +108,7 @@
  * @param {object} cam
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>The frame of a second camera circling the origin sits at the apex of its ink frustum, blue pointing back, away from what it sees.</caption>
+ * <caption>The frame of a second camera circling the origin sits at the apex of its white frustum, blue pointing back, away from what it sees.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -120,12 +120,12 @@
  *   tree.cameraOrbit(other, 0.01, 0)
  *   tree.cameraEye(E, other)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 30, semantic: false, color: [0.11, 0.118, 0.133, 1] })
- *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { M: E, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 30, semantic: false, color: [1, 1, 1, 1] })
+ *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, { M: E, size: 40 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -154,10 +154,10 @@
  *   cam.fov = (50 + 30 * Math.sin(ms / 1000)) * Math.PI / 180
  *   tree.cameraProj(P, cam, 400 / 300)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, V, P)
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -184,11 +184,11 @@
  * function frame() {
  *   tree.cameraOrbit(cam, 0.01, 0.004, { maxEl: Math.PI / 3 })
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -216,11 +216,11 @@
  *   tree.cameraPan(cam, next - x, 0)
  *   x = next
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -242,18 +242,18 @@
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
  *
  * function frame(ms) {
  *   tree.cameraDolly(cam, Math.sin(ms / 1000) > 0 ? 0.99 : 1.01, { min: 150, max: 500 })
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   out.textContent = 'distance: ' + Math.hypot(cam.eye[0], cam.eye[1], cam.eye[2]).toFixed(0)
  *   requestAnimationFrame(frame)
  * }
@@ -282,11 +282,11 @@
  *   tree.qFromLookDir(pose.rot, [-pose.pos[0], -pose.pos[1], -pose.pos[2]])
  *   tree.cameraFromPose(cam, pose)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 60 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -300,7 +300,7 @@
  * @param {object} cam
  * @returns {{ pos: number[], rot: number[] }} pose
  * @example
- * <caption>The pose of a second, circling camera, drawn as a frame: at the apex of its ink frustum, blue pointing back.</caption>
+ * <caption>The pose of a second, circling camera, drawn as a frame: at the apex of its white frustum, blue pointing back.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -314,11 +314,11 @@
  *   tree.cameraToPose(pose, other)
  *   tree.mat4FromTRS(M, pose.pos[0], pose.pos[1], pose.pos[2], pose.rot[0], pose.rot[1], pose.rot[2], pose.rot[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, { M, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 40 })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -338,16 +338,16 @@
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
  * const E = tree.mat4Eye(tree.mat4(), 100, 60, 80, 0, 0, 0, 0, 1, 0)
  * const P = tree.cameraProj(tree.mat4(), tree.createCamera({ fov: Math.PI / 3, near: 1, far: 1000 }), 400 / 300)
  * const cam = tree.cameraFromMat4(tree.createCamera(), E, P)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.878, 0.988, 1, 1)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { size: 30, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { size: 30 })
  * out.textContent = 'eye ' + cam.eye.map((v) => v.toFixed(0)).join(', ') + '   fov ' + (cam.fov * 180 / Math.PI).toFixed(0) + '°'
  */
 
@@ -360,7 +360,7 @@
  * @param {number} aspect  Width over height.
  * @returns {Float64Array|null} planes, or null when the lens is degenerate.
  * @example
- * <caption>The small axes sweep through the ink frustum: drawn in their colors while tree.pointVisibility against its planes says visible, gold while it says not.</caption>
+ * <caption>The small axes sweep through the white frustum: drawn in their colors while tree.pointVisibility against its planes says visible, yellow while it says not.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -374,11 +374,11 @@
  *   tree.mat4FromTranslation(M, x, 0, 0)
  *   const seen = tree.pointVisibility(planes, x, 0, 0) === tree.VISIBLE
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
- *   axes(gl, seen ? { M, size: 20 } : { M, size: 20, semantic: false, color: [0.541, 0.416, 0, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   axes(gl, seen ? { M, size: 20 } : { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -393,7 +393,7 @@
  * @param {number} [aspect]  Width over height.
  * @returns {Float64Array|number[]|null} out24, or null when the lens is degenerate.
  * @example
- * <caption>The magenta pane fills the circling camera's far face, from corners 7, 6, 5 and 4 — top-left, top-right, bottom-right, bottom-left — inside its ink frustum.</caption>
+ * <caption>The magenta pane fills the circling camera's far face, from corners 7, 6, 5 and 4 — top-left, top-right, bottom-right, bottom-left — inside its white frustum.</caption>
  * const { createCanvas, setCamera, pane, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -406,11 +406,11 @@
  *   tree.cameraOrbit(other, 0.01, 0)
  *   tree.frustumCorners(c, other, 4 / 3)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.878, 0.988, 1, 1)
+ *   gl.clearColor(0.024, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
- *   pane(gl, corner(7), corner(6), corner(5), corner(4), { color: [0.635, 0.2, 0.541, 1] })
+ *   viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
+ *   pane(gl, corner(7), corner(6), corner(5), corner(4), { color: [1, 0.31, 0.85, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

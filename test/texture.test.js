@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createGL } from './gl.js';
-import { texture } from '../src/texture.js';
+import { texture, upload as refresh } from '../src/texture.js';
 import { contextOf } from '../src/context.js';
 
 // The texImage2D call twgl made, in its own argument order.
@@ -152,4 +152,28 @@ test('texture: flip reverses rows inside each slice and leaves the slice order a
   texture(gl, { data, width: 2, height: 2, depth: 2 }, { format: gl.RED, flip: true });
   const call = upload3(gl);
   assert.deepEqual([...call.src], [3, 4, 1, 2, 7, 8, 5, 6], 'slice 0 and slice 1 each turned over');
+});
+
+test('upload: a source of another size resizes the texture, and textureSize says so', () => {
+  const gl = createGL();
+  const ctx = contextOf(gl);
+  const tex = texture(gl, { data: new Uint8Array(2 * 2 * 4), width: 2, height: 2 });
+  const writes = () => gl.log.filter((l) => l[0] === 'texImage2D' || l[0] === 'texSubImage2D');
+  assert.deepEqual(ctx.backend.textureSize(ctx, tex), [2, 2]);
+
+  // a bigger source: the storage reallocates — texSubImage2D cannot resize (§7 #179)
+  refresh(gl, tex, { data: new Uint8Array(4 * 2 * 4), width: 4, height: 2 });
+  const grow = writes().at(-1);
+  assert.equal(grow[0], 'texImage2D', 'the resize reallocates rather than refreshing in place');
+  assert.deepEqual([grow[4], grow[5]], [4, 2], 'the storage holds the source\'s size');
+  assert.deepEqual(ctx.backend.textureSize(ctx, tex), [4, 2]);
+
+  // the same size refreshes in place again
+  refresh(gl, tex, { data: new Uint8Array(4 * 2 * 4), width: 4, height: 2 });
+  assert.equal(writes().at(-1)[0], 'texSubImage2D', 'a same-size upload is a refresh');
+  assert.deepEqual(ctx.backend.textureSize(ctx, tex), [4, 2]);
+
+  // and a smaller one reallocates back
+  refresh(gl, tex, { data: new Uint8Array(2 * 2 * 4), width: 2, height: 2 });
+  assert.deepEqual(ctx.backend.textureSize(ctx, tex), [2, 2]);
 });

@@ -86,6 +86,7 @@ export function createGL({ width = 640, height = 480 } = {}) {
     bindTexture(target, t) { gl.boundTexture = t; },
     deleteTexture(t) { log.push(['deleteTexture', t ? t.id : null]); },
     texImage2D(...args) { log.push(['texImage2D', ...args]); },
+    texSubImage2D(...args) { log.push(['texSubImage2D', ...args]); },
     texImage3D(...args) { log.push(['texImage3D', ...args]); },
     generateMipmap(target) { log.push(['generateMipmap', target]); },
     pixelStorei(pname, value) { log.push(['pixelStorei', pname, value]); },

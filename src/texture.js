@@ -83,7 +83,7 @@ import { contextOf } from './context.js';
  * const data = new Uint8Array([...magenta, ...yellow, ...yellow, ...magenta])
  * const tex = texture(gl, { data, width: 2, height: 2 }, { minMag: gl.NEAREST })
  *
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.031, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [0, 0, 205] }))
  * pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
@@ -140,7 +140,7 @@ export function texture(gl, source, opts) {
  *   g.fillStyle = '#ffd166'
  *   g.fillRect(0, 0, 256, 32)
  *   upload(gl, tex, board)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
@@ -194,7 +194,7 @@ export function upload(gl, tex, source) {
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: verts.position, indices: verts.indices })
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.031, 0.196, 0.282, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [126, 105, 168] }))
  * bind(gl, prog, { uCube: cube })

@@ -84,7 +84,7 @@ import { contextOf } from './context.js';
  * function frame(ms) {
  *   tree.mat4FromTRS(M, 0, 0, -260 + 180 * Math.cos(ms / 1400), 0, 0, 0, 1, 55, 55, 55)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   bind(gl, prog, { uColor: [0.5, 0.55, 0.6] })

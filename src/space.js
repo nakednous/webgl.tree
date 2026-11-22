@@ -123,7 +123,7 @@ function _dispatch(view, from, to) {
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4MulPoint(tip, M, 100, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 100 })
@@ -146,7 +146,7 @@ function _dispatch(view, from, to) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 100 })
@@ -191,7 +191,7 @@ export function mapLocation(gl, out, x, y, z, from, to) {
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4MulDir(d, M, 1, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 120 })
@@ -232,7 +232,7 @@ export function mapDirection(gl, out, dx, dy, dz, from, to) {
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 150, subdivisions: 15, color: [1, 1, 1, 1] })
@@ -270,7 +270,7 @@ export function unproject(gl, outO, outD, sx, sy) {
  * out vec4 outColor;
  * void main() {
  *   float d = distance(gl_FragCoord.xy, uMouse);
- *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.024, 0.196, 0.282), smoothstep(38.0, 42.0, d)), 1.0);
+ *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.031, 0.196, 0.282), smoothstep(38.0, 42.0, d)), 1.0);
  * }`)
  * const uniforms = { uMouse: tree.vec2() }
  * fragCoord(gl, uniforms.uMouse, 200, 150)
@@ -305,7 +305,7 @@ export function fragCoord(gl, out, x, y) {
  *   const d = 400 + 200 * Math.sin(ms / 1000)
  *   cam.eye[2] = d
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -338,7 +338,7 @@ export function pixelRatio(gl, eyeZ) {
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.031, 0.196, 0.282, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { M, size: 100 })

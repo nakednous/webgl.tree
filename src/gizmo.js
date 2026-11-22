@@ -146,11 +146,22 @@ function _drawTris(gl, ctx, g, M, color, texture, depth) {
  * const M = tree.mat4FromTRS(tree.mat4(), -150, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [97, 143, 229], center: [-75, 0, 0] }))
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { M, size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * @example
+ * <caption>The default semantic palette — red X, lime Y, dodger blue Z — drawn on the night plate its hues are chosen for; on this site's paper plate its lime reads 1.3:1, which is why the example above states each of its own.</caption>
+ * const { createCanvas, setCamera, axes, tree } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ *
+ * gl.enable(gl.DEPTH_TEST)
+ * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ * setCamera(gl, tree.createCamera({ eye: [164, 136, 218] }))
  * axes(gl, { size: 100 })
- * axes(gl, { M, size: 60 })
  */
 export function axes(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -173,11 +184,11 @@ export function axes(gl, opts) {
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [164, 136, 218] }))
- * grid(gl, { M: ground, size: 120, subdivisions: 10 })
- * axes(gl, { size: 100 })
+ * grid(gl, { M: ground, size: 120, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  */
 export function grid(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -201,11 +212,11 @@ export function grid(gl, opts) {
  * const gl = createCanvas(400, 300)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [0, 89, 220], center: [0, 40, 0] }))
- * axes(gl, { size: 100 })
- * hermite(gl, [-150, 0, 0], [0, 400, 0], [150, 0, 0], [0, -400, 0], { color: [1, 0.31, 0.85, 1] })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * hermite(gl, [-150, 0, 0], [0, 400, 0], [150, 0, 0], [0, -400, 0], { color: [0.635, 0.2, 0.541, 1] })
  */
 export function hermite(gl, p0, t0, p1, t1, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -245,7 +256,7 @@ export function hermite(gl, p0, t0, p1, t1, opts) {
  * g.fillText('twgl', 50, 70)
  * const tex = texture(gl, label)
  *
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [0, 0, 205] }))
  * pane(gl, [-100, 100, 0], [100, 100, 0], [100, -100, 0], [-100, -100, 0], { texture: tex })
@@ -287,11 +298,11 @@ const _aspect = (gl, o) => (o && typeof o.aspect === 'number') ? o.aspect : (gl.
  * const other = tree.createCamera({ eye: [-150, 80, 150], fov: Math.PI / 4, near: 30, far: 200 })
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [255, 212, 340] }))
- * axes(gl, { size: 60 })
- * viewFrustum(gl, { camera: other })
+ * axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * viewFrustum(gl, { camera: other, color: [0.11, 0.118, 0.133, 1] })
  */
 export function viewFrustum(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -357,10 +368,10 @@ function _cameraMarker(gl, kf, i, track, o) {
  * ])
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [164, 186, 243], center: [0, 50, 25] }))
- * trackPath(gl, track, { bits: tree.PATH | tree.CONTROLS, color: [1, 0.82, 0.4, 1] })
+ * trackPath(gl, track, { bits: tree.PATH | tree.CONTROLS, color: [0.541, 0.416, 0, 1] })
  */
 export function trackPath(gl, track, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -419,7 +430,7 @@ let _rigSeq = 0;
  *   helm.step(pose, Math.min((ms - last) / 1000, 0.05))
  *   last = ms
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   helmRig(gl, helm, { size: 100 })
@@ -535,12 +546,12 @@ const _du = [0, 0, 0], _dv = [0, 0, 0];
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   grid(gl, { M: ground, size: 120, subdivisions: 10 })
- *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 120, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -616,10 +627,10 @@ function _writeSegments(a, segments, n) {
  *     const a = 2 * Math.PI * i / N, b = 2 * Math.PI * (i + 1) / N, o = 10 * i
  *     batch[o] = 100 * Math.cos(a); batch[o + 1] = 100 * Math.sin(a); batch[o + 2] = 0
  *     batch[o + 3] = 100 * Math.cos(b); batch[o + 4] = 100 * Math.sin(b); batch[o + 5] = 0
- *     batch[o + 6] = 1; batch[o + 7] = 0.82; batch[o + 8] = 0.4; batch[o + 9] = 1
+ *     batch[o + 6] = 0.541; batch[o + 7] = 0.416; batch[o + 8] = 0; batch[o + 9] = 1
  *   }
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   lines(gl, batch, { width: 3 })
@@ -656,13 +667,13 @@ export function lines(gl, segments, opts) {
  * const gl = createCanvas(400, 300)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
- * axes(gl, { size: 100 })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  * beginHUD(gl)
- * cross(gl, { x: 40, y: 40, size: 30, color: [1, 0.31, 0.85, 1] })
- * bullsEye(gl, { x: 350, y: 250, size: 50, color: [1, 0.82, 0.4, 1] })
+ * cross(gl, { x: 40, y: 40, size: 30, color: [0.635, 0.2, 0.541, 1] })
+ * bullsEye(gl, { x: 350, y: 250, size: 50, color: [0.541, 0.416, 0, 1] })
  * endHUD(gl)
  */
 export function beginHUD(gl) {
@@ -673,19 +684,19 @@ export function beginHUD(gl) {
  * End HUD mode: the camera and the depth test come back.
  * @param {WebGL2RenderingContext} gl
  * @example
- * <caption>After endHUD the camera is back: axes drawn after it sit in the scene, over a yellow HUD bulls-eye at the centre.</caption>
+ * <caption>After endHUD the camera is back: axes drawn after it sit in the scene, over a gold HUD bulls-eye at the centre.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, bullsEye, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
  * beginHUD(gl)
- * bullsEye(gl, { x: 200, y: 150, size: 120, color: [1, 0.82, 0.4, 1] })
+ * bullsEye(gl, { x: 200, y: 150, size: 120, color: [0.541, 0.416, 0, 1] })
  * endHUD(gl)
- * axes(gl, { size: 100 })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  */
 export function endHUD(gl) {
   return endHUDOf(contextOf(gl));
@@ -709,11 +720,11 @@ function _inHud(gl, ctx, draw) {
  * const gl = createCanvas(400, 300)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
- * axes(gl, { size: 100 })
- * cross(gl, { x: 200, y: 150, size: 40, color: [1, 0.31, 0.85, 1] })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * cross(gl, { x: 200, y: 150, size: 40, color: [0.635, 0.2, 0.541, 1] })
  */
 export function cross(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};
@@ -733,10 +744,10 @@ export function cross(gl, opts) {
  *
  * const gl = createCanvas(400, 300)
  *
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
- * bullsEye(gl, { x: 120, y: 150, size: 100, shape: tree.CIRCLE, color: [1, 0.31, 0.85, 1] })
- * bullsEye(gl, { x: 280, y: 150, size: 100, shape: tree.SQUARE, color: [1, 0.82, 0.4, 1] })
+ * bullsEye(gl, { x: 120, y: 150, size: 100, shape: tree.CIRCLE, color: [0.635, 0.2, 0.541, 1] })
+ * bullsEye(gl, { x: 280, y: 150, size: 100, shape: tree.SQUARE, color: [0.541, 0.416, 0, 1] })
  */
 export function bullsEye(gl, opts) {
   const ctx = contextOf(gl), o = opts || {};

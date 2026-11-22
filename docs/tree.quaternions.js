@@ -26,10 +26,10 @@
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -58,10 +58,10 @@
  *   tree.qSet(q, 0, Math.sin(half), 0, Math.cos(half))
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -89,11 +89,11 @@
  *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4FromTRS(B, 80, 0, 0, copy[0], copy[1], copy[2], copy[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -107,7 +107,7 @@
  * @param {number[]} b
  * @returns {number}
  * @example
- * <caption>A spin's dot with the identity is cos(θ / 2), and its sign tells the hemisphere: the axes turn yellow while it is negative — from half a turn to one and a half turns — though every orientation repeats, from the other side.</caption>
+ * <caption>A spin's dot with the identity is cos(θ / 2), and its sign tells the hemisphere: the axes turn gold while it is negative — from half a turn to one and a half turns — though every orientation repeats, from the other side.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -118,10 +118,10 @@
  *   tree.qFromAxisAngle(q, 0, 1, 0, (ms / 2000) % (4 * Math.PI))
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, tree.qDot(q, identity) >= 0 ? { M, size: 80 } : { M, size: 80, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, tree.qDot(q, identity) >= 0 ? { M, size: 80 } : { M, size: 80, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -136,7 +136,7 @@
  * @param {number[]} b
  * @returns {number[]} out
  * @example
- * <caption>a · b, with a a fixed 45° tilt about x and b a spin about y: the frame's green axis stays on the yellow tilted line while the frame spins around it.</caption>
+ * <caption>a · b, with a a fixed 45° tilt about x and b a spin about y: the frame's green axis stays on the gold tilted line while the frame spins around it.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -150,11 +150,11 @@
  *   tree.qMul(q, tilt, spin)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   hermite(gl, [0, 0, 0], axis, axis, axis, { color: [1, 0.82, 0.4, 1] })
- *   axes(gl, { M, size: 80 })
+ *   hermite(gl, [0, 0, 0], axis, axis, axis, { color: [0.541, 0.416, 0, 1] })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -181,11 +181,11 @@
  *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4FromTRS(B, 80, 0, 0, c[0], c[1], c[2], c[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -198,7 +198,7 @@
  * @param {number[]} out
  * @returns {number[]} out
  * @example
- * <caption>(0, 2, 0, 2) normalized is a quarter turn about y: against the white axes, the frame drawn with it has its red x along −z.</caption>
+ * <caption>(0, 2, 0, 2) normalized is a quarter turn about y: against the ink axes, the frame drawn with it has its red x along −z.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -207,11 +207,14 @@
  * const M = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { size: 100, semantic: false, color: [1, 1, 1, 1] })
- * axes(gl, { M, size: 80 })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { bits: tree.X | tree._X, size: 80, semantic: false, color: [0.733, 0.137, 0.094, 1], M })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 80, semantic: false, color: [0.059, 0.42, 0.086, 1], M })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 80, semantic: false, color: [0.078, 0.333, 0.624, 1], M })
+ * axes(gl, { bits: tree.LABELS, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1], M })
  */
 
 /**
@@ -235,11 +238,11 @@
  *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4FromTRS(B, 80, 0, 0, n[0], n[1], n[2], n[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -254,7 +257,7 @@
  * @param {number[]} v  The vector.
  * @returns {number[]} out
  * @example
- * <caption>(100, 0, 0) rotated by a quaternion turning about the white (1, 1, 0) axis: the yellow line drawn to the result sweeps a cone around it.</caption>
+ * <caption>(100, 0, 0) rotated by a quaternion turning about the ink (1, 1, 0) axis: the gold line drawn to the result sweeps a cone around it.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -266,12 +269,12 @@
  *   tree.qFromAxisAngle(q, Math.SQRT1_2, Math.SQRT1_2, 0, ms / 1000)
  *   tree.qRotateVec3(v, q, [100, 0, 0])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 60 })
- *   hermite(gl, [0, 0, 0], axis, axis, axis, { color: [1, 1, 1, 1] })
- *   hermite(gl, [0, 0, 0], v, v, v, { color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, [0, 0, 0], axis, axis, axis, { color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, [0, 0, 0], v, v, v, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -302,12 +305,12 @@
  *   tree.qSlerp(q, a, b, 0.5 - 0.5 * Math.cos(ms / 1000))
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 45 })
- *   axes(gl, { M: B, size: 45 })
- *   axes(gl, { M, size: 45 })
+ *   axes(gl, { M: A, size: 45, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 45, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 45, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -323,7 +326,7 @@
  * @param {number} t  0 at a, 1 at b.
  * @returns {number[]} out
  * @example
- * <caption>Between the same two orientations, 170° apart: the yellow nlerp frame lags the white slerp frame in the first half, leads it in the second, and meets it at both ends and halfway.</caption>
+ * <caption>Between the same two orientations, 170° apart: the gold nlerp frame lags the ink slerp frame in the first half, leads it in the second, and meets it at both ends and halfway.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -339,11 +342,11 @@
  *   tree.mat4FromTRS(S, 0, 0, 0, s[0], s[1], s[2], s[3], 1, 1, 1)
  *   tree.mat4FromTRS(N, 0, 0, 0, n[0], n[1], n[2], n[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: S, size: 100, semantic: false, color: [1, 1, 1, 1] })
- *   axes(gl, { M: N, size: 100, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: S, size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: N, size: 100, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -360,7 +363,7 @@
  * @param {number} angle  Radians, right-handed.
  * @returns {number[]} out
  * @example
- * <caption>A quarter turn per second about the white (1, 1, 1) axis: the frame spins around the line.</caption>
+ * <caption>A quarter turn per second about the ink (1, 1, 1) axis: the frame spins around the line.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -372,11 +375,11 @@
  *   tree.qFromAxisAngle(q, k, k, k, (ms / 1000) * Math.PI / 2)
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   hermite(gl, [0, 0, 0], axis, axis, axis, { color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 70 })
+ *   hermite(gl, [0, 0, 0], axis, axis, axis, { color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 70, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -391,7 +394,7 @@
  * @param {number[]} [up=[0, 1, 0]]  The up hint.
  * @returns {number[]} out
  * @example
- * <caption>Built from the direction to the circling yellow point: the frame's −z aims at it, so its blue axis points directly away.</caption>
+ * <caption>Built from the direction to the circling gold point: the frame's −z aims at it, so its blue axis points directly away.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -405,12 +408,12 @@
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4FromTranslation(T, target[0], target[1], target[2])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   hermite(gl, [0, 0, 0], target, target, target, { color: [1, 0.82, 0.4, 1] })
- *   axes(gl, { M: T, size: 12, semantic: false, color: [1, 0.82, 0.4, 1] })
- *   axes(gl, { M, size: 60 })
+ *   hermite(gl, [0, 0, 0], target, target, target, { color: [0.541, 0.416, 0, 1] })
+ *   axes(gl, { M: T, size: 12, semantic: false, color: [0.541, 0.416, 0, 1] })
+ *   axes(gl, { M, size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -425,7 +428,7 @@
  * @param {number[]} b
  * @returns {number[]} out
  * @example
- * <caption>The shortest rotation from +y onto the circling yellow direction: the frame's green axis follows the yellow line.</caption>
+ * <caption>The shortest rotation from +y onto the circling gold direction: the frame's green axis follows the gold line.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -439,11 +442,11 @@
  *   tree.mat4FromTRS(M, 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   line[0] = 120 * d[0]; line[1] = 120 * d[1]; line[2] = 120 * d[2]
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   hermite(gl, [0, 0, 0], line, line, line, { color: [1, 0.82, 0.4, 1] })
- *   axes(gl, { M, size: 70 })
+ *   hermite(gl, [0, 0, 0], line, line, line, { color: [0.541, 0.416, 0, 1] })
+ *   axes(gl, { M, size: 70, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -467,11 +470,17 @@
  * const M = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { M: E, size: 40 })
- * axes(gl, { M, size: 40 })
+ * axes(gl, { bits: tree.X | tree._X, size: 40, semantic: false, color: [0.733, 0.137, 0.094, 1], M: E })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 40, semantic: false, color: [0.059, 0.42, 0.086, 1], M: E })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 40, semantic: false, color: [0.078, 0.333, 0.624, 1], M: E })
+ * axes(gl, { bits: tree.LABELS, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1], M: E })
+ * axes(gl, { bits: tree.X | tree._X, size: 40, semantic: false, color: [0.733, 0.137, 0.094, 1], M })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 40, semantic: false, color: [0.059, 0.42, 0.086, 1], M })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 40, semantic: false, color: [0.078, 0.333, 0.624, 1], M })
+ * axes(gl, { bits: tree.LABELS, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1], M })
  */
 
 /**
@@ -493,10 +502,10 @@
  *   tree.qFromAxisAngle(q, Math.SQRT1_2, 0, Math.SQRT1_2, ms / 1000)
  *   tree.qToMat4(M, q)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -510,7 +519,7 @@
  * @param {object} [out]  Destination `{ axis, angle }`.
  * @returns {{ axis: number[], angle: number }} out
  * @example
- * <caption>The axis and angle read out of the tumbling left frame's quaternion rebuild the right frame and draw its axis in yellow: the right frame tumbles in step, turning about that line.</caption>
+ * <caption>The axis and angle read out of the tumbling left frame's quaternion rebuild the right frame and draw its axis in gold: the right frame tumbles in step, turning about that line.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -526,12 +535,12 @@
  *   tree.mat4FromTRS(B, 80, 0, 0, r[0], r[1], r[2], r[3], 1, 1, 1)
  *   for (let i = 0; i < 3; i++) { d[i] = 120 * aa.axis[i]; a0[i] = (i === 0 ? 80 : 0) - 60 * aa.axis[i]; a1[i] = a0[i] + d[i] }
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
- *   hermite(gl, a0, d, a1, d, { color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, a0, d, a1, d, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

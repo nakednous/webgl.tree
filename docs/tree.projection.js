@@ -40,7 +40,7 @@
  * @param {ArrayLike<number>} p  A projection matrix.
  * @returns {boolean}
  * @example
- * <caption>Every two seconds the lens switches between perspective and orthographic; the grid is drawn yellow whenever the installed projection reads orthographic.</caption>
+ * <caption>Every two seconds the lens switches between perspective and orthographic; the grid is drawn gold whenever the installed projection reads orthographic.</caption>
  * const { createCanvas, setCamera, grid, viewOf, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -50,7 +50,7 @@
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, Math.floor(ms / 2000) % 2 ? ortho : persp)
  *   const flat = tree.projIsOrtho(viewOf(gl).mat4Proj)
@@ -67,7 +67,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum's near plane slides between 20 and 100: small yellow axes placed that far down the lens's line of sight, a distance read from its projection matrix, sit at the center of the near face and follow it.</caption>
+ * <caption>The ink frustum's near plane slides between 20 and 100: small gold axes placed that far down the lens's line of sight, a distance read from its projection matrix, sit at the center of the near face and follow it.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -80,11 +80,11 @@
  *   tree.cameraProj(P, lens, 4 / 3)
  *   tree.mat4Mul(M, tree.cameraEye(E, lens), tree.mat4FromTranslation(T, 0, 0, -tree.projNear(P)))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 20, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 20, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -97,7 +97,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum's far plane slides between 120 and 220: small yellow axes placed that far down the lens's line of sight, a distance read from its projection matrix, sit at the center of the far face and follow it.</caption>
+ * <caption>The ink frustum's far plane slides between 120 and 220: small gold axes placed that far down the lens's line of sight, a distance read from its projection matrix, sit at the center of the far face and follow it.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -110,11 +110,11 @@
  *   tree.cameraProj(P, lens, 4 / 3)
  *   tree.mat4Mul(M, tree.cameraEye(E, lens), tree.mat4FromTranslation(T, 0, 0, -tree.projFar(P)))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 30, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 30, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -127,7 +127,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum widens and narrows: small yellow axes placed at the left extent read from its projection, on the near plane, ride the middle of the near face's left edge.</caption>
+ * <caption>The ink frustum widens and narrows: small gold axes placed at the left extent read from its projection, on the near plane, ride the middle of the near face's left edge.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -140,11 +140,11 @@
  *   tree.cameraProj(P, lens, 4 / 3)
  *   tree.mat4Mul(M, tree.cameraEye(E, lens), tree.mat4FromTranslation(T, tree.projLeft(P), 0, -50))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 12, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 12, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -157,7 +157,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum widens and narrows: small yellow axes placed at the right extent read from its projection, on the near plane, ride the middle of the near face's right edge.</caption>
+ * <caption>The ink frustum widens and narrows: small gold axes placed at the right extent read from its projection, on the near plane, ride the middle of the near face's right edge.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -170,11 +170,11 @@
  *   tree.cameraProj(P, lens, 4 / 3)
  *   tree.mat4Mul(M, tree.cameraEye(E, lens), tree.mat4FromTranslation(T, tree.projRight(P), 0, -50))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 12, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 12, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -187,7 +187,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum widens and narrows: small yellow axes placed at the top extent read from its projection, on the near plane, ride the middle of the near face's top edge.</caption>
+ * <caption>The ink frustum widens and narrows: small gold axes placed at the top extent read from its projection, on the near plane, ride the middle of the near face's top edge.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -200,11 +200,11 @@
  *   tree.cameraProj(P, lens, 4 / 3)
  *   tree.mat4Mul(M, tree.cameraEye(E, lens), tree.mat4FromTranslation(T, 0, tree.projTop(P), -50))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 12, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 12, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -217,7 +217,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum widens and narrows: small yellow axes placed at the bottom extent read from its projection, on the near plane, ride the middle of the near face's bottom edge.</caption>
+ * <caption>The ink frustum widens and narrows: small gold axes placed at the bottom extent read from its projection, on the near plane, ride the middle of the near face's bottom edge.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -230,11 +230,11 @@
  *   tree.cameraProj(P, lens, 4 / 3)
  *   tree.mat4Mul(M, tree.cameraEye(E, lens), tree.mat4FromTranslation(T, 0, tree.projBottom(P), -50))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 12, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 12, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -247,7 +247,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white frustum widens and narrows: two yellow lines leaving its apex at ± half the vertical field of view read from its projection run down the middle of its top and bottom faces.</caption>
+ * <caption>The ink frustum widens and narrows: two gold lines leaving its apex at ± half the vertical field of view read from its projection run down the middle of its top and bottom faces.</caption>
  * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -263,12 +263,12 @@
  *   tree.mat4MulDir(up, E, 0, k, -200)
  *   tree.mat4MulDir(down, E, 0, -k, -200)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   hermite(gl, lens.eye, up, up.map((v, i) => v + lens.eye[i]), up, { color: [1, 0.82, 0.4, 1] })
- *   hermite(gl, lens.eye, down, down.map((v, i) => v + lens.eye[i]), down, { color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, lens.eye, up, up.map((v, i) => v + lens.eye[i]), up, { color: [0.541, 0.416, 0, 1] })
+ *   hermite(gl, lens.eye, down, down.map((v, i) => v + lens.eye[i]), down, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -281,7 +281,7 @@
  * @param {ArrayLike<number>} p
  * @returns {number}
  * @example
- * <caption>The white 4:3 frustum widens and narrows: two yellow lines leaving its apex at ± half the horizontal field of view read from its projection run down the middle of its left and right faces.</caption>
+ * <caption>The ink 4:3 frustum widens and narrows: two gold lines leaving its apex at ± half the horizontal field of view read from its projection run down the middle of its left and right faces.</caption>
  * const { createCanvas, setCamera, hermite, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -297,12 +297,12 @@
  *   tree.mat4MulDir(left, E, -k, 0, -200)
  *   tree.mat4MulDir(right, E, k, 0, -200)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [1, 1, 1, 1] })
- *   hermite(gl, lens.eye, left, left.map((v, i) => v + lens.eye[i]), left, { color: [1, 0.82, 0.4, 1] })
- *   hermite(gl, lens.eye, right, right.map((v, i) => v + lens.eye[i]), right, { color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: lens, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, lens.eye, left, left.map((v, i) => v + lens.eye[i]), left, { color: [0.541, 0.416, 0, 1] })
+ *   hermite(gl, lens.eye, right, right.map((v, i) => v + lens.eye[i]), right, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

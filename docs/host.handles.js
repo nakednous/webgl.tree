@@ -69,7 +69,7 @@
  * @memberof Handle
  * @returns {boolean} Whether the handle is grabbed.
  * @example
- * <caption>Drag the magenta dot around the sphere: while update() reports the handle grabbed, the ground grid is drawn yellow.</caption>
+ * <caption>Drag the magenta dot around the sphere: while update() reports the handle grabbed, the ground grid is drawn gold.</caption>
  * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -82,12 +82,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   const grabbed = h.update()
  *   grid(gl, { M: ground, size: 120, subdivisions: 12, color: grabbed ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
- *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -100,7 +100,7 @@
  * @memberof Handle
  * @returns {Handle}
  * @example
- * <caption>Drag the magenta dot across the ground: once it goes past the yellow grid's edge, 100 from the center, cancel() snaps it back to where the drag began.</caption>
+ * <caption>Drag the magenta dot across the ground: once it goes past the gold grid's edge, 100 from the center, cancel() snaps it back to where the drag began.</caption>
  * const { createCanvas, init, setCamera, grid, handleLocus, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -114,12 +114,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (h.update() && Math.hypot(...h.value(v)) > 100) h.cancel()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 0.82, 0.4, 1] })
- *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.541, 0.416, 0, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -135,7 +135,7 @@
  * @param {string|ArrayLike<number>} [opts.to]  The space to report in: `tree.WORLD` (default), `tree.EYE`, `tree.SCREEN`, `tree.NDC`, or a frame matrix.
  * @returns {number[]} out
  * @example
- * <caption>Drag the magenta dot on the ground: the small axes are placed at value(out), in world space, and the white cross at value(out, { to: tree.SCREEN }), in screen pixels — both follow it.</caption>
+ * <caption>Drag the magenta dot on the ground: the small axes are placed at value(out), in world space, and the ink cross at value(out, { to: tree.SCREEN }), in screen pixels — both follow it.</caption>
  * const { createCanvas, init, setCamera, axes, grid, handleLocus, beginHUD, endHUD, cross, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -149,17 +149,17 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
  *   h.value(world)
  *   h.value(screen, { to: tree.SCREEN })
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   axes(gl, { M: tree.mat4FromTranslation(M, world[0], world[1], world[2]), size: 40 })
- *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: tree.mat4FromTranslation(M, world[0], world[1], world[2]), size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   beginHUD(gl)
- *   cross(gl, { x: screen[0], y: screen[1] - 40, size: 16, color: [1, 1, 1, 1] })
+ *   cross(gl, { x: screen[0], y: screen[1] - 40, size: 16, color: [0.11, 0.118, 0.133, 1] })
  *   endHUD(gl)
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
@@ -174,7 +174,7 @@
  * @param {number[]|object} target
  * @returns {Handle}
  * @example
- * <caption>The handle is bound to a vec3 starting at (50, 0, 30): dragging the magenta dot writes into it, and the yellow axes placed from that vec3 follow the dot.</caption>
+ * <caption>The handle is bound to a vec3 starting at (50, 0, 30): dragging the magenta dot writes into it, and the gold axes placed from that vec3 follow the dot.</caption>
  * const { createCanvas, init, setCamera, axes, grid, handleLocus, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -188,13 +188,13 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   axes(gl, { M: tree.mat4FromTranslation(M, spot[0], spot[1], spot[2]), size: 30, semantic: false, color: [1, 0.82, 0.4, 1] })
- *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: tree.mat4FromTranslation(M, spot[0], spot[1], spot[2]), size: 30, semantic: false, color: [0.541, 0.416, 0, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -229,12 +229,12 @@
  *     center = [target[0] - 60 * Math.cos(a), 0, target[2] - 60 * Math.sin(a)]
  *   }
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   grid(gl, { M: ground, size: 120, subdivisions: 12, color: [1, 1, 1, 1] })
- *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 120, subdivisions: 12, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -260,13 +260,13 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
  *   tree.mat4FromTRS(M, 0, 40, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, h.scalar()), 1, 1, 1)
- *   axes(gl, { M, size: 60 })
- *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   axes(gl, { M, size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -280,7 +280,7 @@
  * @param {number[]} out2  2-element destination.
  * @returns {number[]} out2
  * @example
- * <caption>Drag the magenta dot around the sphere: the yellow line runs out from the center along the azimuth azEl() reports, flat on the equator's plane, and the white line rises from its end by the elevation — together they always reach the dot.</caption>
+ * <caption>Drag the magenta dot around the sphere: the gold line runs out from the center along the azimuth azEl() reports, flat on the equator's plane, and the ink line rises from its end by the elevation — together they always reach the dot.</caption>
  * const { createCanvas, init, setCamera, handleLocus, hermite, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -293,7 +293,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -302,9 +302,9 @@
  *   const reach = 80 * Math.cos(ae[1])
  *   foot[0] = reach * Math.cos(ae[0]); foot[2] = reach * Math.sin(ae[0])
  *   rise[1] = 80 * Math.sin(ae[1])
- *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
- *   hermite(gl, [0, 0, 0], foot, foot, foot, { color: [1, 0.82, 0.4, 1], depth: false })
- *   hermite(gl, foot, rise, [foot[0], rise[1], foot[2]], rise, { color: [1, 1, 1, 1], depth: false })
+ *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, [0, 0, 0], foot, foot, foot, { color: [0.541, 0.416, 0, 1], depth: false })
+ *   hermite(gl, foot, rise, [foot[0], rise[1], foot[2]], rise, { color: [0.11, 0.118, 0.133, 1], depth: false })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -317,7 +317,7 @@
  * @memberof Handle
  * @returns {boolean}
  * @example
- * <caption>Drag the dot along the x axis, up to 100 either way of the origin: it is drawn yellow while grabbed() is true, magenta otherwise.</caption>
+ * <caption>Drag the dot along the x axis, up to 100 either way of the origin: it is drawn gold while grabbed() is true, magenta otherwise.</caption>
  * const { createCanvas, init, setCamera, axes, handleLocus, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -329,12 +329,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   axes(gl, { size: 60 })
- *   handleLocus(gl, h, { dotColor: h.grabbed() ? [1, 0.82, 0.4, 1] : [1, 0.31, 0.85, 1] })
+ *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { dotColor: h.grabbed() ? [1, 0.82, 0.4, 1] : [1, 0.31, 0.85, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -360,12 +360,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   handleLocus(gl, h, { bits: tree.HANDLE, size: h.hovered() ? 20 : 10, dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { bits: tree.HANDLE, size: h.hovered() ? 20 : 10, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -395,12 +395,12 @@
  *   c[0] = 70 * Math.cos(t); c[2] = 70 * Math.sin(t)
  *   h.anchor(c)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   axes(gl, { M: tree.mat4FromTranslation(M, c[0], c[1], c[2]), size: 20 })
- *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   axes(gl, { M: tree.mat4FromTranslation(M, c[0], c[1], c[2]), size: 20, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -429,12 +429,12 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (h) h.update()
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   if (h) handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [1, 0.31, 0.85, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   if (h) handleLocus(gl, h, { bits: tree.HANDLE, dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }

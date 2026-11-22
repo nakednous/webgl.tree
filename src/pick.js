@@ -41,12 +41,12 @@ import { canvasViewport } from './space.js';
  * @param {number} y  Pixel row in the target, from the bottom.
  * @returns {Promise<Uint8Array>} The four bytes, RGBA.
  * @example
- * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 6 50 72 otherwise.</caption>
+ * <caption>The centre pixel read back each frame: 255 79 216 while the magenta square passes over it, 224 252 255 otherwise.</caption>
  * const { createCanvas, setCamera, pane, readPixel, fragCoord, SCREEN, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
  *
  * const cam = tree.createCamera({ eye: [0, 0, 280] })
  * const centre = fragCoord(gl, [0, 0], 200, 150)   // the canvas centre, in window space
@@ -54,7 +54,7 @@ import { canvasViewport } from './space.js';
  *
  * function frame(ms) {
  *   const x = 150 * Math.sin(ms / 1000)
- *   gl.clearColor(6 / 255, 50 / 255, 72 / 255, 1)
+ *   gl.clearColor(224 / 255, 252 / 255, 255 / 255, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   pane(gl, [x - 30, 30, 0], [x + 30, 30, 0], [x + 30, -30, 0], [x - 30, -30, 0], { color: [1, 79 / 255, 216 / 255, 1] })
@@ -118,7 +118,7 @@ export function readPixel(gl, fbo, x, y) {
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   if (mx >= 0 && !pending) {

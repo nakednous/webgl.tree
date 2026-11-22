@@ -61,10 +61,10 @@ const _registry = new WeakMap();
  * const { createCanvas, beginHUD, endHUD, bullsEye } = webglTree
  *
  * const gl = createCanvas(400, 300)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
  * beginHUD(gl)
- * bullsEye(gl, { x: 200, y: 150, size: 120, color: [1, 0.82, 0.4, 1] })
+ * bullsEye(gl, { x: 200, y: 150, size: 120, color: [0.541, 0.416, 0, 1] })
  * endHUD(gl)
  */
 export function createCanvas(width, height, opts) {
@@ -104,12 +104,12 @@ export function createCanvas(width, height, opts) {
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
- *   axes(gl, { size: 100 })
- *   handleLocus(gl, h, { dotColor: [1, 0.31, 0.85, 1] })
+ *   axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   handleLocus(gl, h, { dotColor: [0.635, 0.2, 0.541, 1], color: [0.11, 0.118, 0.133, 1] })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }
@@ -173,14 +173,14 @@ export function contextOf(gl, opts) {
  *   cam.eye[0] = 215 * Math.sin(ms / 1000)
  *   cam.eye[2] = 215 * Math.cos(ms / 1000)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { size: 100 })
+ *   axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   // WORLD → SCREEN
  *   tree.mat4Mul(WPV, W, viewOf(gl).mat4PV)
  *   tree.mat4MulPoint(tip, WPV, 100, 0, 0)
- *   cross(gl, { x: tip[0], y: tip[1], size: 30, color: [1, 0.31, 0.85, 1] })
+ *   cross(gl, { x: tip[0], y: tip[1], size: 30, color: [0.635, 0.2, 0.541, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -201,7 +201,7 @@ export function viewOf(gl) {
  * const { createCanvas, setCamera, axes, renderTarget, image, dispose, SCREEN, tree } = webglTree
  *
  * const out = document.body.appendChild(document.createElement('div'))
- * out.style.cssText = 'position:absolute;left:8px;top:8px;color:white;font:13px monospace'
+ * out.style.cssText = 'position:absolute;left:8px;top:8px;color:#1c1e22;font:13px monospace'
  * let gl = null
  * let frameId = 0
  *
@@ -215,10 +215,10 @@ export function viewOf(gl) {
  *     cam.eye[2] = 215 * Math.cos(ms / 1000)
  *     twgl.bindFramebufferInfo(gl, scene)
  *     gl.enable(gl.DEPTH_TEST)
- *     gl.clearColor(0.024, 0.196, 0.282, 1)
+ *     gl.clearColor(0.878, 0.988, 1, 1)
  *     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *     setCamera(gl, cam)
- *     axes(gl, { size: 100 })
+ *     axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *     twgl.bindFramebufferInfo(gl, SCREEN)
  *     image(gl, scene.color)
  *     frameId = requestAnimationFrame(frame)

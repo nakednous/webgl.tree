@@ -25,10 +25,10 @@
  * function frame(ms) {
  *   tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000), 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -40,7 +40,7 @@
  * @memberof tree
  * @returns {Float32Array}
  * @example
- * <caption>A mat3 made at setup holds the normal matrix of a pane stretching along x: the yellow normal drawn from it stays square to the magenta pane.</caption>
+ * <caption>A mat3 made at setup holds the normal matrix of a pane stretching along x: the gold normal drawn from it stays square to the magenta pane.</caption>
  * const { createCanvas, setCamera, pane, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -54,11 +54,11 @@
  *   const k = 100 / Math.hypot(N[6], N[7], N[8])
  *   n[0] = N[6] * k; n[1] = N[7] * k; n[2] = N[8] * k
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [1, 0.31, 0.85, 1] })
- *   hermite(gl, [0, 0, 0], n, n, n, { color: [1, 0.82, 0.4, 1] })
+ *   pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [0.635, 0.2, 0.541, 1] })
+ *   hermite(gl, [0, 0, 0], n, n, n, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -82,11 +82,11 @@
  *   tree.mat4MulPoint(tip, M, 80, 0, 0)
  *   tree.mat4FromTranslation(T, tip[0], tip[1], tip[2])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
- *   axes(gl, { M: T, size: 20 })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: T, size: 20, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -109,7 +109,7 @@
  * out vec4 outColor;
  * void main() {
  *   float d = distance(gl_FragCoord.xy, uMouse);
- *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.024, 0.196, 0.282), smoothstep(38.0, 42.0, d)), 1.0);
+ *   outColor = vec4(mix(vec3(1.0, 0.82, 0.4), vec3(0.878, 0.988, 1), smoothstep(38.0, 42.0, d)), 1.0);
  * }`)
  * const uniforms = { uMouse: tree.vec2() }
  * fragCoord(gl, uniforms.uMouse, 200, 150)
@@ -131,7 +131,7 @@
  * @param {ArrayLike<number>} B
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>T · R (colored) spins in place 80 units along x; R · T (yellow) is carried around the origin.</caption>
+ * <caption>T · R (colored) spins in place 80 units along x; R · T (gold) is carried around the origin.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -145,11 +145,11 @@
  *   tree.mat4Mul(TR, T, R)
  *   tree.mat4Mul(RT, R, T)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: TR, size: 40 })
- *   axes(gl, { M: RT, size: 40, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: TR, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: RT, size: 40, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -163,7 +163,7 @@
  * @param {ArrayLike<number>} src
  * @returns {Float32Array|number[]|null} out, or null when src is singular.
  * @example
- * <caption>Inverting a camera's view matrix gives its frame: drawn with it, the axes sit at the white frustum's apex, blue pointing back, away from what it sees.</caption>
+ * <caption>Inverting a camera's view matrix gives its frame: drawn with it, the axes sit at the ink frustum's apex, blue pointing back, away from what it sees.</caption>
  * const { createCanvas, setCamera, axes, viewFrustum, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -173,11 +173,14 @@
  * const E = tree.mat4Invert(tree.mat4(), V)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [1, 1, 1, 1] })
- * axes(gl, { M: E, size: 40 })
+ * viewFrustum(gl, { camera: other, aspect: 4 / 3, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { bits: tree.X | tree._X, size: 40, semantic: false, color: [0.733, 0.137, 0.094, 1], M: E })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 40, semantic: false, color: [0.059, 0.42, 0.086, 1], M: E })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 40, semantic: false, color: [0.078, 0.333, 0.624, 1], M: E })
+ * axes(gl, { bits: tree.LABELS, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1], M: E })
  */
 
 /**
@@ -209,11 +212,11 @@
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
  *   tree.mat4FromTRS(M, 0, 60, 0, q[0], q[1], q[2], q[3], 2, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 50 })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -229,7 +232,7 @@
  * @param {number} tz
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>The small axes moved 80 along x and 40 along y from the white ones at the origin.</caption>
+ * <caption>The small axes moved 80 along x and 40 along y from the ink ones at the origin.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -237,11 +240,14 @@
  * const M = tree.mat4FromTranslation(tree.mat4(), 80, 40, 0)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { size: 100, semantic: false, color: [1, 1, 1, 1] })
- * axes(gl, { M, size: 40 })
+ * axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { bits: tree.X | tree._X, size: 40, semantic: false, color: [0.733, 0.137, 0.094, 1], M })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 40, semantic: false, color: [0.059, 0.42, 0.086, 1], M })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 40, semantic: false, color: [0.078, 0.333, 0.624, 1], M })
+ * axes(gl, { bits: tree.LABELS, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1], M })
  */
 
 /**
@@ -254,7 +260,7 @@
  * @param {number} sz
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>Scaled by (2, 1, 0.5): against the white unscaled axes, x doubles, y matches and z halves.</caption>
+ * <caption>Scaled by (2, 1, 0.5): against the ink unscaled axes, x doubles, y matches and z halves.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -262,11 +268,14 @@
  * const M = tree.mat4FromScale(tree.mat4(), 2, 1, 0.5)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { size: 60, semantic: false, color: [1, 1, 1, 1] })
- * axes(gl, { M, size: 60, depth: false })
+ * axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { bits: tree.X | tree._X, size: 60, semantic: false, color: [0.733, 0.137, 0.094, 1], M, depth: false })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 60, semantic: false, color: [0.059, 0.42, 0.086, 1], M, depth: false })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 60, semantic: false, color: [0.078, 0.333, 0.624, 1], M, depth: false })
+ * axes(gl, { bits: tree.LABELS, size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1], M, depth: false })
  */
 
 /**
@@ -288,7 +297,7 @@
  * @param {number} tz  Origin z.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>A frame from three axes, 80 along x from the white origin axes: its red axis points up, its green axis points to −x.</caption>
+ * <caption>A frame from three axes, 80 along x from the ink origin axes: its red axis points up, its green axis points to −x.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -296,11 +305,14 @@
  * const M = tree.mat4FromBasis(tree.mat4(), 0, 1, 0, -1, 0, 0, 0, 0, 1, 80, 0, 0)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { size: 60, semantic: false, color: [1, 1, 1, 1] })
- * axes(gl, { M, size: 50 })
+ * axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * axes(gl, { bits: tree.X | tree._X, size: 50, semantic: false, color: [0.733, 0.137, 0.094, 1], M })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 50, semantic: false, color: [0.059, 0.42, 0.086, 1], M })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 50, semantic: false, color: [0.078, 0.333, 0.624, 1], M })
+ * axes(gl, { bits: tree.LABELS, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1], M })
  */
 
 /**
@@ -332,11 +344,11 @@
  *   const t = ms / 1000
  *   tree.mat4View(V, 300 * Math.sin(t), 150, 300 * Math.cos(t), 0, 0, 0, 0, 1, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, V, P)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   axes(gl, { size: 60 })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -358,7 +370,7 @@
  * @param {number} uz  Up z.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>The frame of an eye at (100, 60, 80) looking at the origin: its blue axis points away from the origin, back along the yellow line of sight.</caption>
+ * <caption>The frame of an eye at (100, 60, 80) looking at the origin: its blue axis points away from the origin, back along the gold line of sight.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -367,12 +379,15 @@
  * const sight = [-100, -60, -80]
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, cam)
- * axes(gl, { size: 40, semantic: false, color: [1, 1, 1, 1] })
- * hermite(gl, [100, 60, 80], sight, [0, 0, 0], sight, { color: [1, 0.82, 0.4, 1] })
- * axes(gl, { M: E, size: 40 })
+ * axes(gl, { size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ * hermite(gl, [100, 60, 80], sight, [0, 0, 0], sight, { color: [0.541, 0.416, 0, 1] })
+ * axes(gl, { bits: tree.X | tree._X, size: 40, semantic: false, color: [0.733, 0.137, 0.094, 1], M: E })
+ * axes(gl, { bits: tree.Y | tree._Y, size: 40, semantic: false, color: [0.059, 0.42, 0.086, 1], M: E })
+ * axes(gl, { bits: tree.Z | tree._Z, size: 40, semantic: false, color: [0.078, 0.333, 0.624, 1], M: E })
+ * axes(gl, { bits: tree.LABELS, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1], M: E })
  */
 
 /**
@@ -389,7 +404,7 @@
  * @param {number} [ndcYSign=1]  −1 flips y.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>An off-center frustum, its near plane reaching further right than left: the axes at the origin sit left of the white bulls-eye marking the canvas center.</caption>
+ * <caption>An off-center frustum, its near plane reaching further right than left: the axes at the origin sit left of the ink bulls-eye marking the canvas center.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, bullsEye, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -397,12 +412,12 @@
  * const P = tree.mat4Persp(tree.mat4(), -30, 50, -30, 30, 100, 1000)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, V, P)
- * axes(gl, { size: 60 })
+ * axes(gl, { size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  * beginHUD(gl)
- * bullsEye(gl, { x: 200, y: 150, size: 30, color: [1, 1, 1, 1] })
+ * bullsEye(gl, { x: 200, y: 150, size: 30, color: [0.11, 0.118, 0.133, 1] })
  * endHUD(gl)
  */
 
@@ -429,10 +444,10 @@
  * const P = tree.mat4Ortho(tree.mat4(), -200, 200, -150, 150, 1, 1000)
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.024, 0.196, 0.282, 1)
+ * gl.clearColor(0.878, 0.988, 1, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, V, P)
- * grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ * grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
  */
 
 /**
@@ -444,7 +459,7 @@
  * @param {ArrayLike<number>} view  V.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>P · V takes the tip of the x axis to NDC and the viewport matrix W finishes the trip to pixels: the white cross drawn there stays on the tip as the eye circles.</caption>
+ * <caption>P · V takes the tip of the x axis to NDC and the viewport matrix W finishes the trip to pixels: the ink cross drawn there stays on the tip as the eye circles.</caption>
  * const { createCanvas, setCamera, axes, beginHUD, endHUD, cross, mat4Viewport, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -457,12 +472,12 @@
  *   tree.mat4PV(PV, P, tree.cameraView(V, cam))
  *   tree.mat4MulPoint(tip, tree.mat4Mul(PV, mat4Viewport(gl, W), PV), 100, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, V, P)
- *   axes(gl, { size: 100 })
+ *   axes(gl, { size: 100, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   beginHUD(gl)
- *   cross(gl, { x: tip[0], y: tip[1], size: 24, color: [1, 1, 1, 1] })
+ *   cross(gl, { x: tip[0], y: tip[1], size: 24, color: [0.11, 0.118, 0.133, 1] })
  *   endHUD(gl)
  *   requestAnimationFrame(frame)
  * }
@@ -494,11 +509,11 @@
  *   tree.mat4MV(MV, tree.mat4FromTRS(M, 0, 30, 0, q[0], q[1], q[2], q[3], 1, 1, 1), V)
  *   tree.mat4MV(GV, ground, V)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, I, P)
- *   grid(gl, { M: GV, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   axes(gl, { M: MV, size: 60 })
+ *   grid(gl, { M: GV, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: MV, size: 60, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -512,7 +527,7 @@
  * @param {ArrayLike<number>} src  Usually V · M.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>A magenta pane turned 45° about y, then stretched along x between 0.5 and 2 times: the yellow normal, through the normal matrix, stays square to the pane; the white one, through the model matrix itself, leans whenever the stretch is not 1.</caption>
+ * <caption>A magenta pane turned 45° about y, then stretched along x between 0.5 and 2 times: the gold normal, through the normal matrix, stays square to the pane; the ink one, through the model matrix itself, leans whenever the stretch is not 1.</caption>
  * const { createCanvas, setCamera, grid, pane, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -529,13 +544,13 @@
  *   along(good, N[6], N[7], N[8])     // N · (0, 0, 1)
  *   along(bad, M[8], M[9], M[10])     // M's own 3×3 · (0, 0, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [1, 0.31, 0.85, 1] })
- *   hermite(gl, [0, 0, 0], good, good, good, { color: [1, 0.82, 0.4, 1] })
- *   hermite(gl, [0, 0, 0], bad, bad, bad, { color: [1, 1, 1, 1] })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   pane(gl, [-40, 40, 0], [40, 40, 0], [40, -40, 0], [-40, -40, 0], { M, color: [0.635, 0.2, 0.541, 1] })
+ *   hermite(gl, [0, 0, 0], good, good, good, { color: [0.541, 0.416, 0, 1] })
+ *   hermite(gl, [0, 0, 0], bad, bad, bad, { color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -565,11 +580,11 @@
  *   tree.mat4MulPoint(p, M, 80, 0, 0)
  *   tree.mat4FromTranslation(T, p[0], p[1], p[2])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
- *   axes(gl, { M: T, size: 25 })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: T, size: 25, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -586,7 +601,7 @@
  * @param {number} dz
  * @returns {number[]} out
  * @example
- * <caption>A direction ignores translation: the yellow line drawn along the result turns with the moved frame's x axis but stays rooted at the origin.</caption>
+ * <caption>A direction ignores translation: the gold line drawn along the result turns with the moved frame's x axis but stays rooted at the origin.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -598,11 +613,11 @@
  *   tree.mat4FromTRS(M, 60, 40, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4MulDir(d, M, 80, 0, 0)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 80 })
- *   hermite(gl, [0, 0, 0], d, d, d, { color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, [0, 0, 0], d, d, d, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -617,7 +632,7 @@
  * @param {ArrayLike<number>} to  The destination frame's matrix (frame → world).
  * @returns {Float32Array|number[]|null} out, or null when `to` is singular.
  * @example
- * <caption>The point 50 along the spinning left frame's x, carried into the turned right frame's coordinates and drawn back out through the right frame: the small yellow axes stay on the tip of the left frame's red axis.</caption>
+ * <caption>The point 50 along the spinning left frame's x, carried into the turned right frame's coordinates and drawn back out through the right frame: the small gold axes stay on the tip of the left frame's red axis.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -634,12 +649,12 @@
  *   tree.mat4MulPoint(world, B, inB[0], inB[1], inB[2])      // drawn through B
  *   tree.mat4FromTranslation(T, world[0], world[1], world[2])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
- *   axes(gl, { M: T, size: 15, semantic: false, color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: T, size: 15, semantic: false, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -654,7 +669,7 @@
  * @param {ArrayLike<number>} to  The destination frame's matrix (frame → world).
  * @returns {Float32Array|number[]|null} out, or null when `to` is singular.
  * @example
- * <caption>The spinning left frame's x direction, re-expressed in the turned right frame and drawn from there as the yellow line: it stays parallel to the left frame's red axis.</caption>
+ * <caption>The spinning left frame's x direction, re-expressed in the turned right frame and drawn from there as the gold line: it stays parallel to the left frame's red axis.</caption>
  * const { createCanvas, setCamera, axes, hermite, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -668,12 +683,12 @@
  *   tree.mat3Direction(D, A, B)
  *   tree.mat4MulDir(line, B, 70 * D[0], 70 * D[1], 70 * D[2])   // D · (1, 0, 0), drawn through B
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
- *   hermite(gl, [80, 0, 0], line, [80 + line[0], line[1], line[2]], line, { color: [1, 0.82, 0.4, 1] })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   hermite(gl, [80, 0, 0], line, [80 + line[0], line[1], line[2]], line, { color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -687,7 +702,7 @@
  * @param {ArrayLike<number>} m
  * @returns {Float32Array|number[]} out3
  * @example
- * <caption>The translation read out of a circling, spinning, stretched frame places the white axes: they ride along with it, never turning or stretching.</caption>
+ * <caption>The translation read out of a circling, spinning, stretched frame places the ink axes: they ride along with it, never turning or stretching.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -701,11 +716,11 @@
  *   tree.mat4ToTranslation(t3, M)
  *   tree.mat4FromTranslation(T, t3[0], t3[1], t3[2])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 40 })
- *   axes(gl, { M: T, size: 25, semantic: false, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 40, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: T, size: 25, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -719,7 +734,7 @@
  * @param {ArrayLike<number>} m
  * @returns {Float32Array|number[]} out3
  * @example
- * <caption>The scale read out of the tumbling left frame's matrix sizes the unrotated white axes on the right: their arms stretch and shrink exactly as the left frame's do.</caption>
+ * <caption>The scale read out of the tumbling left frame's matrix sizes the unrotated ink axes on the right: their arms stretch and shrink exactly as the left frame's do.</caption>
  * const { createCanvas, setCamera, axes, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -733,11 +748,11 @@
  *   tree.mat4ToScale(s3, M)
  *   tree.mat4FromTRS(S, 80, 0, 0, 0, 0, 0, 1, s3[0], s3[1], s3[2])
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M, size: 50 })
- *   axes(gl, { M: S, size: 50, semantic: false, color: [1, 1, 1, 1] })
+ *   axes(gl, { M, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: S, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -764,11 +779,11 @@
  *   tree.mat4ToRotation(r, A)
  *   tree.mat4FromTRS(B, 80, 0, 0, r[0], r[1], r[2], r[3], 1, 1, 1)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: B, size: 50 })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: B, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -785,7 +800,7 @@
  * @param {number} d  The plane's offset along the normal.
  * @returns {Float32Array|number[]} out
  * @example
- * <caption>(1, 0, 0) and d = 0 name the plane 1·x + 0·y + 0·z = 0, that is x = 0 — the white grid: reflected across it, the frame spinning on the left spins the opposite way on the right.</caption>
+ * <caption>(1, 0, 0) and d = 0 name the plane 1·x + 0·y + 0·z = 0, that is x = 0 — the ink grid: reflected across it, the frame spinning on the left spins the opposite way on the right.</caption>
  * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -799,12 +814,12 @@
  *   tree.mat4FromTRS(A, -80, 0, 0, q[0], q[1], q[2], q[3], 1, 1, 1)
  *   tree.mat4Mul(RA, R, A)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
- *   grid(gl, { M: mirror, size: 70, subdivisions: 7, color: [1, 1, 1, 1] })
- *   axes(gl, { M: A, size: 50 })
- *   axes(gl, { M: RA, size: 50 })
+ *   grid(gl, { M: mirror, size: 70, subdivisions: 7, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: A, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M: RA, size: 50, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)
@@ -832,8 +847,8 @@
  * const M = tree.mat4(), q = tree.quat()
  *
  * function scene() {
- *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
- *   axes(gl, { M, size: 80 })
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [0.11, 0.118, 0.133, 1] })
+ *   axes(gl, { M, size: 80, semantic: false, color: [0.11, 0.118, 0.133, 1] })
  * }
  *
  * function frame(ms) {
@@ -846,12 +861,12 @@
  *   setCamera(gl, above, { aspect: 1 })
  *   scene()
  *   twgl.bindFramebufferInfo(gl, SCREEN)
- *   gl.clearColor(0.024, 0.196, 0.282, 1)
+ *   gl.clearColor(0.878, 0.988, 1, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   pane(gl, ...corners, { texture: image.color, uvs })
  *   scene()
- *   viewFrustum(gl, { camera: above, aspect: 1, color: [1, 0.82, 0.4, 1] })
+ *   viewFrustum(gl, { camera: above, aspect: 1, color: [0.541, 0.416, 0, 1] })
  *   requestAnimationFrame(frame)
  * }
  * requestAnimationFrame(frame)

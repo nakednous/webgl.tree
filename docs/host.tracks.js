@@ -66,7 +66,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -100,7 +100,7 @@
  * function frame(ms) {
  *   track.set(1, { pos: [0, 80 * Math.sin(ms / 1000), 0] })
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -136,7 +136,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -172,7 +172,7 @@
  *     track.add({ pos: [90 * Math.cos(a), 0, 90 * Math.sin(a)] })
  *   }
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -217,7 +217,7 @@
  *   track.eval(pose)
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, ...pose.scl)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -252,7 +252,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -286,7 +286,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -319,7 +319,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -357,7 +357,7 @@
  *   canvasHost.tick(1 / 60)
  *   const playing = track.info().playing
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: playing ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
@@ -396,7 +396,7 @@
  *   track.eval(pose)
  *   tree.mat4FromTRS(M, ...pose.pos, ...pose.rot, ...pose.scl)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -436,7 +436,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -471,7 +471,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -509,7 +509,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, color: [1, 0.82, 0.4, 1] })
@@ -552,7 +552,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { size: 50 })
@@ -587,7 +587,7 @@
  * function frame(ms) {
  *   track.set(1, key([0, 60 + 50 * Math.sin(ms / 1000), 130]))
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { size: 50 })
@@ -626,7 +626,7 @@
  *   canvasHost.tick(1 / 60)
  *   track.eval(seen)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, through ? seen : outside)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
@@ -667,7 +667,7 @@
  * function frame() {
  *   canvasHost.tick(1 / 60)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, marker: null, color: [1, 1, 1, 1] })
@@ -702,7 +702,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH, marker: null, color: [1, 1, 1, 1] })
@@ -740,7 +740,7 @@
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   trackPath(gl, track, { bits: tree.PATH | tree.CENTER, marker: null, color: [1, 1, 1, 1] })

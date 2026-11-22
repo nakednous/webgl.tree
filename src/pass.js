@@ -96,7 +96,7 @@ export function program(gl, frag) {
  * out vec4 outColor;
  * void main() {
  *   float cell = mod(floor(vTexCoord.x * 8.0) + floor(vTexCoord.y * 6.0), 2.0);
- *   outColor = vec4(mix(vec3(0.031, 0.196, 0.282), vec3(1.0, 0.82, 0.4), cell), 1.0);
+ *   outColor = vec4(mix(vec3(0.039, 0.216, 0.314), vec3(1.0, 0.82, 0.4), cell), 1.0);
  * }`)
  * bind(gl, checker)
  * draw(gl, fullscreen(gl))
@@ -141,7 +141,7 @@ export function fullscreen(gl) {
  *
  * twgl.bindFramebufferInfo(gl, scene)
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.031, 0.196, 0.282, 1)
+ * gl.clearColor(0.039, 0.216, 0.314, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
  * axes(gl, { size: 100 })
@@ -202,7 +202,7 @@ export function rectMatrix(out, x, y, w, h, vw, vh) {
  * const scene = renderTarget(gl)
  * twgl.bindFramebufferInfo(gl, scene)
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.031, 0.196, 0.282, 1)
+ * gl.clearColor(0.039, 0.216, 0.314, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [129, 107, 172] }))
  * axes(gl, { size: 100 })
@@ -284,7 +284,7 @@ export function passOf(entry) {
  * }`)
  *
  * twgl.bindFramebufferInfo(gl, scene)
- * gl.clearColor(0.031, 0.196, 0.282, 1)
+ * gl.clearColor(0.039, 0.216, 0.314, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [0, 0, 170] }))
  * pane(gl, [-110, 70, 0], [30, 70, 0], [30, -70, 0], [-110, -70, 0], { color: [1, 0.31, 0.85, 1] })
@@ -348,7 +348,7 @@ export function pipe(gl, source, passes, opts) {
  * function frame(ms) {
  *   const a = ms / 2000
  *   twgl.bindFramebufferInfo(gl, scene)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   pane(gl, ...square(-40, a, 0), { color: [1, 0.31, 0.85, 1] })

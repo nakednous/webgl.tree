@@ -61,7 +61,7 @@ const _registry = new WeakMap();
  * const { createCanvas, beginHUD, endHUD, bullsEye } = webglTree
  *
  * const gl = createCanvas(400, 300)
- * gl.clearColor(0.031, 0.196, 0.282, 1)
+ * gl.clearColor(0.039, 0.216, 0.314, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT)
  * beginHUD(gl)
  * bullsEye(gl, { x: 200, y: 150, size: 120, color: [1, 0.82, 0.4, 1] })
@@ -104,7 +104,7 @@ export function createCanvas(width, height, opts) {
  *
  * function frame() {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   h.update()
@@ -173,7 +173,7 @@ export function contextOf(gl, opts) {
  *   cam.eye[0] = 215 * Math.sin(ms / 1000)
  *   cam.eye[2] = 215 * Math.cos(ms / 1000)
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   axes(gl, { size: 100 })
@@ -215,7 +215,7 @@ export function viewOf(gl) {
  *     cam.eye[2] = 215 * Math.cos(ms / 1000)
  *     twgl.bindFramebufferInfo(gl, scene)
  *     gl.enable(gl.DEPTH_TEST)
- *     gl.clearColor(0.031, 0.196, 0.282, 1)
+ *     gl.clearColor(0.039, 0.216, 0.314, 1)
  *     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *     setCamera(gl, cam)
  *     axes(gl, { size: 100 })

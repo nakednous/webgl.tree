@@ -114,7 +114,7 @@ export function uploadTransforms(ctx, prog, M) {
  * const box = twgl.createBufferInfoFromArrays(gl, { aPosition: cube.position, aNormal: cube.normal, indices: cube.indices })
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.031, 0.196, 0.282, 1)
+ * gl.clearColor(0.039, 0.216, 0.314, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [76, 102, 204] }))
  * bind(gl, prog, { uColor: [1, 0.31, 0.85] })
@@ -198,7 +198,7 @@ export function bind(gl, prog, uniforms) {
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 1, 0, 0, ms / 1000)
@@ -354,7 +354,7 @@ export function buffer(gl, arrays) {
  *
  * function frame(ms) {
  *   gl.enable(gl.DEPTH_TEST)
- *   gl.clearColor(0.031, 0.196, 0.282, 1)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  *   setCamera(gl, cam)
  *   tree.qFromAxisAngle(q, 0, 1, 0, ms / 1000)
@@ -410,7 +410,7 @@ export function draw(gl, obj, M, opts) {
  * const M = tree.mat4()
  *
  * gl.enable(gl.DEPTH_TEST)
- * gl.clearColor(0.031, 0.196, 0.282, 1)
+ * gl.clearColor(0.039, 0.216, 0.314, 1)
  * gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
  * setCamera(gl, tree.createCamera({ eye: [99, 131, 263] }))
  * bind(gl, prog, { uColor: [1, 0.82, 0.4], uSpread: 1 })

@@ -195,26 +195,28 @@
  */
 
 /**
- * Pan: move eye and center together along the view's right and up.
+ * Pan: move eye and center together in the eye's own frame — along the view's right and up, and along its gaze.
+ * One vector moves both points, so the gaze direction and the gaze distance hold: a tracking step, not an approach.
  * @function cameraPan
  * @memberof tree
  * @param {object} cam
  * @param {number} dx  World units along right.
  * @param {number} dy  World units along up.
+ * @param {number} [dz=0]  World units along the gaze, toward the center — the opposite sense of a dolly factor above 1.
  * @returns {object} cam
  * @example
- * <caption>The camera pans right and left, 100 each way: the grid and axes slide across the view without turning.</caption>
+ * <caption>The camera pans right and left, then tracks forward and back, 150 each way: the grid slides past without turning, and the gaze distance holds.</caption>
  * const { createCanvas, setCamera, axes, grid, tree } = webglTree
  *
  * const gl = createCanvas(400, 300)
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
- * let x = 0
+ * let x = 0, z = 0
  *
  * function frame(ms) {
- *   const next = 100 * Math.sin(ms / 1000)
- *   tree.cameraPan(cam, next - x, 0)
- *   x = next
+ *   const next = 100 * Math.sin(ms / 1000), nextZ = 150 * Math.sin(ms / 1700)
+ *   tree.cameraPan(cam, next - x, 0, nextZ - z)
+ *   x = next; z = nextZ
  *   gl.enable(gl.DEPTH_TEST)
  *   gl.clearColor(0.039, 0.216, 0.314, 1)
  *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

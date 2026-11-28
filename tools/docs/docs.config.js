@@ -76,6 +76,7 @@ export default {
     host:        'host',
     Host:        'host.createHost()',
     Orbit:       'host.createOrbit()',
+    Look:        'host.createLook()',
     Labels:      'host.createLabels()',
     Video:       'host.createVideo()',
     Handle:      'host.Handle.prototype',

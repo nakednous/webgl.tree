@@ -1,5 +1,5 @@
 /**
- * @file The canvas host — pointer, clock, handles, tracks, helms, orbit, labels, media.
+ * @file The canvas host — pointer, clock, handles, tracks, helms, orbit, look, labels, media.
  * @module host
  * @license AGPL-3.0-only
  *
@@ -18,6 +18,7 @@
  * @param {object} [opts]
  * @param {function(number, object):void} [opts.onFrame]  Called every frame with dt (seconds) and the host.
  * @param {function(number, number, number):void} [opts.onSize]  Called with width, height and device pixel ratio when the canvas resizes.
+ * @param {number} [opts.damping=0.2]  The camera gestures' default lag in seconds: the orbit inherits it, and after a release the camera completes what the finger did, a flick easing out; 0 makes the orbit exact. A look keeps its own 0 — its damping is part of its own pump.
  * @returns {object} The host.
  * @example
  * <caption>The host runs the loop: onFrame draws every frame and flushes the pointer after it, so the magenta dot drags around its sphere with no requestAnimationFrame in the sketch.</caption>
@@ -794,6 +795,145 @@
  *   setCamera(gl, cam)
  *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
  *   axes(gl, { M: tree.mat4FromTRS(M, 0, 0, 0, ...tree.qFromAxisAngle(q, 0, 1, 0, canvasHost.clock()), 1, 1, 1), size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * A look: the pointer-driven first-person driver — an orientation and only an orientation.
+ * @function look
+ * @memberof Host
+ * @param {object|ArrayLike<number>} target  A camera state ({ eye, center, up }) whose orientation alone is written — its eye, gaze distance, lens, near and far stay — or a mutable 16-float eye matrix receiving E = B·R.
+ * @param {object} [opts]
+ * @param {string|ArrayLike<number>|function():ArrayLike<number>} [opts.frame=tree.WORLD]  The basis the three angles live in: WORLD, a mat4, or a function sampled once per update, after the bookkeeping. EYE and SELF are not accepted.
+ * @param {string} [opts.input='delta']  'delta' turns by the pointer's motion; 'absolute' seats the view under an unclaimed hover inside `rect`, exact.
+ * @param {object} [opts.pointer]  The pointer source; default the host's.
+ * @param {object|number[]|function} [opts.rect]  Required by absolute input: { x, y, width, height } or [x, y, w, h] in logical canvas px, or a function sampled each update.
+ * @param {number|number[]} [opts.sens]  Delta: radians per pixel (default 0.005). Absolute: radians per normalized half-axis (default π/2). A scalar or [yaw, pitch].
+ * @param {number} [opts.yawMin=-Infinity]
+ * @param {number} [opts.yawMax=Infinity]
+ * @param {number} [opts.pitchMin=-(π/2 − 0.02)]
+ * @param {number} [opts.pitchMax=π/2 − 0.02]
+ * @param {false|string} [opts.roll=false]  false, or 'secondary': the secondary drag rolls about the gaze — a prototype binding, proposed, not ruled.
+ * @param {number} [opts.damping=0]  Seconds ≥ 0. Absolute input refuses a positive value: a seat is a position, not an impulse.
+ * @param {boolean} [opts.enabled=true]
+ * @returns {Look}
+ * @example
+ * <caption>Drag to look: the view turns about the eye, the gaze distance and lens held; the secondary drag rolls, a prototype binding. sync() seats a fresh camera's angles before the first frame.</caption>
+ * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const look = canvasHost.look(cam, { sens: 0.005, roll: 'secondary' })
+ * look.sync()                                  // seat the angles on the camera it inherits
+ * let last = 0
+ *
+ * function frame(ms) {
+ *   const dt = last ? Math.min((ms - last) / 1000, 0.05) : 0
+ *   last = ms
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   look.update(dt)                            // the caller's dt, never a clock the look reads
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * Consume this frame's pointer input into the look's angles and write the sink; call every frame before the camera is installed.
+ * @function update
+ * @memberof Look
+ * @param {number} dt  Seconds since the last update — required, finite and ≥ 0; 0 means no time passed, so nothing coasts while the bookkeeping and the recomposition still run.
+ * @returns {boolean} Whether the pose moved — by the gesture, by the drain, or by the frame itself, the sink being recomposed under a moved parent.
+ * @example
+ * <caption>Drag to look: the grid is yellow on a frame update() reports the pose moved — the drag, or the tail it leaves after a release — and white when it did not.</caption>
+ * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const look = canvasHost.look(cam, { damping: 0.2 })
+ * look.sync()
+ * let last = 0
+ *
+ * function frame(ms) {
+ *   const dt = last ? Math.min((ms - last) / 1000, 0.05) : 0
+ *   last = ms
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   const moved = look.update(dt)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: moved ? [1, 0.82, 0.4, 1] : [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
+ *   canvasHost.pointer.flush()
+ *   requestAnimationFrame(frame)
+ * }
+ * requestAnimationFrame(frame)
+ */
+
+/**
+ * Re-seat the look's angles from the sink's own orientation: the handover's step.
+ * @function sync
+ * @memberof Look
+ * @returns {object} The look.
+ * @example
+ * <caption>Press L to hand the camera from the orbit to the look and back: the outgoing writer is disabled and flushed, and the incoming one seats its angles with sync().</caption>
+ * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
+ *
+ * const gl = createCanvas(400, 300)
+ * const canvas = gl.canvas
+ * const canvasHost = host.createHost(canvas)
+ * init(gl, { host: canvasHost })
+ * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
+ * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam, { damping: 0 })
+ * const look = canvasHost.look(cam, { damping: 0 })
+ * look.enabled = false
+ * look.sync()
+ * let looking = false
+ *
+ * window.addEventListener('keydown', (e) => {
+ *   if (e.key !== 'l') return
+ *   if (looking) {
+ *     look.enabled = false
+ *     orbit.enabled = true
+ *   } else {
+ *     orbit.enabled = false
+ *     orbit.update(0)                          // the outgoing writer's own frame
+ *     canvasHost.pointer.flush()
+ *     look.sync()                              // the incoming writer seats on the inherited camera
+ *     look.enabled = true
+ *   }
+ *   looking = !looking
+ * })
+ * let last = 0
+ *
+ * function frame(ms) {
+ *   const dt = last ? Math.min((ms - last) / 1000, 0.05) : 0
+ *   last = ms
+ *   gl.enable(gl.DEPTH_TEST)
+ *   gl.clearColor(0.039, 0.216, 0.314, 1)
+ *   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+ *   if (looking) look.update(dt)
+ *   else orbit.update(dt)
+ *   setCamera(gl, cam)
+ *   grid(gl, { M: ground, size: 100, subdivisions: 10, color: [1, 1, 1, 1] })
+ *   axes(gl, { size: 50 })
  *   canvasHost.pointer.flush()
  *   requestAnimationFrame(frame)
  * }

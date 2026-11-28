@@ -51,7 +51,7 @@
     "twgl.js": ">=5.5.4"
   },
   "dependencies": {
-    "@nakednous/host": "^0.0.15",
+    "@nakednous/host": "^0.0.16",
     "@nakednous/idiom": "^0.0.14",
     "@nakednous/tree": "^0.0.36"
   },

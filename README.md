@@ -68,7 +68,7 @@ surface ([source](https://github.com/nakednous/webgpu.tree)).
       ▼
   webgl.tree                  ← this package: the GPU, thinly
       │
-      ├── @nakednous/host     ← pointer, handles, players, streams, media, labels, orbit
+      ├── @nakednous/host     ← pointer, handles, players, streams, media, labels, orbit, look
       │
       ├── @nakednous/tree     ← math, spaces, animation, visibility, gizmo generators
       │
@@ -169,7 +169,7 @@ twgl sets the viewport on bind and every bridge call reads it back.
 | gizmo arrays | tree → bridge | the generators write the bridge's cached arrays; the returned count sizes the buffer, grown when exceeded |
 | label anchors | tree → `idiom` → host | [`helmRig`][helmRig]'s `identify` anchors: the layer takes each to world space and states its id (`<cache name>:<index>`), and the bridge hands it to `host.labels` as a one-frame label |
 | uniforms bag | [ui](https://github.com/nakednous/ui) → bridge | a panel's target writes `u*` names; [`bind(gl, prog, bag)`][bind] reads them |
-| camera state | tree ↔ host ↔ bridge | plain data: a track, a helm, the orbit write it; the bridge only reads it |
+| camera state | tree ↔ host ↔ bridge | plain data: a track, a helm, the orbit and the look write it; the bridge only reads it |
 | the layer | bridge → `@nakednous/idiom` | the backend's twenty-five members and four conventions; every composite takes the context record, never `gl` |
 | id program | application → bridge | [`pick`][pick]'s `opts.program` for a displaced surface; `paint` sets its `uColor` |
 

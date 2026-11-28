@@ -802,7 +802,48 @@
  */
 
 /**
- * A look: the pointer-driven first-person driver — an orientation and only an orientation.
+ * A look: the pointer-driven first-person driver — a rotation, nothing else.
+ *
+ * A look turns a view and moves nothing. The eye, the gaze distance, the lens,
+ * and near and far stay the camera's.
+ *
+ * It writes one of two targets. A camera state receives its orientation at the
+ * current gaze distance. A mutable eye matrix receives E = B·R. Its translation
+ * column stays the frame's.
+ *
+ * `frame` names the basis the angles are authored in: WORLD (the identity), a
+ * matrix, or a function returning one, sampled once per update. EYE and SELF
+ * are refused.
+ *
+ * Two mappings share one rotation state. `'delta'` turns by radians per pixel,
+ * 0.005 unless `sens` says otherwise. `'absolute'` seats a view under an
+ * unclaimed hover inside `rect` at radians per normalized half-axis. `sens` is
+ * required there and reported when omitted.
+ *
+ * `update(dt)` takes the caller's dt and reads no clock. 0 means no time
+ * passed. `sync()` re-reads the target and the frame, clears pending input and
+ * rates, and does not level a roll. `home()` returns to the frame's identity
+ * rotation, and keeps the lens and the gaze distance.
+ *
+ * `damping` is 0 by default: a look is a placement and not a flick. The orbit's
+ * gestures inherit `host.damping`. Absolute input rejects a positive damping.
+ *
+ * Handing over takes four lines. The outgoing writer stops on its own frame.
+ * The pointer is flushed. The incoming look seats on the camera with `sync()`
+ * before it is enabled.
+ *
+ * ```
+ * orbit.enabled = false       // stop the outgoing writer, or dispose it
+ * orbit.update(0)             // its own frame, with no time passed
+ * canvasHost.pointer.flush()  // the presses the writer left unclaimed
+ * look.sync()                 // the incoming look seats on the camera
+ * ```
+ *
+ * One enabled writer per button: a look's `roll: 'secondary'` and an orbit's
+ * `panButton: 2` answer the same press and cannot be live together.
+ * Registration order is not arbitration.
+ *
+ * `roll: 'secondary'` is a prototype binding, proposed and not ruled.
  * @function look
  * @memberof Host
  * @param {object|ArrayLike<number>} target  A camera state ({ eye, center, up }) whose orientation alone is written — its eye, gaze distance, lens, near and far stay — or a mutable 16-float eye matrix receiving E = B·R.
@@ -821,7 +862,7 @@
  * @param {boolean} [opts.enabled=true]
  * @returns {Look}
  * @example
- * <caption>Drag to look: the view turns about the eye, the gaze distance and lens held; the secondary drag rolls, a prototype binding. sync() seats a fresh camera's angles before the first frame.</caption>
+ * <caption>Drag to look: the view turns about the eye, the gaze distance and lens held, and the secondary drag rolls. The orbit answers that same button, so the figure registers it and disables it — a button has one enabled writer.</caption>
  * const { createCanvas, init, setCamera, axes, grid, tree, host } = webglTree
  *
  * const gl = createCanvas(400, 300)
@@ -830,7 +871,9 @@
  * init(gl, { host: canvasHost })
  * const ground = tree.mat4FromTRS(tree.mat4(), 0, 0, 0, ...tree.qFromAxisAngle(tree.quat(), 1, 0, 0, -Math.PI / 2), 1, 1, 1)
  * const cam = tree.createCamera({ eye: [0, 150, 300] })
+ * const orbit = canvasHost.orbit(cam, { panButton: 2 })
  * const look = canvasHost.look(cam, { sens: 0.005, roll: 'secondary' })
+ * orbit.enabled = false                        // one enabled writer per button
  * look.sync()                                  // seat the angles on the camera it inherits
  * let last = 0
  *
